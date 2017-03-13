@@ -1,0 +1,132 @@
+/-
+Copyright (c) 2017 Daniel Selsam. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Daniel Selsam
+
+Example programs.
+-/
+import .tensor .graph  .compute_grad .reparam .kl .program library_dev_extras.util .run_utils
+
+namespace certigrad
+namespace examples
+open list
+
+def xavier_init : Π (shape : S), state RNG (T shape)
+| [] := return 0
+| shape :=
+  let low  :ℝ := - T.sqrt ((6 : ℝ) / (T.of_nat $ sumr shape)),
+      high :ℝ :=   T.sqrt ((6 : ℝ) / (T.of_nat $ sumr shape))
+  in
+    T.sample_uniform shape low high
+
+def sample_initial_weights : Π (refs : list reference), state RNG (dvec T refs.p2)
+| []          := return ⟦⟧
+| (ref::refs) := sample_initial_weights refs >>= λ ws, xavier_init ref.2 >>= λ w, return (w ::: ws)
+
+open certigrad.program certigrad.program.statement
+     certigrad.program.term certigrad.program.rterm
+     list io
+
+namespace aevb
+
+structure arch : Type := (bs n_x n_in nz ne nd : ℕ)
+def mk_arch (bs n nz nh : ℕ) : arch := ⟨bs, n /- 55,000 -/, 784, nz, nh, nh⟩
+
+def prog_naive (p : arch) (x_data : T [p.n_in, p.n_x]) : program :=
+[
+input "bstart" [],
+param "he" [p.ne, p.n_in],
+param "hem" [p.nz, p.ne],
+param "hels2" [p.nz, p.ne],
+param "hd" [p.nd, p.nz],
+param "hg" [p.n_in, p.nd],
+
+assign "x" $ get_col_range (const x_data) "bstart" p.bs,
+assign "eh" $ softplus (gemm "he" "x"),
+assign "μ" $ gemm "hem" "eh",
+assign "σ" $ sqrt (exp (gemm "hels2" "eh")),
+sample "z" $ mvn_iso "μ" "σ",
+assign "eloss" $ mvn_iso_empirical_kl "μ" "σ" "z",
+assign "g" $ sigmoid (gemm  "hg" (softplus (gemm "hd" "z"))),
+assign "dloss" $ bernoulli_neglogpdf "g" "x",
+
+cost "eloss",
+cost "dloss"
+]
+
+def prog_full_1layer (p : arch) (x_data : T [p.n_in, p.n_x]) : program :=
+[
+input "bstart" [],
+param "he" [p.ne, p.n_in],
+param "hem" [p.nz, p.ne],
+param "hels2" [p.nz, p.ne],
+param "hd" [p.nd, p.nz],
+param "hg" [p.n_in, p.nd],
+
+assign "x" $ get_col_range (const x_data) "bstart" p.bs,
+assign "eh" $ softplus (gemm "he" "x"),
+assign "μ" $ gemm "hem" "eh",
+assign "σ₂" $ exp (gemm "hels2" "eh"),
+assign "σ" $ sqrt "σ₂",
+
+sample "ε" $ mvn_iso_std [p.nz, p.bs],
+assign "eloss" $ mvn_iso_kl "μ" "σ",
+
+assign "z" $ term.id "ε" * "σ" + "μ",
+assign "g" $ sigmoid (gemm  "hg" (softplus (gemm "hd" "z"))),
+
+assign "dloss" $ bernoulli_neglogpdf "g" "x",
+assign "loss" $ term.id "eloss" + "dloss",
+
+cost "loss"
+]
+
+def prog_full_2layer (p : arch) (x_data : T [p.n_in, p.n_x]) : program :=
+[
+input "bstart" [],
+param "he₁" [p.ne, p.n_in],
+param "he₂" [p.ne, p.ne],
+param "hem" [p.nz, p.ne],
+param "hels2" [p.nz, p.ne],
+param "hd₁" [p.nd, p.nz],
+param "hd₂" [p.nd, p.nd],
+param "hg" [p.n_in, p.nd],
+
+assign "x" $ get_col_range (const x_data) "bstart" p.bs,
+assign "eh" $ softplus (gemm "he₂" (softplus (gemm "he₁" "x"))),
+assign "μ" $ gemm "hem" "eh",
+assign "σ₂" $ exp (gemm "hels2" "eh"),
+assign "σ" $ sqrt "σ₂",
+
+sample "ε" $ mvn_iso_std [p.nz, p.bs],
+assign "eloss" $ mvn_iso_kl "μ" "σ",
+
+assign "z" $ term.id "ε" * "σ" + "μ",
+assign "g" $ sigmoid (gemm  "hg" (softplus (gemm "hd₂" (softplus (gemm "hd₁" "z"))))),
+
+assign "dloss" $ bernoulli_neglogpdf "g" "x",
+assign "loss" $ term.id "eloss" + "dloss",
+
+cost "loss"
+]
+
+namespace graph
+
+def naive (p : arch) (x_data : T [p.n_in, p.n_x]) : graph := program_to_graph (prog_naive p x_data)
+
+def kl (p : arch) (x_data : T [p.n_in, p.n_x]) : graph :=
+let g := graph.naive p x_data in
+⟨integrate_mvn_iso_kl g.costs.head g.nodes, g.costs, g.targets, g.inputs⟩
+
+def final (p : arch) (x_data : T [p.n_in, p.n_x]) : graph :=
+let g := graph.kl p x_data in
+⟨reparameterize "ε" g.nodes, g.costs, g.targets, g.inputs⟩
+
+def full_1layer (p : arch) (x_data : T [p.n_in, p.n_x]) : graph := program_to_graph (prog_full_1layer p x_data)
+def full_2layer (p : arch) (x_data : T [p.n_in, p.n_x]) : graph := program_to_graph (prog_full_2layer p x_data)
+
+end graph
+
+end aevb
+end examples
+end certigrad

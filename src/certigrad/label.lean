@@ -12,7 +12,7 @@ namespace certigrad
 inductive label : Type
 | default
 | batch_start
-| W_encode, h_encode, W_encode_μ, W_encode_log_σ₂
+| W_encode, h_encode, W_encode_μ, W_encode_logσ₂
 | W_decode, h_decode, W_decode_p
 | μ, σ, σ₂, log_σ₂, z, encoding_loss, decoding_loss, ε, x, p
 
@@ -26,7 +26,7 @@ def to_str : label → string
 | W_encode := "W_encode"
 | h_encode := "h_encode"
 | W_encode_μ := "W_encode_μ"
-| W_encode_log_σ₂ := "W_encode_log_σ₂"
+| W_encode_logσ₂ := "W_encode_logσ₂"
 | W_decode := "W_decode"
 | h_decode := "h_decode"
 | W_decode_p := "W_decode_p"
@@ -49,7 +49,7 @@ def to_nat : label → ℕ
 | W_encode := 2
 | h_encode := 3
 | W_encode_μ := 4
-| W_encode_log_σ₂ := 5
+| W_encode_logσ₂ := 5
 | W_decode := 6
 | h_decode := 7
 | W_decode_p := 8

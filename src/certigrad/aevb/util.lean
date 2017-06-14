@@ -5,22 +5,27 @@ Author: Daniel Selsam
 
 Utilities for the AEVB model.
 -/
-import ..tensor
+import ..tensor ..graph ..env
 
 namespace certigrad
 namespace aevb
 
-structure aevb_arch : Type := (bs n_x n_in nz ne nd : ℕ)
+structure arch : Type := (bs n_x n_in nz ne nd : ℕ)
 
-def weights (arch : aevb_arch) : Type :=
-  dvec T [[], [arch^.ne, arch^.n_in], [arch^.nz, arch^.ne], [arch^.nz, arch^.ne], [arch^.nd, arch^.nz], [arch^.n_in, arch^.nd]]
+structure weights (a : arch) : Type :=
+  (batch_start : ℝ)
+  (W_encode : T [a^.ne, a^.n_in])
+  (W_encode_μ W_encode_logσ₂ : T [a^.nz, a^.ne])
+  (W_decode : T [a^.nd, a^.nz])
+  (W_decode_p : T [a^.n_in, a^.nd])
 
-def mk_weights (arch : aevb_arch)
-               (bstart : ℝ)
-               (he : T [arch^.ne, arch^.n_in])
-               (he_μ he_logσ₂: T [arch^.nz, arch^.ne])
-               (hd : T [arch^.nd, arch^.nz])
-               (hd_γ : T [arch^.n_in, arch^.nd]) : weights arch := ⟦bstart, he, he_μ, he_logσ₂, hd, hd_γ⟧
+section label
+open certigrad.label
+def mk_input_dict : Π {a : arch} (ws : weights a) (g : graph), env
+| a ws g := env.insert_all [(batch_start, []), (W_encode, [a^.ne, a^.n_in]), (W_encode_μ, [a^.nz, a^.ne]), (W_encode_logσ₂, [a^.nz, a^.ne]),
+                            (W_decode, [a^.nd, a^.nz]), (W_decode_p, [a^.n_in, a^.nd])]
+                           ⟦ws^.batch_start, ws^.W_encode, ws^.W_encode_μ, ws^.W_encode_logσ₂, ws^.W_decode, ws^.W_decode_p⟧
+end label
 
 end aevb
 end certigrad

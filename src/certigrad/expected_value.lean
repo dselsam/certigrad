@@ -418,7 +418,6 @@ simp only [λ x_1, E_k_add (λ m, k m x) (λ m, sumr (map (k m) xs)) (env.insert
 split,
 exact (iff.mpr (T.is_integrable_add_middle _ _ _) H_ints^.left)^.left,
 apply IHxs,
-dsimp,
 split,
 exact (iff.mpr (T.is_integrable_add_middle _ _ _) H_ints^.left)^.right,
 intro y,

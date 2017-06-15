@@ -380,7 +380,6 @@ intro y,
 cases y with ignore y ignore dnil,
 cases dnil,
 dunfold dvec.head,
-dsimp,
 
 assert H_get_ks_next_inputs : env.get_ks parents (next_inputs y) = env.get_ks parents inputs,
   begin dsimp, rw (env.get_ks_insert_diff H_ref_notin_parents) end,

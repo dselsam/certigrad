@@ -154,8 +154,6 @@ exact H_gint₁^.left
 
 {
 intro x,
-dsimp [is_gintegrable] at H_gint₁,
-dsimp [is_gintegrable],
 apply is_gintegrable_k_congr _ _ _ (env.nodup_insert H_nodup) (graph.envs_match_helper k₁ k₂ _ _ _ _ H_nodup H_k_eq) (H_gint₁^.right x)
 }
 

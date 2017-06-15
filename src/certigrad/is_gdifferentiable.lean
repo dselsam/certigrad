@@ -46,7 +46,6 @@ apply T.is_cdifferentiable_binary (λ θ₁ θ₂, E (graph.to_dist (λ (m : env
 { -- case 1, simple recursive case
 dsimp,
 simp only [λ (x : T ref.2) (θ : T tgt.2), env.insert_insert_flip x θ inputs (ne.symm H_tgt_neq_ref)],
-dsimp [dvec.head],
 simp only [env.insert_get_same],
 simp only [H_can_insert] at H_pdiff_tgt,
 exact H_pdiff_tgt
@@ -55,7 +54,6 @@ exact H_pdiff_tgt
 -- start case 2
 dsimp,
 simp only [λ (x : T ref.2) (θ : T tgt.2), env.insert_insert_flip x θ inputs (ne.symm H_tgt_neq_ref)],
-dsimp [dvec.head],
 
 apply T.is_cdifferentiable_multiple_args _ _ _ op^.f _ (λ (x' : T ref.snd),
        E
@@ -290,7 +288,6 @@ intros idx H_idx_in_riota H_tgt_eq_dnth_idx,
 assertv H_tgt_at_idx : at_idx parents idx tgt := ⟨in_riota_lt H_idx_in_riota, H_tgt_eq_dnth_idx⟩,
 assertv H_tshape_at_idx : at_idx parents^.p2 idx tgt.2 := at_idx_p2 H_tgt_at_idx,
 assertv H_tgt_in_parents : tgt ∈ parents := mem_of_at_idx H_tgt_at_idx,
-dsimp,
 assertv H_gs_exist_ref : grads_exist_at nodes next_inputs ref := (H_gs_exist^.right H_tgt_in_parents)^.right,
 apply is_gdifferentiable_of_pre ref next_inputs nodes H_wfs^.right H_gs_exist_ref H_pdfs_exist_next (H_diff_under_int^.right H_tgt_in_parents),
 end,
@@ -371,7 +368,6 @@ dsimp [dvec.head],
 
 intro y,
 apply iff.mp (T.is_cdifferentiable_fscale _ _ _),
-dsimp [dvec.head],
 
 note H_pdf_cdiff := @rand.op.pdf_cdiff _ _ op (env.get_ks parents inputs) y idx tgt.2 H_tshape_at_idx H_pdfs_exist^.left,
 dsimp [rand.pdf_cdiff] at H_pdf_cdiff,

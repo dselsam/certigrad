@@ -30,6 +30,10 @@ simp only with cgsimp,
 end
 -/
 @[cgsimp] lemma simp_label (x : label): (lift_t x : ID) = (ID.str x : ID) := rfl
+@[cgsimp] lemma label_of (x y : label) : (ID.str x = ID.str y) = (x = y) := sorry
+
+@[cgsimp] lemma eq_of_self_eq {α : Type*} (x : α) : (x = x) = true := sorry
+@[cgsimp] lemma prove_neq {α : Type*} (x y : α) : x ≠ y → x ≠ y := sorry
 
 @[cgsimp] lemma true_of_in_nil {α : Type*} (P : Prop) (x : α) : (x ∈ @list.nil α → P) = true := sorry
 @[cgsimp] lemma true_of_in_nil_alt {α : Type*} (P : α → Prop) (x : α) : (x ∈ @list.nil α → P x) = true := sorry
@@ -134,18 +138,11 @@ meta def gsimpt (tac : tactic unit) : tactic unit := do
 
 meta def cgsimpt (tac : tactic unit) : tactic unit := do
   s ← join_user_simp_lemmas tt [`cgsimp],
-  repeat $
-  (dsimp_core s)
-  <|>
-  gsimpt tac
-  <|>
-  reflexivity
-  <|>
-  triv
+  repeat $ first [dsimp_core s, gsimpt tac, dec_triv]
 
 meta def cgsimpn : ℕ → tactic unit
 | 0 := cgsimpt skip
-| (n+1) := cgsimpt (dec_triv <|> cgsimpn n)
+| (n+1) := cgsimpt (cgsimpn n)
 
 meta def cgsimp : tactic unit := cgsimpn 5
 

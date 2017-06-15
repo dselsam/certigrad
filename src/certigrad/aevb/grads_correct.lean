@@ -74,11 +74,20 @@ all_goals { cgsimp }
 end
 -/
 
-lemma g_final_grads_exist_at_he : grads_exist_at g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) :=
-begin
---apply grads_exist_at_of_all_pre,
-cgsimp
-end
+lemma g_final_grads_exist_at_he : grads_exist_at g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) := sorry -- by cgsimp
+-- TODO(dhs): I don't know if this works or not, it takes freaking forever
+
+
+lemma g_final_is_gintegrable_he :
+  is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_encode, [a^.ne, a^.n_in])⟧)
+                 fdict g^.nodes dvec.head := sorry -- by cgsimp
+-- TODO(dhs): I don't know if this works or not, it takes freaking forever
+
+lemma g_final_diff_under_int_hem :
+  can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_encode, [a^.nz, a^.ne]) := sorry -- by cgsimp
+-- TODO(dhs): I don't know if this works or not, it takes freaking forever
+
+
 
 end proofs
 

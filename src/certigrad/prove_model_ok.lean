@@ -30,6 +30,7 @@ simp only with cgsimp,
 end
 -/
 @[cgsimp] lemma simp_label (x : label): (lift_t x : ID) = (ID.str x : ID) := rfl
+@[cgsimp] lemma simp_id_nat (n : ℕ) : (lift_t n : ID) = (ID.nat n : ID) := rfl
 @[cgsimp] lemma label_of (x y : label) : (ID.str x = ID.str y) = (x = y) := sorry
 
 @[cgsimp] lemma eq_of_self_eq {α : Type*} (x : α) : (x = x) = true := sorry
@@ -39,7 +40,7 @@ end
 @[cgsimp] lemma true_of_in_nil_alt {α : Type*} (P : α → Prop) (x : α) : (x ∈ @list.nil α → P x) = true := sorry
 @[cgsimp] lemma and_true_left {P : Prop} : (true ∧ P) = P := sorry
 @[cgsimp] lemma and_true_right {P : Prop} : (P ∧ true) = P := sorry
-@[cgsimp] lemma true_of_imp_true {α : Type*} : (α → true) = true := sorry
+@[cgsimp] lemma true_of_imp_true {α : Sort*} : (α → true) = true := sorry
 
 @[cgsimp] lemma false_of_cons_eq_nil {α : Type*} {x : α} {xs : list α} : (list.cons x xs = list.nil) = false := sorry
 
@@ -72,6 +73,9 @@ end
 @[cgsimp] lemma simp_sigmoid_pos {shape : S} : ∀ {x : T shape}, (0 < sigmoid x) = true := sorry
 @[cgsimp] lemma simp_sigmoid_lt1 {shape : S} : ∀ {x : T shape}, (sigmoid x < 1) = true := sorry
 
+@[cgsimp] lemma ite_prove_pos {α : Type*} (P : Prop) [decidable P] (x y : α) : P → ite P x y = x := sorry
+@[cgsimp] lemma ite_prove_neg {α : Type*} (P : Prop) [decidable P] (x y : α) : (¬ P) → ite P x y = y := sorry
+
 -- TODO(dhs): weird lemma
 @[cgsimp] lemma simp_one_plus_pos {shape : S} : ∀ {x : T shape}, 0 < 1 + x = (0 < x ∨ - 1 < x) := sorry
 
@@ -91,7 +95,7 @@ attribute [cgsimp] integrate_kl integrate_mvn_iso_kl integrate_kl_pre integrate_
 attribute [cgsimp] reparam reparameterize reparameterize_pre
 
 attribute [cgsimp] all_parents_in_env all_costs_scalars grads_exist_at pdfs_exist_at
-                  is_gintegrable is_nabla_gintegrable is_gdifferentiable can_differentiate_under_integrals
+                   is_gintegrable is_nabla_gintegrable is_gdifferentiable can_differentiate_under_integrals
 
 attribute [cgsimp] graph.to_dist operator.to_dist sum_costs compute_grad_slow
 
@@ -107,7 +111,10 @@ attribute [cgsimp] rand.op.pdf rand.pdf.mvn_iso rand.pdf.mvn_iso_std
                   rand.op.pre rand.op.mvn_iso rand.op.mvn_iso_std rand.pre.mvn_iso rand.pre.mvn_iso_std
 
 attribute [cgsimp] env.get_ks env.insert_all env.get_insert_same env.get_insert_diff
-                  env.simp_has_key_insert_same env.simp_has_key_insert_diff env.simp_has_key_empty
+                   env.simp_has_key_insert_same env.simp_has_key_insert_diff env.simp_has_key_empty
+                   env.simp_keys_nil env.simp_keys_cons
+
+attribute [cgsimp] list.insertion_sort list.ordered_insert
 
 attribute [cgsimp] program_to_graph program.program_to_graph_core
                   program.unary_to_cwise1 program.binary_to_cwise2 program.get_id

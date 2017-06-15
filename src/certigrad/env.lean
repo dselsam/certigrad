@@ -123,6 +123,15 @@ lemma simp_has_key_insert_diff (ref₁ ref₂ : reference) {x : T ref₂.2} (m :
 
 lemma simp_has_key_empty (ref : reference) : has_key ref env.mk = false := sorry
 
+lemma simp_keys_nil : env.keys env.mk = [] := rfl
+
+-- TODO(dhs): when I switch to hash-maps, this will be a little different
+lemma simp_keys_cons (ref : reference) (x : T ref.2) (m : env) : env.keys (env.insert ref x m) =
+list.insertion_sort has_lt.lt (ref :: env.keys m) := sorry
+
+
+
+
 end simp_lemmas
 
 end env

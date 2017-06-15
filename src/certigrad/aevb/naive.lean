@@ -47,20 +47,20 @@ open det det.cwise1 det.cwise2 det.special rand.op label certigrad.tactic
 
 @[cgsimp] def graph_naive : Π (a : arch) (x_data : T [a^.n_in, a^.n_x]), graph
 | a x_data :=
-graph.mk [⟨(0, [a^.n_in, a^.n_x]), [], operator.det $ op.const x_data⟩,
-          ⟨(x, [a^.n_in, a^.bs]), [(0, [a^.n_in, a^.n_x]), (batch_start, [])], operator.det $ op.special $ get_col_range _ _ _⟩,
-          ⟨(2, [a^.ne, a^.bs]), [(W_encode, [a^.ne, a^.n_in]), (x, [a^.n_in, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
-          ⟨(h_encode, [a^.ne, a^.bs]), [(2, [a^.ne, a^.bs])], operator.det $ op.unary $ softplus⟩,
+graph.mk [⟨(ID.nat 0, [a^.n_in, a^.n_x]), [], operator.det $ op.const x_data⟩,
+          ⟨(x, [a^.n_in, a^.bs]), [(ID.nat 0, [a^.n_in, a^.n_x]), (batch_start, [])], operator.det $ op.special $ get_col_range _ _ _⟩,
+          ⟨(ID.nat 2, [a^.ne, a^.bs]), [(W_encode, [a^.ne, a^.n_in]), (x, [a^.n_in, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
+          ⟨(h_encode, [a^.ne, a^.bs]), [(ID.nat 2, [a^.ne, a^.bs])], operator.det $ op.unary $ softplus⟩,
           ⟨(μ, [a^.nz, a^.bs]), [(W_encode_μ, [a^.nz, a^.ne]), (h_encode, [a^.ne, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
-          ⟨(5, [a^.nz, a^.bs]), [(W_encode_logσ₂, [a^.nz, a^.ne]), (h_encode, [a^.ne, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
-          ⟨(6, [a^.nz, a^.bs]), [(5, [a^.nz, a^.bs])], operator.det $ op.unary exp⟩,
-          ⟨(σ, [a^.nz, a^.bs]), [(6, [a^.nz, a^.bs])], operator.det $ op.unary sqrt⟩,
+          ⟨(ID.nat 5, [a^.nz, a^.bs]), [(W_encode_logσ₂, [a^.nz, a^.ne]), (h_encode, [a^.ne, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
+          ⟨(ID.nat 6, [a^.nz, a^.bs]), [(ID.nat 5, [a^.nz, a^.bs])], operator.det $ op.unary exp⟩,
+          ⟨(σ, [a^.nz, a^.bs]), [(ID.nat 6, [a^.nz, a^.bs])], operator.det $ op.unary sqrt⟩,
           ⟨(z, [a^.nz, a^.bs]), [(μ, [a^.nz, a^.bs]), (σ, [a^.nz, a^.bs])], operator.rand $ mvn_iso _⟩,
           ⟨(encoding_loss, []), [(μ, [a^.nz, a^.bs]), (σ, [a^.nz, a^.bs]), (z, [a^.nz, a^.bs])], operator.det $ op.mvn_iso_empirical_kl _⟩,
-          ⟨(10, [a^.nd, a^.bs]), [(W_decode, [a^.nd, a^.nz]), (z, [a^.nz, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
-          ⟨(11, [a^.nd, a^.bs]), [(10, [a^.nd, a^.bs])], operator.det $ op.unary $ softplus⟩,
-          ⟨(12, [a^.n_in, a^.bs]), [(W_decode_p, [a^.n_in, a^.nd]), (11, [a^.nd, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
-          ⟨(p, [a^.n_in, a^.bs]), [(12, [a^.n_in, a^.bs])], operator.det $ op.unary $ sigmoid⟩,
+          ⟨(ID.nat 10, [a^.nd, a^.bs]), [(W_decode, [a^.nd, a^.nz]), (z, [a^.nz, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
+          ⟨(ID.nat 11, [a^.nd, a^.bs]), [(ID.nat 10, [a^.nd, a^.bs])], operator.det $ op.unary $ softplus⟩,
+          ⟨(ID.nat 12, [a^.n_in, a^.bs]), [(W_decode_p, [a^.n_in, a^.nd]), (ID.nat 11, [a^.nd, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
+          ⟨(p, [a^.n_in, a^.bs]), [(ID.nat 12, [a^.n_in, a^.bs])], operator.det $ op.unary $ sigmoid⟩,
           ⟨(decoding_loss, []), [(p, [a^.n_in, a^.bs]), (x, [a^.n_in, a^.bs])], operator.det $ op.special $ bernoulli_neglogpdf _⟩]
          [encoding_loss, decoding_loss]
          [(W_encode, [a^.ne, a^.n_in]), (W_encode_μ, [a^.nz, a^.ne]), (W_encode_logσ₂, [a^.nz, a^.ne]),

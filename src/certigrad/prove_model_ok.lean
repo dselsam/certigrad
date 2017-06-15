@@ -29,6 +29,7 @@ simp only with cgsimp,
 
 end
 -/
+@[cgsimp] lemma simp_label (x : label): (lift_t x : ID) = (ID.str x : ID) := rfl
 
 @[cgsimp] lemma true_of_in_nil {α : Type*} (P : Prop) (x : α) : (x ∈ @list.nil α → P) = true := sorry
 @[cgsimp] lemma true_of_in_nil_alt {α : Type*} (P : α → Prop) (x : α) : (x ∈ @list.nil α → P x) = true := sorry
@@ -82,7 +83,7 @@ attribute [cgsimp] zero_add add_zero
 
 attribute [cgsimp] dvec.head dvec.head2 dvec.head3
 
-attribute [cgsimp] integrate_mvn_iso_kl reparameterize
+attribute [cgsimp] integrate_kl integrate_mvn_iso_kl integrate_kl_pre integrate_mvn_iso_kl_pre reparameterize
 
 attribute [cgsimp] all_parents_in_env all_costs_scalars grads_exist_at pdfs_exist_at
                   is_gintegrable is_nabla_gintegrable is_gdifferentiable can_differentiate_under_integrals
@@ -121,11 +122,8 @@ attribute [cgsimp] program_to_graph program.program_to_graph_core
 namespace tactic
 open tactic
 
-meta def cgsimpt (tac : tactic unit) : tactic unit := do
+meta def gsimpt (tac : tactic unit) : tactic unit := do
   s ← join_user_simp_lemmas tt [`cgsimp],
-  repeat $
-  (dsimp_core s)
-  <|>
   (at_target (λ e, do (a, new_e, pf) ← ext_simplify_core () {} s
                                                         (λ u, failed)
                                                         (λ a s r p e, failed)
@@ -133,6 +131,13 @@ meta def cgsimpt (tac : tactic unit) : tactic unit := do
                                                                          return ((), new_e, pr, tt))
                                                         `eq e,
                      return (new_e, pf)))
+
+meta def cgsimpt (tac : tactic unit) : tactic unit := do
+  s ← join_user_simp_lemmas tt [`cgsimp],
+  repeat $
+  (dsimp_core s)
+  <|>
+  gsimpt tac
   <|>
   reflexivity
   <|>

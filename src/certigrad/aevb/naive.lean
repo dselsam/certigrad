@@ -9,7 +9,7 @@ import ..program ..prove_model_ok .util
 
 namespace certigrad
 namespace aevb
-
+/-
 section program
 open certigrad.program certigrad.program.statement certigrad.program.term certigrad.program.rterm list label
 
@@ -40,13 +40,13 @@ end program
 
 @[cgsimp] def graph_naive : Π (a : arch) (x_data : T [a^.n_in, a^.n_x]), graph
 | a x_data := program_to_graph (prog_naive a x_data)
-
+-/
 section nodes
 
 open det det.cwise1 det.cwise2 det.special rand.op label certigrad.tactic
 
-lemma build_graph.unfold (a : arch) (x_data : T [a^.n_in, a^.n_x]) :
-graph_naive a x_data =
+@[cgsimp] def graph_naive : Π (a : arch) (x_data : T [a^.n_in, a^.n_x]), graph
+| a x_data :=
 graph.mk [⟨(0, [a^.n_in, a^.n_x]), [], operator.det $ op.const x_data⟩,
           ⟨(x, [a^.n_in, a^.bs]), [(0, [a^.n_in, a^.n_x]), (batch_start, [])], operator.det $ op.special $ get_col_range _ _ _⟩,
           ⟨(2, [a^.ne, a^.bs]), [(W_encode, [a^.ne, a^.n_in]), (x, [a^.n_in, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
@@ -66,7 +66,7 @@ graph.mk [⟨(0, [a^.n_in, a^.n_x]), [], operator.det $ op.const x_data⟩,
          [(W_encode, [a^.ne, a^.n_in]), (W_encode_μ, [a^.nz, a^.ne]), (W_encode_logσ₂, [a^.nz, a^.ne]),
           (W_decode, [a^.nd, a^.nz]), (W_decode_p, [a^.n_in, a^.nd])]
          [(batch_start, []), (W_encode, [a^.ne, a^.n_in]), (W_encode_μ, [a^.nz, a^.ne]),
-          (W_encode_logσ₂, [a^.nz, a^.ne]), (W_decode, [a^.nd, a^.nz]), (W_decode_p, [a^.n_in, a^.nd])] := sorry
+          (W_encode_logσ₂, [a^.nz, a^.ne]), (W_decode, [a^.nd, a^.nz]), (W_decode_p, [a^.n_in, a^.nd])]
 -- TODO(dhs): the following works (as of this writing) but is slow
 -- by cgsimp
 

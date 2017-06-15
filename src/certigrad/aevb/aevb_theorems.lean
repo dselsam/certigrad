@@ -7,6 +7,7 @@ Proof that Certigrad is correct on a specific autoencoding variational Bayes (AE
 
 Warning: this file is very slow to compile.
 -/
+#exit
 import system.io .tensor .compute_grad .graph .tvec .optim .run_utils .expected_value .reparam .kl .tfacts .backprop_correct .env .aevb_tactics .program
 
 -- set_option class.instance_max_depth 5000

@@ -71,6 +71,7 @@ end
 
 @[cgsimp] lemma simp_nneg_of_pos {shape : S} : ∀ {x : T shape}, 0 ≠ x = (0 < x ∨ 0 = x) := sorry
 
+@[cgsimp] lemma simp_one_pos {shape : S} : (0 < (1 : T shape)) = true := sorry
 @[cgsimp] lemma simp_sigmoid_pos {shape : S} : ∀ {x : T shape}, (0 < sigmoid x) = true := sorry
 @[cgsimp] lemma simp_sigmoid_lt1 {shape : S} : ∀ {x : T shape}, (sigmoid x < 1) = true := sorry
 

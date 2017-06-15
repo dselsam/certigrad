@@ -16,7 +16,6 @@ inductive ID : Type
 namespace ID
 
 instance coe_label_to_ID : has_coe label ID := ⟨ID.str⟩
-instance coe_nat_to_ID : has_coe ℕ ID := ⟨ID.nat⟩
 
 instance : decidable_eq ID := by tactic.mk_dec_eq_instance
 instance : inhabited ID := ⟨label.default⟩

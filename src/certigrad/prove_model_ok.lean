@@ -13,8 +13,9 @@ import .tfacts .graph .predicates .expected_value .reparam .kl .tactics .program
 namespace certigrad
 open T
 
+
+--@[cgsimp] lemma pair_eq_of_eq {α β : Type*} (a₁ a₂ : α) (b₁ b₂ : β) : ((a₁, b₁) = (a₂, b₂)) = (a₁ = a₂ ∧ b₁ = b₂) := sorry
 /-
-@[cgsimp] lemma pair_eq_of_eq {α β : Type*} (a₁ a₂ : α) (b₁ b₂ : β) : ((a₁, b₁) = (a₂, b₂)) = (a₁ = a₂ ∧ b₁ = b₂) := sorry
 @[cgsimp] lemma id_str_eq_of_eq (x y : label) : (ID.str x = ID.str y) = (x = y) := sorry
 
 -- TODO(dhs): tag the relevant existing simp lemmas as [cgsimp] instead of redefining them here.

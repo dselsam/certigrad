@@ -285,7 +285,7 @@ lemma id_rule {A : Type*} (a : A) : id a = a := rfl
 
 meta def reduce_k (k : expr) : tactic expr :=
 do slss ← simp_lemmas.add_simp simp_lemmas.mk `certigrad.T.id_rule,
-   slss^.dsimplify k
+   slss^.dsimplify k <|> return k
 
 meta def has_x (x e : expr) : bool := expr.fold e ff (λ (m : expr) (d : nat) (b : bool), if m = x then tt else b)
 

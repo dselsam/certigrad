@@ -320,7 +320,7 @@ do k ← compute_outer_inner_functions grad,
    k_simp ← reduce_k k,
    return k_simp
 
-meta def rwe (e : expr) : tactic unit := rewrite_core reducible tt tt occurrences.all ff e
+meta def rwe (e : expr) : tactic unit := rewrite_core transparency.none tt tt occurrences.all ff e
 
 meta def simplify_grad_core (grad : expr) : tactic unit :=
 do k ← compute_k grad,
@@ -389,7 +389,7 @@ meta def prove_differentiable : tactic unit := repeat $ (target >>= find_is_cdif
 end simplify_grad
 
 -- Random
-
+--set_option trace.simplify.rewrite true
 lemma mvn_iso_grad_logpdf_μ_correct {shape : S} (μ σ x : T shape) (H_σ : σ > 0) :
   ∇ (λ θ, mvn_iso_logpdf θ σ x) μ = mvn_iso_grad_logpdf_μ μ σ x :=
 begin

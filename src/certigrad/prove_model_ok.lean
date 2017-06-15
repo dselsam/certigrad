@@ -31,7 +31,6 @@ simp only with cgsimp,
 end
 -/
 @[cgsimp] lemma simp_label (x : label): (lift_t x : ID) = (ID.str x : ID) := rfl
-@[cgsimp] lemma simp_id_nat (n : ℕ) : (lift_t n : ID) = (ID.nat n : ID) := rfl
 @[cgsimp] lemma label_of (x y : label) : (ID.str x = ID.str y) = (x = y) := sorry
 
 @[cgsimp] lemma eq_of_self_eq {α : Type*} (x : α) : (x = x) = true := sorry

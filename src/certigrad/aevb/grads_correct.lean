@@ -9,7 +9,8 @@ applied to the naive variational encoder.
 import .util .naive ..prove_model_ok ..pre
 
 set_option class.instance_max_depth 1000000
-set_option max_memory 100000
+set_option max_memory 10000000
+set_option pp.max_depth 100000
 
 namespace certigrad
 namespace aevb
@@ -78,9 +79,15 @@ lemma g_final_grads_exist_at_he : grads_exist_at g^.nodes fdict (ID.str label.W_
 -- TODO(dhs): I don't know if this works or not, it takes freaking forever
 
 
+
 lemma g_final_is_gintegrable_he :
   is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_encode, [a^.ne, a^.n_in])⟧)
-                 fdict g^.nodes dvec.head := sorry -- by cgsimp
+                 fdict g^.nodes dvec.head := --sorry -- by cgsimp
+begin
+cgsimp,
+repeat { intros, split },
+
+end
 -- TODO(dhs): I don't know if this works or not, it takes freaking forever
 
 lemma g_final_diff_under_int_hem :

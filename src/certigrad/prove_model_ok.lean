@@ -66,6 +66,7 @@ end
   is_integrable (λ (x : T shape), T.mvn_iso_pdf μ σ x ⬝ mvn_iso_kl μ' σ') = true := sorry
 
 @[cgsimp] lemma simp_smul_zero (shape : S) (α : ℝ) : α ⬝ (0 : T shape) = (0 : T shape) := sorry
+@[cgsimp] lemma simp_one_smul (shape : S) (x : T shape) : (1 : ℝ) ⬝ x = x := sorry
 @[cgsimp] lemma simp_integrable_zero (shape₁ shape₂ : S) (y : T shape₂) : is_integrable (λ (x : T shape₁), y) = true := sorry
 
 @[cgsimp] lemma simp_nneg_of_pos {shape : S} : ∀ {x : T shape}, 0 ≠ x = (0 < x ∨ 0 = x) := sorry
@@ -85,7 +86,9 @@ attribute [cgsimp] dif_pos dif_neg dif_ctx_simp_congr
 
 attribute [cgsimp] mvn_iso_mvn_iso_empirical_kl_int mvn_iso_bernoulli_neglogpdf_int
 
-attribute [cgsimp] list.sumr list.map list.concat list.head list.tail
+attribute [cgsimp] force_ok
+
+attribute [cgsimp] list.sumr list.map list.concat list.head list.tail list.riota list.filter list.length list.dnth
 
 attribute [cgsimp] zero_add add_zero
 
@@ -115,6 +118,13 @@ attribute [cgsimp] det.op.pre det.special.pre det.cwise1.pre det.cwise2.pre
                    det.preconditions.sum det.preconditions.gemv det.preconditions.gemm
                    det.preconditions.replicate_col det.preconditions.mul_add det.preconditions.mvn_iso_kl det.preconditions.mvn_iso_empirical_kl
                    det.preconditions.bernoulli_neglogpdf
+
+attribute [cgsimp] det.op.pb det.cwise1.pb det.cwise2.pb det.special.pb
+                   det.pullback.dummy
+                   det.pullback.neg det.pullback.exp det.pullback.log det.pullback.sqrt det.pullback.scale
+                   det.pullback.softplus det.pullback.sigmoid det.pullback.add det.pullback.sub det.pullback.mul det.pullback.div
+                   det.pullback.sum det.pullback.gemm det.pullback.replicate_col det.pullback.mul_add
+                   det.pullback.mvn_iso_kl det.pullback.mvn_iso_empirical_kl det.pullback.bernoulli_neglogpdf
 
 attribute [cgsimp] rand.op.pdf rand.pdf.mvn_iso rand.pdf.mvn_iso_std
                   rand.op.pre rand.op.mvn_iso rand.op.mvn_iso_std rand.pre.mvn_iso rand.pre.mvn_iso_std

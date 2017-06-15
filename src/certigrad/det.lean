@@ -77,14 +77,13 @@ namespace predicates
 def top (ishapes : list S) : precondition ishapes := λ xs, true
 def bot (ishapes : list S) : precondition ishapes := λ xs, false
 def pos (shape : S) : precondition [shape] := λ xs, xs^.head > 0
-def nneg (shape : S) : precondition [shape] := λ xs, xs^.head ≥ 0
 end predicates
 open predicates
 
 def neg {shape : S} : precondition [shape] := top [shape]
 def exp {shape : S} : precondition [shape] := top [shape]
 def log {shape : S} : precondition [shape] := pos shape
-def sqrt {shape : S} : precondition [shape] := nneg shape
+def sqrt {shape : S} : precondition [shape] := pos shape
 def scale (α : ℝ) {shape : S} : precondition [shape] := top [shape]
 def softplus {shape : S} : precondition [shape] := top [shape]
 def sigmoid {shape : S} : precondition [shape] := top [shape]

@@ -8,7 +8,7 @@ Tactics to prove specific models satisfy the preconditions of backprop_correct.
 TODO(dhs): we are in the process of refactoring this tactic to use the simplifier
 more aggressively and this file is currently in an inconsistent state.
 -/
-import .tfacts .graph .predicates .expected_value .reparam .kl .tactics .program
+import .tfacts .graph .predicates .expected_value .reparam .kl .tactics .program .pre
 
 namespace certigrad
 open T
@@ -95,7 +95,7 @@ attribute [cgsimp] dvec.head dvec.head2 dvec.head3
 attribute [cgsimp] integrate_kl integrate_mvn_iso_kl integrate_kl_pre integrate_mvn_iso_kl_pre reparameterize
 attribute [cgsimp] reparam reparameterize reparameterize_pre
 
-attribute [cgsimp] all_parents_in_env all_costs_scalars grads_exist_at pdfs_exist_at
+attribute [cgsimp] all_parents_in_env all_costs_scalars grads_exist_at pdfs_exist_at all_pre_satisfied
                    is_gintegrable is_nabla_gintegrable is_gdifferentiable can_differentiate_under_integrals
 
 attribute [cgsimp] graph.to_dist operator.to_dist sum_costs compute_grad_slow
@@ -107,6 +107,15 @@ attribute [cgsimp] det.op.f det.special.f det.cwise1.f det.cwise2.f
                   det.function.add det.function.sub det.function.mul det.function.div
                   det.function.sum det.function.gemv det.function.gemm det.function.mul_add det.function.get_col_range
                   det.function.mvn_iso_kl det.function.mvn_iso_empirical_kl det.function.bernoulli_neglogpdf
+
+attribute [cgsimp] det.op.pre det.special.pre det.cwise1.pre det.cwise2.pre
+                   det.preconditions.predicates.top det.preconditions.predicates.bot det.preconditions.predicates.pos
+                   det.preconditions.neg det.preconditions.exp det.preconditions.log det.preconditions.sqrt det.preconditions.scale
+                   det.preconditions.softplus det.preconditions.sigmoid
+                   det.preconditions.add det.preconditions.sub det.preconditions.mul det.preconditions.div
+                   det.preconditions.sum det.preconditions.gemv det.preconditions.gemm
+                   det.preconditions.replicate_col det.preconditions.mul_add det.preconditions.mvn_iso_kl det.preconditions.mvn_iso_empirical_kl
+                   det.preconditions.bernoulli_neglogpdf
 
 attribute [cgsimp] rand.op.pdf rand.pdf.mvn_iso rand.pdf.mvn_iso_std
                   rand.op.pre rand.op.mvn_iso rand.op.mvn_iso_std rand.pre.mvn_iso rand.pre.mvn_iso_std

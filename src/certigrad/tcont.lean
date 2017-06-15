@@ -54,7 +54,7 @@ axiom continuous_scale {shape : S} (α : ℝ) (x : T shape) : is_continuous (λ 
 axiom continuous_neg {shape : S} {θ : T shape} : is_continuous neg θ
 axiom continuous_exp {shape : S} {θ : T shape} : is_continuous exp θ
 axiom continuous_log {shape : S} {θ : T shape} : θ > 0 → is_continuous log θ
-axiom continuous_sqrt {shape : S} {θ : T shape} : θ ≥ 0 → is_continuous sqrt θ
+axiom continuous_sqrt {shape : S} {θ : T shape} : θ > 0 → is_continuous sqrt θ
 axiom continuous_add₁ {shape : S} {θ x : T shape} : is_continuous (λ θ₀, θ₀ + x) θ
 axiom continuous_add₂ {shape : S} {θ x : T shape} : is_continuous (λ θ₀, x + θ₀) θ
 axiom continuous_mul₁ {shape : S} {θ x : T shape} : is_continuous (λ θ₀, θ₀ * x) θ

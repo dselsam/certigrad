@@ -140,7 +140,7 @@ axiom grad_exp {shape : S} (k : T shape → ℝ) (θ : T shape) :
 axiom grad_log {shape : S} (k : T shape → ℝ) (θ : T shape) : θ > 0 →
   ∇ (λ θ, k (log θ)) θ = ∇ k (log θ) / θ
 
-axiom grad_sqrt {shape : S} (k : T shape → ℝ) (θ : T shape) : θ ≥ 0 →
+axiom grad_sqrt {shape : S} (k : T shape → ℝ) (θ : T shape) : θ > 0 →
   ∇ (λ θ, k (sqrt θ)) θ = ∇ k (sqrt θ) / (2 * sqrt θ)
 
 axiom grad_scale {shape : S} (k : T shape → ℝ) (α : ℝ) (x : T shape) :

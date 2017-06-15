@@ -1,0 +1,75 @@
+/-
+Copyright (c) 2017 Daniel Selsam. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Daniel Selsam
+
+Proofs that integrating out the KL and reparametizing are sound when
+applied to the naive variational encoder.
+-/
+import .util .naive ..prove_model_ok
+
+set_option class.instance_max_depth 1000000
+
+namespace certigrad
+namespace aevb
+
+-- TODO(dhs): take decidable instance, put this somewhere else
+instance decidable_ref_subset {α : Type*} [decidable_eq α] {xs ys : list α} : decidable (xs ⊆ ys) :=
+begin
+dunfold has_subset.subset list.subset,
+apply_instance
+end
+
+section proofs
+open graph list tactic certigrad.tactic
+
+parameters (a : arch) (ws : weights a) (x_data : T [a^.n_in, a^.n_x])
+def g : graph := reparam (integrate_kl $ graph_naive a x_data)
+def fdict : env := mk_input_dict ws g
+
+attribute [cgsimp] g fdict
+
+lemma g_final_nodups : nodup (env.keys fdict ++ map node.ref g^.nodes) := by cgsimp
+
+lemma g_final_ps_in_env : all_parents_in_env fdict g^.nodes := by cgsimp
+
+lemma g_final_pdfs_exist_at : pdfs_exist_at g^.nodes fdict := by cgsimp
+
+lemma g_final_costs_scalars : all_costs_scalars g^.costs g^.nodes := by cgsimp
+
+example : [ID.str label.W_encode] ⊆ [ID.nat 0, ID.str label.W_encode] := by cgsimp
+
+example (s : S) : (ID.nat 0, ([5] : S)) ≠ (ID.nat 1, s) := by cgsimp
+example (s : S) : (ID.nat 0, s) ≠ (ID.nat 1, ([5] : S)) := by cgsimp
+
+-- TODO(dhs): why won't dec_triv work here? (it works when s is concrete, but why should it matter?)
+--example (s : S) : (ID.str label.W_encode, s) ∈ [(ID.nat 0, ([] : S)), (ID.str label.W_encode, s)] := by cgsimp
+
+-- TODO(dhs): why won't dec_triv work here?
+lemma g_final_tgts_in_inputs : g^.targets ⊆ env.keys fdict :=
+begin
+cgsimp,
+dunfold has_subset.subset list.subset has_mem.mem list.mem,
+cgsimp,
+intro x,
+intro H,
+repeat { cases H with H₀ H, subst H₀, cgsimp },
+exact false.rec_on _ H,
+end
+
+lemma g_final_env_has_key_he : env.has_key (label.W_encode, [a^.ne, a^.n_in]) fdict := by cgsimp
+
+lemma g_final_tgt_cost_scalar_he : (ID.str label.W_encode ∈ g^.costs) → [a^.ne, a^.n_in] = [] := by cgsimp
+
+lemma g_final_tgt_wf_at_he : well_formed_at g^.costs g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) :=
+begin
+constructor,
+all_goals { cgsimp }
+end
+
+
+end proofs
+
+
+end aevb
+end certigrad

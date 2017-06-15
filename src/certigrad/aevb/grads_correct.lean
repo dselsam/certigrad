@@ -76,7 +76,7 @@ end
 
 lemma g_final_grads_exist_at_he : grads_exist_at g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) :=
 begin
-apply grads_exist_at_of_all_pre,
+--apply grads_exist_at_of_all_pre,
 cgsimp
 end
 

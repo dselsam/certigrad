@@ -67,8 +67,8 @@ def reparameterize (fname : ID) : list node → list node
 
 | (n::nodes) := n :: reparameterize nodes
 
-theorem reparameterize_correct {costs : list ID} :
-∀ {nodes : list node} {inputs : env} (fref : reference),
+theorem reparameterize_correct (costs : list ID) :
+∀ (nodes : list node) (inputs : env) (fref : reference),
   reparameterize_pre fref.2 nodes inputs →
   nodup (env.keys inputs ++ map node.ref nodes) →
   all_parents_in_env inputs nodes →
@@ -145,7 +145,7 @@ assertv H_pre_next : reparameterize_pre fref.2 nodes (env.insert (ref, shape) x 
 assertv H_nodup_next : nodup (env.keys (env.insert (ref, shape) x inputs) ++ map node.ref nodes) := env.nodup_insert H_nodup,
 assertv H_ps_in_env_next : all_parents_in_env (env.insert (ref, shape) x inputs) nodes := H_ps_in_env^.right _,
 assertv H_fresh_next : fref ∉ env.keys (env.insert (ref, shape) x inputs) ++ map node.ref nodes := env.not_mem_of_insert H_fresh,
-apply (reparameterize_correct fref H_pre_next H_nodup_next H_ps_in_env_next H_fresh_next H_not_cost)
+apply (reparameterize_correct _ _ fref H_pre_next H_nodup_next H_ps_in_env_next H_fresh_next H_not_cost)
 end
 
 | (⟨(ref, shape), [], operator.rand op⟩::nodes) inputs fref H_pre H_nodup H_ps_in_env H_fresh H_not_cost :=
@@ -157,7 +157,7 @@ assertv H_pre_next : reparameterize_pre fref.2 nodes (env.insert (ref, shape) (d
 assertv H_nodup_next : nodup (env.keys (env.insert (ref, shape) (dvec.head x) inputs) ++ map node.ref nodes) := env.nodup_insert H_nodup,
 assertv H_ps_in_env_next : all_parents_in_env (env.insert (ref, shape) (dvec.head x) inputs) nodes := H_ps_in_env^.right x^.head,
 assertv H_fresh_next : fref ∉ env.keys (env.insert (ref, shape) (dvec.head x) inputs) ++ map node.ref nodes := env.not_mem_of_insert H_fresh,
-apply (reparameterize_correct fref H_pre_next H_nodup_next H_ps_in_env_next H_fresh_next H_not_cost)
+apply (reparameterize_correct _ _ fref H_pre_next H_nodup_next H_ps_in_env_next H_fresh_next H_not_cost)
 end
 
 | (⟨(ref, shape), [(parent₁, shape₁)], operator.det op⟩::nodes) inputs fref H_pre H_nodup H_ps_in_env H_fresh H_not_cost :=
@@ -169,7 +169,7 @@ assertv H_pre_next : reparameterize_pre fref.2 nodes (env.insert (ref, shape) x 
 assertv H_nodup_next : nodup (env.keys (env.insert (ref, shape) x inputs) ++ map node.ref nodes) := env.nodup_insert H_nodup,
 assertv H_ps_in_env_next : all_parents_in_env (env.insert (ref, shape) x inputs) nodes := H_ps_in_env^.right x,
 assertv H_fresh_next : fref ∉ env.keys (env.insert (ref, shape) x inputs) ++ map node.ref nodes := env.not_mem_of_insert H_fresh,
-apply (reparameterize_correct fref H_pre_next H_nodup_next H_ps_in_env_next H_fresh_next H_not_cost)
+apply (reparameterize_correct _ _ fref H_pre_next H_nodup_next H_ps_in_env_next H_fresh_next H_not_cost)
 end
 
 | (⟨(ref, shape), [(parent₁, shape₁), (parent₂, shape₂)], operator.det op⟩::nodes) inputs fref H_pre H_nodup H_ps_in_env H_fresh H_not_cost :=
@@ -181,7 +181,7 @@ assertv H_pre_next : reparameterize_pre fref.2 nodes (env.insert (ref, shape) x 
 assertv H_nodup_next : nodup (env.keys (env.insert (ref, shape) x inputs) ++ map node.ref nodes) := env.nodup_insert H_nodup,
 assertv H_ps_in_env_next : all_parents_in_env (env.insert (ref, shape) x inputs) nodes := H_ps_in_env^.right x,
 assertv H_fresh_next : fref ∉ env.keys (env.insert (ref, shape) x inputs) ++ map node.ref nodes := env.not_mem_of_insert H_fresh,
-apply (reparameterize_correct fref H_pre_next H_nodup_next H_ps_in_env_next H_fresh_next H_not_cost)
+apply (reparameterize_correct _ _ fref H_pre_next H_nodup_next H_ps_in_env_next H_fresh_next H_not_cost)
 end
 
 | (⟨(ref, shape), (parent₁, shape₁) :: (parent₂, shape₂) :: (parent₃, shape₃) :: parents, operator.det op⟩::nodes) inputs fref H_pre H_nodup H_ps_in_env H_fresh H_not_cost :=
@@ -193,7 +193,7 @@ assertv H_pre_next : reparameterize_pre fref.2 nodes (env.insert (ref, shape) x 
 assertv H_nodup_next : nodup (env.keys (env.insert (ref, shape) x inputs) ++ map node.ref nodes) := env.nodup_insert H_nodup,
 assertv H_ps_in_env_next : all_parents_in_env (env.insert (ref, shape) x inputs) nodes := H_ps_in_env^.right x,
 assertv H_fresh_next : fref ∉ env.keys (env.insert (ref, shape) x inputs) ++ map node.ref nodes := env.not_mem_of_insert H_fresh,
-apply (reparameterize_correct fref H_pre_next H_nodup_next H_ps_in_env_next H_fresh_next H_not_cost)
+apply (reparameterize_correct _ _ fref H_pre_next H_nodup_next H_ps_in_env_next H_fresh_next H_not_cost)
 end
 
 def reparam : graph → graph

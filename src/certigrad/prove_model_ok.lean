@@ -88,6 +88,7 @@ attribute [cgsimp] zero_add add_zero
 attribute [cgsimp] dvec.head dvec.head2 dvec.head3
 
 attribute [cgsimp] integrate_kl integrate_mvn_iso_kl integrate_kl_pre integrate_mvn_iso_kl_pre reparameterize
+attribute [cgsimp] reparam reparameterize reparameterize_pre
 
 attribute [cgsimp] all_parents_in_env all_costs_scalars grads_exist_at pdfs_exist_at
                   is_gintegrable is_nabla_gintegrable is_gdifferentiable can_differentiate_under_integrals

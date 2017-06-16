@@ -48,25 +48,25 @@ open det det.cwise1 det.cwise2 det.special rand.op label certigrad.tactic
 @[cgsimp] def graph_naive : Π (a : arch) (x_data : T [a^.n_in, a^.n_x]), graph
 | a x_data :=
 graph.mk [⟨(ID.nat 0, [a^.n_in, a^.n_x]), [], operator.det $ op.const x_data⟩,
-          ⟨(x, [a^.n_in, a^.bs]), [(ID.nat 0, [a^.n_in, a^.n_x]), (batch_start, [])], operator.det $ op.special $ get_col_range _ _ _⟩,
-          ⟨(ID.nat 2, [a^.ne, a^.bs]), [(W_encode, [a^.ne, a^.n_in]), (x, [a^.n_in, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
-          ⟨(h_encode, [a^.ne, a^.bs]), [(ID.nat 2, [a^.ne, a^.bs])], operator.det $ op.unary $ softplus⟩,
-          ⟨(μ, [a^.nz, a^.bs]), [(W_encode_μ, [a^.nz, a^.ne]), (h_encode, [a^.ne, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
-          ⟨(ID.nat 5, [a^.nz, a^.bs]), [(W_encode_logσ₂, [a^.nz, a^.ne]), (h_encode, [a^.ne, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
+          ⟨(ID.str x, [a^.n_in, a^.bs]), [(ID.nat 0, [a^.n_in, a^.n_x]), (ID.str batch_start, [])], operator.det $ op.special $ get_col_range _ _ _⟩,
+          ⟨(ID.nat 2, [a^.ne, a^.bs]), [(ID.str W_encode, [a^.ne, a^.n_in]), (ID.str x, [a^.n_in, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
+          ⟨(ID.str h_encode, [a^.ne, a^.bs]), [(ID.nat 2, [a^.ne, a^.bs])], operator.det $ op.unary $ softplus⟩,
+          ⟨(ID.str μ, [a^.nz, a^.bs]), [(ID.str W_encode_μ, [a^.nz, a^.ne]), (ID.str h_encode, [a^.ne, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
+          ⟨(ID.nat 5, [a^.nz, a^.bs]), [(ID.str W_encode_logσ₂, [a^.nz, a^.ne]), (ID.str h_encode, [a^.ne, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
           ⟨(ID.nat 6, [a^.nz, a^.bs]), [(ID.nat 5, [a^.nz, a^.bs])], operator.det $ op.unary exp⟩,
-          ⟨(σ, [a^.nz, a^.bs]), [(ID.nat 6, [a^.nz, a^.bs])], operator.det $ op.unary sqrt⟩,
-          ⟨(z, [a^.nz, a^.bs]), [(μ, [a^.nz, a^.bs]), (σ, [a^.nz, a^.bs])], operator.rand $ mvn_iso _⟩,
-          ⟨(encoding_loss, []), [(μ, [a^.nz, a^.bs]), (σ, [a^.nz, a^.bs]), (z, [a^.nz, a^.bs])], operator.det $ op.mvn_iso_empirical_kl _⟩,
-          ⟨(ID.nat 10, [a^.nd, a^.bs]), [(W_decode, [a^.nd, a^.nz]), (z, [a^.nz, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
+          ⟨(ID.str σ, [a^.nz, a^.bs]), [(ID.nat 6, [a^.nz, a^.bs])], operator.det $ op.unary sqrt⟩,
+          ⟨(ID.str z, [a^.nz, a^.bs]), [(ID.str μ, [a^.nz, a^.bs]), (ID.str σ, [a^.nz, a^.bs])], operator.rand $ mvn_iso _⟩,
+          ⟨(ID.str encoding_loss, []), [(ID.str μ, [a^.nz, a^.bs]), (ID.str σ, [a^.nz, a^.bs]), (ID.str z, [a^.nz, a^.bs])], operator.det $ op.mvn_iso_empirical_kl _⟩,
+          ⟨(ID.nat 10, [a^.nd, a^.bs]), [(ID.str W_decode, [a^.nd, a^.nz]), (ID.str z, [a^.nz, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
           ⟨(ID.nat 11, [a^.nd, a^.bs]), [(ID.nat 10, [a^.nd, a^.bs])], operator.det $ op.unary $ softplus⟩,
-          ⟨(ID.nat 12, [a^.n_in, a^.bs]), [(W_decode_p, [a^.n_in, a^.nd]), (ID.nat 11, [a^.nd, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
-          ⟨(p, [a^.n_in, a^.bs]), [(ID.nat 12, [a^.n_in, a^.bs])], operator.det $ op.unary $ sigmoid⟩,
-          ⟨(decoding_loss, []), [(p, [a^.n_in, a^.bs]), (x, [a^.n_in, a^.bs])], operator.det $ op.special $ bernoulli_neglogpdf _⟩]
-         [encoding_loss, decoding_loss]
-         [(W_encode, [a^.ne, a^.n_in]), (W_encode_μ, [a^.nz, a^.ne]), (W_encode_logσ₂, [a^.nz, a^.ne]),
-          (W_decode, [a^.nd, a^.nz]), (W_decode_p, [a^.n_in, a^.nd])]
-         [(batch_start, []), (W_encode, [a^.ne, a^.n_in]), (W_encode_μ, [a^.nz, a^.ne]),
-          (W_encode_logσ₂, [a^.nz, a^.ne]), (W_decode, [a^.nd, a^.nz]), (W_decode_p, [a^.n_in, a^.nd])]
+          ⟨(ID.nat 12, [a^.n_in, a^.bs]), [(ID.str W_decode_p, [a^.n_in, a^.nd]), (ID.nat 11, [a^.nd, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
+          ⟨(ID.str p, [a^.n_in, a^.bs]), [(ID.nat 12, [a^.n_in, a^.bs])], operator.det $ op.unary $ sigmoid⟩,
+          ⟨(ID.str decoding_loss, []), [(ID.str p, [a^.n_in, a^.bs]), (ID.str x, [a^.n_in, a^.bs])], operator.det $ op.special $ bernoulli_neglogpdf _⟩]
+         [ID.str encoding_loss, ID.str decoding_loss]
+         [(ID.str W_encode, [a^.ne, a^.n_in]), (ID.str W_encode_μ, [a^.nz, a^.ne]), (ID.str W_encode_logσ₂, [a^.nz, a^.ne]),
+          (ID.str W_decode, [a^.nd, a^.nz]), (ID.str W_decode_p, [a^.n_in, a^.nd])]
+         [(ID.str batch_start, []), (ID.str W_encode, [a^.ne, a^.n_in]), (ID.str W_encode_μ, [a^.nz, a^.ne]),
+          (ID.str W_encode_logσ₂, [a^.nz, a^.ne]), (ID.str W_decode, [a^.nd, a^.nz]), (ID.str W_decode_p, [a^.n_in, a^.nd])]
 -- TODO(dhs): the following works (as of this writing) but is slow
 -- by cgsimp
 

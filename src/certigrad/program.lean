@@ -191,7 +191,7 @@ def process_term : term → state → option ID → reference × state
 
 | (term.id s) ⟨next_id, shapes, nodes, costs, targets, inputs⟩ ident :=
    match shapes^.find s with
-   | (some shape) := ((s, shape), ⟨next_id, shapes, nodes, costs, targets, inputs⟩)
+   | (some shape) := ((ID.str s, shape), ⟨next_id, shapes, nodes, costs, targets, inputs⟩)
    | none         := (default _, empty_state)
    end
 
@@ -230,11 +230,11 @@ def program_to_graph_core : list statement → state → state
   end
 
 | (statement.param s shape::statements) ⟨next_id, shapes, nodes, costs, targets, inputs⟩ :=
-  program_to_graph_core statements ⟨next_id, shapes^.insert s shape, nodes, costs, concat targets (s, shape), concat inputs (s, shape)⟩
+  program_to_graph_core statements ⟨next_id, shapes^.insert s shape, nodes, costs, concat targets (ID.str s, shape), concat inputs (ID.str s, shape)⟩
 | (statement.input s shape::statements) ⟨next_id, shapes, nodes, costs, targets, inputs⟩ :=
-  program_to_graph_core statements ⟨next_id, shapes^.insert s shape, nodes, costs, targets, concat inputs (s, shape)⟩
+  program_to_graph_core statements ⟨next_id, shapes^.insert s shape, nodes, costs, targets, concat inputs (ID.str s, shape)⟩
 | (statement.cost s::statements) ⟨next_id, shapes, nodes, costs, targets, inputs⟩ :=
-  program_to_graph_core statements ⟨next_id, shapes, nodes, concat costs s, targets, inputs⟩
+  program_to_graph_core statements ⟨next_id, shapes, nodes, concat costs (ID.str s), targets, inputs⟩
 
 end program
 

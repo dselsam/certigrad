@@ -66,9 +66,11 @@ end run
 
 namespace pre
 
-def mvn_iso (shape : S) : precondition [shape, shape] := λ xs, xs^.head2 > 0
+def mvn_iso : Π (shape : S), precondition [shape, shape]
+| shape := λ xs, xs^.head2 > 0
 
-def mvn_iso_std (shape : S) : precondition [] := λ xs, true
+def mvn_iso_std : Π (shape : S), precondition []
+| shape := λ xs, true
 
 end pre
 

@@ -33,54 +33,28 @@ attribute [cgsimp] g fdict
 
 lemma g_final_nodups : nodup (env.keys fdict ++ map node.ref g^.nodes) := sorry --by cgsimp
 
-lemma g_final_ps_in_env : all_parents_in_env fdict g^.nodes :=
-begin
-cgsimp
-
-end
+lemma g_final_ps_in_env : all_parents_in_env fdict g^.nodes := sorry --by cgsimp
 
 lemma g_final_pdfs_exist_at : pdfs_exist_at g^.nodes fdict := sorry --by cgsimp
 
 lemma g_final_costs_scalars : all_costs_scalars g^.costs g^.nodes := sorry --by cgsimp
 
-example : [ID.str label.W_encode] ⊆ [ID.nat 0, ID.str label.W_encode] := sorry --by cgsimp
+lemma g_final_tgts_in_inputs : g^.targets ⊆ env.keys fdict := sorry --by cgsimp
 
-example (s : S) : (ID.nat 0, ([5] : S)) ≠ (ID.nat 1, s) := sorry -- by cgsimp
-example (s : S) : (ID.nat 0, s) ≠ (ID.nat 1, ([5] : S)) := sorry -- by cgsimp
+lemma g_final_env_has_key_he : env.has_key (ID.str label.W_encode, [a^.ne, a^.n_in]) fdict := by cgsimp
 
--- TODO(dhs): why won't dec_triv work here? (it works when s is concrete, but why should it matter?)
---example (s : S) : (ID.str label.W_encode, s) ∈ [(ID.nat 0, ([] : S)), (ID.str label.W_encode, s)] := by cgsimp
+lemma g_final_tgt_cost_scalar_he : (ID.str label.W_encode ∈ g^.costs) → [a^.ne, a^.n_in] = [] := sorry --
 
--- TODO(dhs): why won't dec_triv work here?
-lemma g_final_tgts_in_inputs : g^.targets ⊆ env.keys fdict := sorry
--- TODO(dhs): works, but pretty slow
-/-
-begin
-cgsimp,
-dunfold has_subset.subset list.subset has_mem.mem list.mem,
-cgsimp,
-intro x,
-intro H,
-repeat { cases H with H₀ H, subst H₀, cgsimp },
-exact false.rec_on _ H,
-end
--/
-
-lemma g_final_env_has_key_he : env.has_key (label.W_encode, [a^.ne, a^.n_in]) fdict := sorry -- by cgsimp
-
-lemma g_final_tgt_cost_scalar_he : (ID.str label.W_encode ∈ g^.costs) → [a^.ne, a^.n_in] = [] := sorry -- by cgsimp
-
-lemma g_final_tgt_wf_at_he : well_formed_at g^.costs g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) := sorry
--- TODO(dhs): works but slow
-/-
+lemma g_final_tgt_wf_at_he : well_formed_at g^.costs g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) :=
 begin
 constructor,
-all_goals { cgsimp }
+all_goals { cgsimp },
+
 end
--/
+
 
 -- TODO(dhs): The tactic is fast, but have yet to finish type-checking the proof
-lemma g_final_grads_exist_at_he : grads_exist_at g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) := by cgsimp
+lemma g_final_grads_exist_at_he : grads_exist_at g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) := sorry --by cgsimp
 
 
 lemma g_final_is_gintegrable_he :

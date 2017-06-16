@@ -22,8 +22,8 @@ structure weights (a : arch) : Type :=
 section label
 open certigrad.label
 @[cgsimp] def mk_input_dict : Π {a : arch} (ws : weights a) (g : graph), env
-| a ws g := env.insert_all [(batch_start, []), (W_encode, [a^.ne, a^.n_in]), (W_encode_μ, [a^.nz, a^.ne]), (W_encode_logσ₂, [a^.nz, a^.ne]),
-                            (W_decode, [a^.nd, a^.nz]), (W_decode_p, [a^.n_in, a^.nd])]
+| a ws g := env.insert_all [(ID.str batch_start, []), (ID.str W_encode, [a^.ne, a^.n_in]), (ID.str W_encode_μ, [a^.nz, a^.ne]), (ID.str W_encode_logσ₂, [a^.nz, a^.ne]),
+                            (ID.str W_decode, [a^.nd, a^.nz]), (ID.str W_decode_p, [a^.n_in, a^.nd])]
                            ⟦ws^.batch_start, ws^.W_encode, ws^.W_encode_μ, ws^.W_encode_logσ₂, ws^.W_decode, ws^.W_decode_p⟧
 end label
 

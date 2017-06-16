@@ -197,6 +197,6 @@ apply (reparameterize_correct _ _ fref H_pre_next H_nodup_next H_ps_in_env_next 
 end
 
 def reparam : graph → graph
-| g := ⟨reparameterize label.ε g^.nodes, g^.costs, g^.targets, g^.inputs⟩
+| g := ⟨reparameterize (ID.str label.ε) g^.nodes, g^.costs, g^.targets, g^.inputs⟩
 
 end certigrad

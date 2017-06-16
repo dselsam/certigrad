@@ -30,7 +30,6 @@ simp only with cgsimp,
 
 end
 -/
-@[cgsimp] lemma simp_label (x : label): (lift_t x : ID) = (ID.str x : ID) := rfl
 @[cgsimp] lemma label_of (x y : label) : (ID.str x = ID.str y) = (x = y) := sorry
 
 @[cgsimp] lemma eq_of_self_eq {α : Type*} (x : α) : (x = x) = true := sorry
@@ -47,6 +46,8 @@ end
 @[cgsimp] lemma of_in_list_forall {α : Type*} (ys : list α) (P : α → Prop) (y : α) : (∀ x, x ∈ list.cons y ys → P x) = (P y ∧ (∀ x, x ∈ ys → P x)) := sorry
 
 @[cgsimp] lemma of_in_list {α : Type*} (ys : list α) (x y : α) : (x ∈ list.cons y ys → false) = (x ≠ y ∧ (x ∈ ys → false)) := sorry
+
+@[cgsimp] lemma simp_subset_cons {α : Type*} (xs : list α) (x : α) : (xs ⊆ x :: xs) = true := sorry
 
 @[cgsimp] lemma simp_sqrt_pos {shape : S} : ∀ {x : T shape}, (0 < sqrt x) = (0 < x) := sorry
 @[cgsimp] lemma simp_exp_pos {shape : S} : ∀ {x : T shape}, (0 < exp x) = true := sorry
@@ -90,6 +91,7 @@ attribute [cgsimp] mvn_iso_mvn_iso_empirical_kl_int mvn_iso_bernoulli_neglogpdf_
 attribute [cgsimp] force_ok
 
 attribute [cgsimp] list.sumr list.map list.concat list.head list.tail list.riota list.filter list.length list.dnth
+                   list.subset.refl list.nil_subset list.subset_cons
 
 attribute [cgsimp] zero_add add_zero
 
@@ -128,7 +130,7 @@ attribute [cgsimp] det.op.pb det.cwise1.pb det.cwise2.pb det.special.pb
                    det.pullback.mvn_iso_kl det.pullback.mvn_iso_empirical_kl det.pullback.bernoulli_neglogpdf
 
 attribute [cgsimp] rand.op.pdf rand.pdf.mvn_iso rand.pdf.mvn_iso_std
-                  rand.op.pre rand.op.mvn_iso rand.op.mvn_iso_std rand.pre.mvn_iso rand.pre.mvn_iso_std
+                   rand.op.pre rand.op.mvn_iso rand.op.mvn_iso_std rand.pre.mvn_iso rand.pre.mvn_iso_std
 
 attribute [cgsimp] env.get_ks env.insert_all env.get_insert_same env.get_insert_diff
                    env.simp_has_key_insert_same env.simp_has_key_insert_diff env.simp_has_key_empty
@@ -167,7 +169,8 @@ meta def gsimpt (tac : tactic unit) : tactic unit := do
 meta def cgsimpt (tac : tactic unit) : tactic unit := do
   s ← join_user_simp_lemmas tt [`cgsimp],
 --  repeat $ first [gsimpt tac >> trace "SIMP", dsimp_core s >> trace "DSIMP", /- prove_continuous >> trace "CONT" -/, prove_is_mvn_integrable >> trace "MVN", dec_triv >> trace "DT"]
-  repeat $ first [gsimpt tac >> trace "SIMP", /- dsimp_core s >> trace "DSIMP" -/, (target >>= λ tgt, dec_triv >> trace "DECTRIV: " >> trace tgt)]
+  repeat $ first [gsimpt tac >> trace "SIMP", dec_triv >> trace "DEC_TRIV"]
+--dsimp_core s >> trace "DSIMP", (target >>= λ tgt, dec_triv >> trace "DECTRIV: " >> trace tgt)]
 
 meta def cgsimpn : ℕ → tactic unit
 | 0 := cgsimpt skip

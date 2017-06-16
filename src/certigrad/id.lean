@@ -15,28 +15,12 @@ inductive ID : Type
 
 namespace ID
 
-instance coe_label_to_ID : has_coe label ID := ⟨ID.str⟩
-
 instance : decidable_eq ID := by tactic.mk_dec_eq_instance
-instance : inhabited ID := ⟨label.default⟩
+instance : inhabited ID := ⟨ID.str label.default⟩
 
 private def add : ID → ID → ID
 | (ID.nat n₁) (ID.nat n₂) := ID.nat (n₁ + n₂)
 | _           _           := default ID
-
-/-
-private def zero : ID := ID.nat 0
-private def one : ID := ID.nat 1
-
-instance : has_add ID := ⟨add⟩
-instance : has_zero ID := ⟨zero⟩
-instance : has_one ID := ⟨one⟩
--/
-def to_str : ID → string
-| (str l) := to_string l
-| (nat n) := "#" ++ to_string n
-
-instance : has_to_string ID := ⟨to_str⟩
 
 def less_than : ID → ID → Prop
 | (nat n)  (str s) := true

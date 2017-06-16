@@ -11,4 +11,15 @@ namespace certigrad
 
 @[reducible] def reference := ID × S
 
+section tactics
+open tactic
+
+meta def prove_refs_neq : tactic unit :=
+do applyc `pair_neq_of_neq₁,
+   H ← intro `H,
+   [H'] ← injection H | failed,
+   done <|> contra_nats_eq H' <|> (do [H''] ← injection H' | failed, contra_nats_eq H'')
+
+end tactics
+
 end certigrad

@@ -83,6 +83,16 @@ meta def dget_dinsert_at (n : name) : tactic unit := do
                      return (new_e, pf))
 
 
+meta def contra_nats_eq : expr → tactic unit
+| H := do xs ← injection H | failed,
+          match xs with
+          | [] := skip
+          | [x] := contra_nats_eq x
+          | (x::y::xs) := fail "injection returned multiple hyps"
+          end
+
+meta def prove_nats_neq : tactic unit :=
+intro `H >>= contra_nats_eq
 /-
 
 meta def cheat_refs_neq : tactic unit :=

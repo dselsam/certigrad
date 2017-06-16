@@ -53,7 +53,7 @@ lemma g_final_grads_exist_at_he : grads_exist_at g^.nodes fdict (ID.str label.W_
 
 lemma g_final_is_gintegrable_he :
   is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_encode, [a^.ne, a^.n_in])⟧)
-                 fdict g^.nodes dvec.head := sorry -- by cgsimp >> prove_is_mvn_integrable
+                 fdict g^.nodes dvec.head := sorry --by cgsimp >> prove_is_mvn_integrable
 -- TODO(dhs): the type-checking crashes my machine
 
 lemma g_final_diff_under_int_hem :

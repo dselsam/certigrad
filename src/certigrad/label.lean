@@ -73,7 +73,7 @@ do H ← intro `H,
    ty ← infer_type H,
    nty ← return $ expr.app (expr.const `not []) ty,
    assert `H_not nty,
-   dec_triv,
+   prove_nats_neq,
    exfalso,
    get_local `H_not >>= λ H_not, exact (expr.app H_not H)
 

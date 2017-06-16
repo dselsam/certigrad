@@ -35,23 +35,17 @@ lemma g_final_nodups : nodup (env.keys fdict ++ map node.ref g^.nodes) := sorry 
 
 lemma g_final_ps_in_env : all_parents_in_env fdict g^.nodes := sorry --by cgsimp
 
-lemma g_final_pdfs_exist_at : pdfs_exist_at g^.nodes fdict := sorry --by cgsimp
-
 lemma g_final_costs_scalars : all_costs_scalars g^.costs g^.nodes := sorry --by cgsimp
+
+lemma g_final_env_has_key_he : env.has_key (ID.str label.W_encode, [a^.ne, a^.n_in]) fdict := sorry --by cgsimp
+
+lemma g_final_tgt_cost_scalar_he : (ID.str label.W_encode ∈ g^.costs) → [a^.ne, a^.n_in] = [] := sorry --by cgsimp
+
+lemma g_final_tgt_wf_at_he : well_formed_at g^.costs g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) := sorry -- by constructor >> all_goals cgsimp
 
 lemma g_final_tgts_in_inputs : g^.targets ⊆ env.keys fdict := sorry --by cgsimp
 
-lemma g_final_env_has_key_he : env.has_key (ID.str label.W_encode, [a^.ne, a^.n_in]) fdict := by cgsimp
-
-lemma g_final_tgt_cost_scalar_he : (ID.str label.W_encode ∈ g^.costs) → [a^.ne, a^.n_in] = [] := sorry --
-
-lemma g_final_tgt_wf_at_he : well_formed_at g^.costs g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) :=
-begin
-constructor,
-all_goals { cgsimp },
-
-end
-
+lemma g_final_pdfs_exist_at : pdfs_exist_at g^.nodes fdict := sorry --by cgsimp
 
 -- TODO(dhs): The tactic is fast, but have yet to finish type-checking the proof
 lemma g_final_grads_exist_at_he : grads_exist_at g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) := sorry --by cgsimp

@@ -76,7 +76,7 @@ namespace preconditions
 namespace predicates
 def top (ishapes : list S) : precondition ishapes := λ xs, true
 def bot (ishapes : list S) : precondition ishapes := λ xs, false
-def pos (shape : S) : precondition [shape] := λ xs, xs^.head > 0
+def pos (shape : S) : precondition [shape] := λ xs, 0 < xs^.head
 end predicates
 open predicates
 
@@ -91,7 +91,7 @@ def sigmoid {shape : S} : precondition [shape] := top [shape]
 def add {shape : S} : precondition [shape, shape] := top [shape, shape]
 def sub {shape : S} : precondition [shape, shape] := top [shape, shape]
 def mul {shape : S} : precondition [shape, shape] := top [shape, shape]
-def div {shape : S} : precondition [shape, shape] := λ xs, square xs^.head2 > 0
+def div {shape : S} : precondition [shape, shape] := λ xs, 0 < square xs^.head2
 
 def sum {shape : S} : precondition [shape] := top [shape]
 def gemv {m n : ℕ} : precondition [[m, n], [n]] := bot [[m, n], [n]] -- Note: gemv not claiming to be differentiable
@@ -100,9 +100,9 @@ def gemm {m n p : ℕ} : precondition [[m, n], [n, p]] := top [[m, n], [n, p]]
 def replicate_col {m : ℕ} (n : ℕ) (xs : dvec T [[m]]) : precondition [[m]] := top [[m]]
 
 def mul_add {shape : S} : precondition [shape, shape, shape] := top [shape, shape, shape]
-def mvn_iso_kl {shape : S} : precondition [shape, shape] := λ xs, xs^.head2 > 0
+def mvn_iso_kl {shape : S} : precondition [shape, shape] := λ xs, 0 < xs^.head2
 def mvn_iso_empirical_kl {shape : S} : precondition [shape, shape, shape] := bot [shape, shape, shape] -- Note: mvn_iso_empirical_kl not claiming to be differentiable
-def bernoulli_neglogpdf {shape : S} : precondition [shape, shape] := λ xs, xs^.head > 0 ∧ xs^.head < 1
+def bernoulli_neglogpdf {shape : S} : precondition [shape, shape] := λ xs, 0 < xs^.head ∧ xs^.head < 1
 
 end preconditions
 

@@ -43,9 +43,14 @@ end
 
 @[cgsimp] lemma false_of_cons_eq_nil {α : Type*} {x : α} {xs : list α} : (list.cons x xs = list.nil) = false := sorry
 
-@[cgsimp] lemma of_in_list_forall {α : Type*} (ys : list α) (P : α → Prop) (y : α) : (∀ x, x ∈ list.cons y ys → P x) = (P y ∧ (∀ x, x ∈ ys → P x)) := sorry
+@[cgsimp] lemma of_in_list_forall_cons {α : Type*} (ys : list α) (P : α → Prop) (y : α) : (∀ x, x ∈ list.cons y ys → P x) = (P y ∧ (∀ x, x ∈ ys → P x)) := sorry
+@[cgsimp] lemma of_in_list_forall_nil {α : Type*} (P : α → Prop) (y : α) : (∀ (x : α), x ∈  @list.nil α → P x) = true := sorry
 
-@[cgsimp] lemma of_in_list {α : Type*} (ys : list α) (x y : α) : (x ∈ list.cons y ys → false) = (x ≠ y ∧ (x ∈ ys → false)) := sorry
+-- @[cgsimp] lemma of_in_list_forall {α : Type*} (ys : list α) (P : α → Prop) (y : α) : (∀ x, x ∈ list.cons y ys → P x) = (P y ∧ (∀ x, x ∈ ys → P x)) := sorry
+
+@[cgsimp] lemma of_in_list_cons_neq {α : Type*} {P : Prop} (ys : list α) (x y : α) : x ≠ y → (x ∈ list.cons y ys → P) = (x ∈ ys → P) := sorry
+
+@[cgsimp] lemma of_in_list_cons_eq {α : Type*} {P : Prop} (ys : list α) (x y : α) : x = y → (x ∈ list.cons y ys → P) = P := sorry
 
 @[cgsimp] lemma simp_subset_cons {α : Type*} (xs : list α) (x : α) : (xs ⊆ x :: xs) = true := sorry
 
@@ -76,11 +81,10 @@ end
 @[cgsimp] lemma simp_sigmoid_pos {shape : S} : ∀ {x : T shape}, (0 < sigmoid x) = true := sorry
 @[cgsimp] lemma simp_sigmoid_lt1 {shape : S} : ∀ {x : T shape}, (sigmoid x < 1) = true := sorry
 
-@[cgsimp] lemma ite_prove_pos {α : Type*} (P : Prop) [decidable P] (x y : α) : P → ite P x y = x := sorry
-@[cgsimp] lemma ite_prove_neg {α : Type*} (P : Prop) [decidable P] (x y : α) : (¬ P) → ite P x y = y := sorry
-
 -- TODO(dhs): weird lemma
 @[cgsimp] lemma simp_one_plus_pos {shape : S} : ∀ {x : T shape}, 0 < 1 + x = (0 < x ∨ - 1 < x) := sorry
+
+attribute [cgsimp] if_pos if_neg if_true if_false
 
 attribute [cgsimp] hash_map.find_insert
 
@@ -169,7 +173,7 @@ meta def gsimpt (tac : tactic unit) : tactic unit := do
 meta def cgsimpt (tac : tactic unit) : tactic unit := do
   s ← join_user_simp_lemmas tt [`cgsimp],
 --  repeat $ first [gsimpt tac >> trace "SIMP", dsimp_core s >> trace "DSIMP", /- prove_continuous >> trace "CONT" -/, prove_is_mvn_integrable >> trace "MVN", dec_triv >> trace "DT"]
-  repeat $ first [gsimpt tac >> trace "SIMP", prove_refs_neq >> trace "REFS_NEQ"]
+  repeat $ first [gsimpt tac >> trace "SIMP", prove_refs_neq >> trace "REFS_NEQ", triv >> trace "TRIV"]
 --dsimp_core s >> trace "DSIMP", (target >>= λ tgt, dec_triv >> trace "DECTRIV: " >> trace tgt)]
 
 meta def cgsimpn : ℕ → tactic unit

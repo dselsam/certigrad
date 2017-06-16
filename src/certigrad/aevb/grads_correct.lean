@@ -16,13 +16,6 @@ set_option pp.max_steps 10000000
 namespace certigrad
 namespace aevb
 
--- TODO(dhs): take decidable instance, put this somewhere else
-instance decidable_ref_subset {α : Type*} [decidable_eq α] {xs ys : list α} : decidable (xs ⊆ ys) :=
-begin
-dunfold has_subset.subset list.subset,
-apply_instance
-end
-
 section proofs
 open graph list tactic certigrad.tactic
 
@@ -31,8 +24,9 @@ def g : graph := reparam (integrate_kl $ graph_naive a x_data)
 def fdict : env := mk_input_dict ws g
 
 attribute [cgsimp] g fdict
+set_option trace.simp_lemmas.rewrite.failure true
 
-lemma g_final_nodups : nodup (env.keys fdict ++ map node.ref g^.nodes) := sorry --by cgsimp
+lemma g_final_nodups : nodup (env.keys fdict ++ map node.ref g^.nodes) := by cgsimp --by dec_triv
 
 lemma g_final_ps_in_env : all_parents_in_env fdict g^.nodes := sorry --by cgsimp
 
@@ -49,7 +43,7 @@ lemma g_final_tgts_in_inputs : g^.targets ⊆ env.keys fdict := sorry --by cgsim
 lemma g_final_pdfs_exist_at : pdfs_exist_at g^.nodes fdict := sorry --by cgsimp
 
 -- TODO(dhs): The tactic is fast, but have yet to finish type-checking the proof
-lemma g_final_grads_exist_at_he : grads_exist_at g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) := by cgsimp
+lemma g_final_grads_exist_at_he : grads_exist_at g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) := sorry --by cgsimp
 
 -- TODO(dhs): this one works now but is slow
 lemma g_final_is_gintegrable_he :

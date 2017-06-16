@@ -30,18 +30,34 @@ simp only with cgsimp,
 
 end
 -/
+@[cgsimp] lemma true_of_not_false : (¬ false) = true := sorry
 @[cgsimp] lemma label_of (x y : label) : (ID.str x = ID.str y) = (x = y) := sorry
 
 @[cgsimp] lemma eq_of_self_eq {α : Type*} (x : α) : (x = x) = true := sorry
-@[cgsimp] lemma prove_neq {α : Type*} (x y : α) : x ≠ y → x ≠ y := sorry
+--@[cgsimp] lemma prove_neq {α : Type*} (x y : α) : x ≠ y → x ≠ y := sorry
 
-@[cgsimp] lemma true_of_in_nil {α : Type*} (P : Prop) (x : α) : (x ∈ @list.nil α → P) = true := sorry
-@[cgsimp] lemma true_of_in_nil_alt {α : Type*} (P : α → Prop) (x : α) : (x ∈ @list.nil α → P x) = true := sorry
 @[cgsimp] lemma and_true_left {P : Prop} : (true ∧ P) = P := sorry
 @[cgsimp] lemma and_true_right {P : Prop} : (P ∧ true) = P := sorry
 @[cgsimp] lemma true_of_imp_true {α : Sort*} : (α → true) = true := sorry
 
+@[cgsimp] lemma simp_nodup_nil {α : Type*} : @list.nodup α [] = true := sorry
+@[cgsimp] lemma simp_nodup_singleton {α : Type*} (a : α) : list.nodup [a] = true := sorry
+@[cgsimp] lemma simp_nodup_cons {α : Type*} {a : α} {l : list α} : a ∉ l → list.nodup (a::l) = list.nodup l := sorry
+
+@[cgsimp] lemma false_imp {P : Prop} : (false → P) = true := sorry
+@[cgsimp] lemma simp_mem_nil {α : Type*} (x : α) : (x ∈ @list.nil α) = false := sorry
+@[cgsimp] lemma simp_mem_cons_neq {α : Type*} (x y : α) (xs : list α) : x ≠ y → (x ∈ y :: xs) = (x ∈ xs) := sorry
+@[cgsimp] lemma simp_mem_cons_eq {α : Type*} (x y : α) (xs : list α) : x = y → (x ∈ y :: xs) = true := sorry
+
+@[cgsimp] lemma simp_nmem_nil {α : Type*} (x : α) : (x ∉ @list.nil α) = true := sorry
+@[cgsimp] lemma simp_nmem_cons_eq {α : Type*} (x y : α) (xs : list α) : x ≠ y → (x ∉ y :: xs) = (x ∉ xs) := sorry
+@[cgsimp] lemma simp_nmem_cons_neq {α : Type*} (x y : α) (xs : list α) : x = y → (x ∉ y :: xs) = false := sorry
+
 @[cgsimp] lemma false_of_cons_eq_nil {α : Type*} {x : α} {xs : list α} : (list.cons x xs = list.nil) = false := sorry
+
+@[cgsimp] lemma simp_nil_append {α : Type*} (s : list α) : [] ++ s = s := sorry
+@[cgsimp] lemma simp_cons_append {α : Type*} (x : α) (s t : list α) : (x::s) ++ t = x::(s ++ t) := sorry
+@[cgsimp] lemma simp_append_nil {α : Type*} (t : list α) : t ++ [] = t := sorry
 
 @[cgsimp] lemma of_in_list_forall_cons {α : Type*} (ys : list α) (P : α → Prop) (y : α) : (∀ x, x ∈ list.cons y ys → P x) = (P y ∧ (∀ x, x ∈ ys → P x)) := sorry
 @[cgsimp] lemma of_in_list_forall_nil {α : Type*} (P : α → Prop) (y : α) : (∀ (x : α), x ∈  @list.nil α → P x) = true := sorry
@@ -173,14 +189,14 @@ meta def gsimpt (tac : tactic unit) : tactic unit := do
 meta def cgsimpt (tac : tactic unit) : tactic unit := do
   s ← join_user_simp_lemmas tt [`cgsimp],
 --  repeat $ first [gsimpt tac >> trace "SIMP", dsimp_core s >> trace "DSIMP", /- prove_continuous >> trace "CONT" -/, prove_is_mvn_integrable >> trace "MVN", dec_triv >> trace "DT"]
-  repeat $ first [gsimpt tac >> trace "SIMP", prove_refs_neq >> trace "REFS_NEQ", triv >> trace "TRIV"]
+  repeat $ first [gsimpt tac >> trace "SIMP", prove_refs_neq >> trace "REFS_NEQ", prove_ids_neq >> trace "IDS_NEQ", triv >> trace "TRIV"]
 --dsimp_core s >> trace "DSIMP", (target >>= λ tgt, dec_triv >> trace "DECTRIV: " >> trace tgt)]
 
 meta def cgsimpn : ℕ → tactic unit
 | 0 := cgsimpt skip
 | (n+1) := cgsimpt (cgsimpn n)
 
-meta def cgsimp : tactic unit := trace "START CGSIMP" >> cgsimpn 5 >> trace "END CGSIMP"
+meta def cgsimp : tactic unit := trace "START CGSIMP" >> cgsimpn 50 >> trace "END CGSIMP"
 
 end tactic
 end certigrad

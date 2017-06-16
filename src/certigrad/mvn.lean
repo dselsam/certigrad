@@ -13,6 +13,8 @@ namespace T
 axiom is_integrable_mvn_of_sub_exp {shape₁ shape₂ : S} (μ σ : T shape₁) (f : T shape₁ → T shape₂) :
   is_btw_exp₂ f → is_integrable (λ x, mvn_iso_pdf μ σ x ⬝ f x)
 
+end T
+
 section tactic
 open tactic
 
@@ -23,6 +25,7 @@ first [
      , applyc `certigrad.T.is_btw_sigmoid
      , applyc `certigrad.T.is_btw_softplus
      , applyc `certigrad.T.is_btw_gemm
+     , applyc `certigrad.T.is_btw_transpose
      , applyc `certigrad.T.is_btw_neg
      , applyc `certigrad.T.is_btw_inv
      , applyc `certigrad.T.is_btw_add
@@ -34,6 +37,7 @@ first [
      , applyc `certigrad.T.is_linear_id
      , applyc `certigrad.T.is_linear_const
      , applyc `certigrad.T.is_linear_gemm
+     , applyc `certigrad.T.is_linear_transpose
      , applyc `certigrad.T.is_linear_neg
      , applyc `certigrad.T.is_linear_inv
      , applyc `certigrad.T.is_linear_add
@@ -44,10 +48,11 @@ first [
 
 meta def prove_is_mvn_integrable : tactic unit :=
 do applyc `certigrad.T.is_integrable_mvn_of_sub_exp,
-   repeat_at_most 100 prove_is_mvn_integrable_core
+   repeat prove_is_mvn_integrable_core
 
 end tactic
 
+namespace T
 axiom mvn_iso_const_int {shape oshape : S} (μ σ : T shape) : σ > 0 → ∀ (y : T oshape), is_integrable (λ (x : T shape), mvn_iso_pdf μ σ x ⬝ y)
 axiom mvn_iso_moment₁_int {shape : S} (μ σ : T shape) : σ > 0 → is_integrable (λ (x : T shape), mvn_iso_pdf μ σ x ⬝ x)
 axiom mvn_iso_moment₂_int {shape : S} (μ σ : T shape) : σ > 0 → is_integrable (λ (x : T shape), mvn_iso_pdf μ σ x ⬝ square x)

@@ -73,19 +73,19 @@ end
 @[cgsimp] lemma simp_sqrt_pos {shape : S} : ∀ {x : T shape}, (0 < sqrt x) = (0 < x) := sorry
 @[cgsimp] lemma simp_exp_pos {shape : S} : ∀ {x : T shape}, (0 < exp x) = true := sorry
 
-@[cgsimp] lemma simp_integrable_pdf_add : Π {shape₁ shape₂ : S} (pdf : T shape₁ → ℝ) (f g : T shape₁ → T shape₂),
-(is_integrable (λ (x : T shape₁), pdf x ⬝ (f x + g x))) = (is_integrable (λ (x : T shape₁), pdf x ⬝ f x) ∧ is_integrable (λ (x : T shape₁), pdf x ⬝ g x)) := sorry
+--@[cgsimp] lemma simp_integrable_pdf_add : Π {shape₁ shape₂ : S} (pdf : T shape₁ → ℝ) (f g : T shape₁ → T shape₂),
+--(is_integrable (λ (x : T shape₁), pdf x ⬝ (f x + g x))) = (is_integrable (λ (x : T shape₁), pdf x ⬝ f x) ∧ is_integrable (λ (x : T shape₁), pdf x ⬝ g x)) := sorry
 
 -- TODO(dhs): prove continuous stuff with the simplifier
-@[cgsimp] lemma simp_mvn_iso_bernoulli_neglogpdf_int {shape₁ shape₂ : S} (μ σ : T shape₁) (H_σ : 0 < σ) (p : T shape₁ → T shape₂)
-                                                   /- (H_p_cont : ∀ x, is_continuous p x) -/ (H_p : ∀ x, 0 < p x ∧ p x < 1) (z : T shape₂) :
-  is_integrable (λ (x : T shape₁), T.mvn_iso_pdf μ σ x ⬝ bernoulli_neglogpdf (p x) z) = true := sorry
+--@[cgsimp] lemma simp_mvn_iso_bernoulli_neglogpdf_int {shape₁ shape₂ : S} (μ σ : T shape₁) (H_σ : 0 < σ) (p : T shape₁ → T shape₂)
+--                                                   /- (H_p_cont : ∀ x, is_continuous p x) -/ (H_p : ∀ x, 0 < p x ∧ p x < 1) (z : T shape₂) :
+--  is_integrable (λ (x : T shape₁), T.mvn_iso_pdf μ σ x ⬝ bernoulli_neglogpdf (p x) z) = true := sorry
 
-@[cgsimp] lemma simp_mvn_iso_mvn_iso_empirical_kl_int {shape : S} (μ σ : T shape) (H_σ : 0 < σ) (μ' σ' : T shape) :
-  is_integrable (λ (x : T shape), T.mvn_iso_pdf μ σ x ⬝ mvn_iso_empirical_kl μ' σ' x) = true := sorry
+--@[cgsimp] lemma simp_mvn_iso_mvn_iso_empirical_kl_int {shape : S} (μ σ : T shape) (H_σ : 0 < σ) (μ' σ' : T shape) :
+--  is_integrable (λ (x : T shape), T.mvn_iso_pdf μ σ x ⬝ mvn_iso_empirical_kl μ' σ' x) = true := sorry
 
-@[cgsimp] lemma simp_mvn_iso_mvn_iso_kl_int {shape : S} (μ σ : T shape) (H_σ : 0 < σ) (μ' σ' : T shape) :
-  is_integrable (λ (x : T shape), T.mvn_iso_pdf μ σ x ⬝ mvn_iso_kl μ' σ') = true := sorry
+--@[cgsimp] lemma simp_mvn_iso_mvn_iso_kl_int {shape : S} (μ σ : T shape) (H_σ : 0 < σ) (μ' σ' : T shape) :
+--  is_integrable (λ (x : T shape), T.mvn_iso_pdf μ σ x ⬝ mvn_iso_kl μ' σ') = true := sorry
 
 @[cgsimp] lemma simp_smul_zero (shape : S) (α : ℝ) : α ⬝ (0 : T shape) = (0 : T shape) := sorry
 @[cgsimp] lemma simp_one_smul (shape : S) (x : T shape) : (1 : ℝ) ⬝ x = x := sorry
@@ -188,9 +188,7 @@ meta def gsimpt (tac : tactic unit) : tactic unit := do
 
 meta def cgsimpt (tac : tactic unit) : tactic unit := do
   s ← join_user_simp_lemmas tt [`cgsimp],
---  repeat $ first [gsimpt tac >> trace "SIMP", dsimp_core s >> trace "DSIMP", /- prove_continuous >> trace "CONT" -/, prove_is_mvn_integrable >> trace "MVN", dec_triv >> trace "DT"]
-  repeat $ first [gsimpt tac >> trace "SIMP", prove_refs_neq >> trace "REFS_NEQ", prove_ids_neq >> trace "IDS_NEQ", triv >> trace "TRIV"]
---dsimp_core s >> trace "DSIMP", (target >>= λ tgt, dec_triv >> trace "DECTRIV: " >> trace tgt)]
+  repeat $ first [gsimpt tac, prove_refs_neq, prove_ids_neq, triv]
 
 meta def cgsimpn : ℕ → tactic unit
 | 0 := cgsimpt skip

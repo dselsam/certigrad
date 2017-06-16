@@ -423,6 +423,9 @@ axiom is_btw_softplus {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : 
 axiom is_btw_gemm {shape : S} {m n p : ℕ} (f : T shape → T [m, n]) (g : T shape → T [n, p]) :
   is_btw_exp₂ f → is_btw_exp₂ g → is_btw_exp₂ (λ x, gemm (f x) (g x))
 
+axiom is_btw_transpose {shape : S} {m n : ℕ} (f : T shape → T [m, n]) :
+  is_btw_exp₂ f → is_btw_exp₂ (λ x, transpose (f x))
+
 axiom is_btw_neg {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_btw_exp₂ f → is_btw_exp₂ (λ x, - (f x))
 axiom is_btw_inv {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_btw_exp₂ f → is_btw_exp₂ (λ x, (f x)⁻¹)
 axiom is_btw_add {shape₁ shape₂ : S} (f g : T shape₁ → T shape₂) : is_btw_exp₂ f → is_btw_exp₂ g → is_btw_exp₂ (λ x, f x + g x)
@@ -439,6 +442,9 @@ axiom is_linear_const {shape₁ shape₂ : S} (y : T shape₂) : is_linear (λ (
 
 axiom is_linear_gemm {shape : S} {m n p : ℕ} (f : T shape → T [m, n]) (g : T shape → T [n, p]) :
   is_linear f → is_linear g → is_linear (λ x, gemm (f x) (g x))
+
+axiom is_linear_transpose {shape : S} {m n : ℕ} (f : T shape → T [m, n]) :
+  is_linear f → is_linear (λ x, transpose (f x))
 
 axiom is_linear_neg {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_linear f → is_linear (λ x, - (f x))
 axiom is_linear_inv {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_linear f → is_linear (λ x, (f x)⁻¹)

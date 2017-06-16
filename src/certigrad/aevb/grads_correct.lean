@@ -6,10 +6,10 @@ Author: Daniel Selsam
 Proofs that integrating out the KL and reparametizing are sound when
 applied to the naive variational encoder.
 -/
-import .util .naive ..prove_model_ok ..pre .sub_exp
+import .util .naive ..prove_model_ok ..pre
 
 set_option class.instance_max_depth 100000
-set_option max_memory 100000
+set_option max_memory 10000
 set_option pp.max_depth 100000
 set_option pp.max_steps 10000000
 
@@ -24,9 +24,8 @@ def g : graph := reparam (integrate_kl $ graph_naive a x_data)
 def fdict : env := mk_input_dict ws g
 
 attribute [cgsimp] g fdict
-set_option trace.simp_lemmas.rewrite.failure true
 
-lemma g_final_nodups : nodup (env.keys fdict ++ map node.ref g^.nodes) := by cgsimp --by dec_triv
+lemma g_final_nodups : nodup (env.keys fdict ++ map node.ref g^.nodes) := sorry -- by cgsimp
 
 lemma g_final_ps_in_env : all_parents_in_env fdict g^.nodes := sorry --by cgsimp
 
@@ -48,7 +47,23 @@ lemma g_final_grads_exist_at_he : grads_exist_at g^.nodes fdict (ID.str label.W_
 -- TODO(dhs): this one works now but is slow
 lemma g_final_is_gintegrable_he :
   is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_encode, [a^.ne, a^.n_in])⟧)
-                 fdict g^.nodes dvec.head := sorry -- by cgsimp >> prove_is_mvn_integrable
+                 fdict g^.nodes dvec.head := by cgsimp >> prove_is_mvn_integrable
+
+lemma g_final_is_gintegrable_hem :
+  is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_encode_μ, [a^.nz, a^.ne])⟧)
+                 fdict g^.nodes dvec.head := by cgsimp >> prove_is_mvn_integrable
+
+lemma g_final_is_gintegrable_hels₂ :
+  is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_encode_logσ₂, [a^.nz, a^.ne])⟧)
+                 fdict g^.nodes dvec.head := by cgsimp >> prove_is_mvn_integrable
+
+lemma g_final_is_gintegrable_hd :
+  is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_decode, [a^.nd, a^.nz])⟧)
+                 fdict g^.nodes dvec.head := by cgsimp >> prove_is_mvn_integrable
+
+lemma g_final_is_gintegrable_hdp :
+  is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_decode_p, [a^.n_in, a^.nd])⟧)
+                 fdict g^.nodes dvec.head := by cgsimp >> prove_is_mvn_integrable
 
 lemma g_final_diff_under_int_hem :
   can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_encode, [a^.nz, a^.ne]) := sorry -- by cgsimp

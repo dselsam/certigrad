@@ -19,6 +19,8 @@ inductive label : Type
 
 namespace label
 
+instance : decidable_eq label := by tactic.mk_dec_eq_instance
+
 def to_str : label → string
 | default := "<default>"
 | batch_start := "batch_start"
@@ -77,24 +79,14 @@ do H ← intro `H,
    exfalso,
    get_local `H_not >>= λ H_not, exact (expr.app H_not H)
 
-lemma eq_iff_to_nat_eq : ∀ {x y : label}, (x = y) ↔ (to_nat x = to_nat y) :=
+--cases x, all_goals { cases y, all_goals { (prove_neq_case_core <|> (intro1 >> reflexivity)) } }
+lemma label_eq_of_to_nat {x y : label} : x = y → to_nat x = to_nat y :=
 begin
-intros x y,
-split,
-{
-intro H_eq,
-rw H_eq,
-},
-{
-cases x, all_goals { cases y, all_goals { (prove_neq_case_core <|> (intro1 >> reflexivity)) } }
-}
+intro H,
+subst H,
 end
-end proofs
 
-instance dec_eq (x y : label) : decidable (x = y) :=
-if H : x^.to_nat = y^.to_nat
-then decidable.is_true (iff.mpr eq_iff_to_nat_eq H)
-else decidable.is_false (λ H_contra, false.rec _ (H (iff.mp eq_iff_to_nat_eq H_contra)))
+end proofs
 
 def less_than (x y : label) : Prop := x^.to_nat < y^.to_nat
 

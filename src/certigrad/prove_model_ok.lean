@@ -172,7 +172,7 @@ meta def cgsimpn : ℕ → tactic unit
 | 0 := cgsimpt skip
 | (n+1) := cgsimpt (cgsimpn n)
 
-meta def cgsimp : tactic unit := cgsimpn 5
+meta def cgsimp : tactic unit := cgsimpn 5 >> trace "END CGSIMP"
 
 end tactic
 end certigrad

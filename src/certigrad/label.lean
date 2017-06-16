@@ -68,13 +68,10 @@ open tactic
 
 meta def prove_neq_case_core : tactic unit :=
 do H ← intro `H,
-   trace "before: ", trace_state,
    dunfold_at [`certigrad.label.to_nat] H,
-   trace "after: ", trace_state,
    H ← get_local `H,
    ty ← infer_type H,
    nty ← return $ expr.app (expr.const `not []) ty,
-   trace nty,
    assert `H_not nty,
    dec_triv,
    exfalso,
@@ -94,12 +91,8 @@ cases x, all_goals { cases y, all_goals { (prove_neq_case_core <|> (intro1 >> re
 end
 end proofs
 
-def dec_eq (x y : label) : decidable (x = y) :=
-if x^.to_nat = y^.to_nat
-
---instance : decidable_eq label := by tactic.mk_dec_eq_instance
-
-
+instance dec_eq (x y : label) : decidable (x = y) :=
+if x^.to_nat = y^.to_nat then decidable.is_true sorry else decidable.is_false sorry
 
 def less_than (x y : label) : Prop := x^.to_nat < y^.to_nat
 

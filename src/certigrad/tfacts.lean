@@ -413,6 +413,40 @@ change dintegral (λ (vs : dvec T (shape::shapes)), pdf vs) ⬝ y = y,
 rw [H_pdf_int1, one_smul]
 end
 
+-- btw axioms
+
+axiom is_btw_id {shape : S} : is_btw_exp₂ (λ (x : T shape), x)
+axiom is_btw_const {shape₁ shape₂ : S} (y : T shape₂) : is_btw_exp₂ (λ (x : T shape₁), y)
+axiom is_btw_sigmoid {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_btw_exp₂ (λ (x : T shape₁), sigmoid (f x))
+axiom is_btw_softplus {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_btw_exp₂ f → is_btw_exp₂ (λ (x : T shape₁), softplus (f x))
+
+axiom is_btw_gemm {shape : S} {m n p : ℕ} (f : T shape → T [m, n]) (g : T shape → T [n, p]) :
+  is_btw_exp₂ f → is_btw_exp₂ g → is_btw_exp₂ (λ x, gemm (f x) (g x))
+
+axiom is_btw_neg {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_btw_exp₂ f → is_btw_exp₂ (λ x, - (f x))
+axiom is_btw_inv {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_btw_exp₂ f → is_btw_exp₂ (λ x, (f x)⁻¹)
+axiom is_btw_add {shape₁ shape₂ : S} (f g : T shape₁ → T shape₂) : is_btw_exp₂ f → is_btw_exp₂ g → is_btw_exp₂ (λ x, f x + g x)
+axiom is_btw_mul {shape₁ shape₂ : S} (f g : T shape₁ → T shape₂) : is_btw_exp₂ f → is_btw_exp₂ g → is_btw_exp₂ (λ x, f x * g x)
+axiom is_btw_sub {shape₁ shape₂ : S} (f g : T shape₁ → T shape₂) : is_btw_exp₂ f → is_btw_exp₂ g → is_btw_exp₂ (λ x, f x - g x)
+axiom is_btw_div {shape₁ shape₂ : S} (f g : T shape₁ → T shape₂) : is_btw_exp₂ f → is_btw_exp₂ g → is_btw_exp₂ (λ x, f x / g x)
+
+axiom is_btw_exp {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_linear f → is_btw_exp₂ (λ x, exp (f x))
+
+-- linear axioms
+
+axiom is_linear_id {shape : S} : is_linear (λ (x : T shape), x)
+axiom is_linear_const {shape₁ shape₂ : S} (y : T shape₂) : is_linear (λ (x : T shape₁), y)
+
+axiom is_linear_gemm {shape : S} {m n p : ℕ} (f : T shape → T [m, n]) (g : T shape → T [n, p]) :
+  is_linear f → is_linear g → is_linear (λ x, gemm (f x) (g x))
+
+axiom is_linear_neg {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_linear f → is_linear (λ x, - (f x))
+axiom is_linear_inv {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_linear f → is_linear (λ x, (f x)⁻¹)
+axiom is_linear_add {shape₁ shape₂ : S} (f g : T shape₁ → T shape₂) : is_linear f → is_linear g → is_linear (λ x, f x + g x)
+axiom is_linear_mul {shape₁ shape₂ : S} (f g : T shape₁ → T shape₂) : is_linear f → is_linear g → is_linear (λ x, f x * g x)
+axiom is_linear_sub {shape₁ shape₂ : S} (f g : T shape₁ → T shape₂) : is_linear f → is_linear g → is_linear (λ x, f x - g x)
+axiom is_linear_div {shape₁ shape₂ : S} (f g : T shape₁ → T shape₂) : is_linear f → is_linear g → is_linear (λ x, f x / g x)
+
 axiom integral_scale_shift_var {shape fshape : S} (f : T shape → T fshape) (α β : T shape) : ∫ (λ x, f (α * x + β)) = ∫ (λ x, prod α⁻¹ ⬝ f x)
 
 @[simp]

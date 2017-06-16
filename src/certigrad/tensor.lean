@@ -191,6 +191,10 @@ constant integral : Π {shape₁ shape₂ : S}, (T shape₁ → T shape₂) → 
 
 constant is_uniformly_integrable_around : Π {shape₁ shape₂ shape₃ : S} (f : T shape₁ → T shape₂ → T shape₃) (θ : T shape₁), Prop
 
+-- ω(exp -x²) ∧ o(exp x²)
+constant is_btw_exp₂ {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : Prop
+constant is_linear {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : Prop
+
 -- continuously differentiable
 constant is_cdifferentiable : Π {ishape : S}, (T ishape → ℝ) → T ishape → Prop
 constant grad : Π {ishape : S}, (T ishape → ℝ) → (T ishape → T ishape)

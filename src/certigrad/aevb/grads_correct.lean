@@ -6,7 +6,7 @@ Author: Daniel Selsam
 Proofs that integrating out the KL and reparametizing are sound when
 applied to the naive variational encoder.
 -/
-import .util .naive ..prove_model_ok ..pre
+import .util .naive ..prove_model_ok ..pre .sub_exp
 
 set_option class.instance_max_depth 1000000
 set_option max_memory 10000000
@@ -82,13 +82,17 @@ lemma g_final_grads_exist_at_he : grads_exist_at g^.nodes fdict (ID.str label.W_
 
 lemma g_final_is_gintegrable_he :
   is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_encode, [a^.ne, a^.n_in])⟧)
-                 fdict g^.nodes dvec.head := --sorry -- by cgsimp
-begin
+                 fdict g^.nodes dvec.head := sorry -- by cgsimp
+-- TODO(dhs): the following _proves_ but type-checking crashes my machine‌ (not sure if cgsimp alone does)
+/-begin
 cgsimp,
 repeat { intros, split },
-
+trace "about to prove mvn_integrable...",
+prove_is_mvn_integrable,
+trace "proved mvn_integrable, about to type-check...",
+trace_state
 end
--- TODO(dhs): I don't know if this works or not, it takes freaking forever
+-/
 
 lemma g_final_diff_under_int_hem :
   can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_encode, [a^.nz, a^.ne]) := sorry -- by cgsimp

@@ -233,9 +233,6 @@ T.is_integrable
            (T.transpose (T.get_col_range (a.bs) x_data (T.round (ws.batch_start))))) :=
 begin
 prove_is_mvn_integrable,
-
-
-
 end
 
 end aevb

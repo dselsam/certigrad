@@ -8,7 +8,7 @@ Tactics to prove specific models satisfy the preconditions of backprop_correct.
 TODO(dhs): we are in the process of refactoring this tactic to use the simplifier
 more aggressively and this file is currently in an inconsistent state.
 -/
-import .tfacts .graph .predicates .expected_value .reparam .kl .tactics .program .pre
+import .tfacts .graph .predicates .expected_value .reparam .kl .tactics .program .pre .mvn
 
 namespace certigrad
 open T
@@ -166,7 +166,7 @@ meta def gsimpt (tac : tactic unit) : tactic unit := do
 
 meta def cgsimpt (tac : tactic unit) : tactic unit := do
   s ← join_user_simp_lemmas tt [`cgsimp],
-  repeat $ first [dsimp_core s, gsimpt tac, dec_triv]
+  repeat $ first [dsimp_core s, gsimpt tac, prove_continuous, prove_is_mvn_integrable, dec_triv]
 
 meta def cgsimpn : ℕ → tactic unit
 | 0 := cgsimpt skip

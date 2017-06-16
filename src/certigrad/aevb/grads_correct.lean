@@ -75,15 +75,14 @@ all_goals { cgsimp }
 end
 -/
 
-lemma g_final_grads_exist_at_he : grads_exist_at g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) := sorry -- by cgsimp
--- TODO(dhs): I don't know if this works or not, it takes freaking forever
+-- TODO(dhs): The tactic is fast, but have yet to finish type-checking the proof
+lemma g_final_grads_exist_at_he : grads_exist_at g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) := by cgsimp
 
-set_option trace.simplify.rewrite true
 
 lemma g_final_is_gintegrable_he :
   is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_encode, [a^.ne, a^.n_in])⟧)
-                 fdict g^.nodes dvec.head := by cgsimp >> prove_is_mvn_integrable
--- TODO(dhs): crashes my machine, not sure if it just the type-checking
+                 fdict g^.nodes dvec.head := sorry -- by cgsimp >> prove_is_mvn_integrable
+-- TODO(dhs): the type-checking crashes my machine
 
 lemma g_final_diff_under_int_hem :
   can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_encode, [a^.nz, a^.ne]) := sorry -- by cgsimp

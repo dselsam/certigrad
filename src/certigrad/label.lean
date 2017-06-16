@@ -7,6 +7,7 @@ Labels.
 
 Note: this file is just because strings are slow and cumbersome in current Lean.
 -/
+import .tactics
 namespace certigrad
 
 inductive label : Type
@@ -17,8 +18,6 @@ inductive label : Type
 | μ, σ, σ₂, log_σ₂, z, encoding_loss, decoding_loss, ε, x, p
 
 namespace label
-
-instance : decidable_eq label := by tactic.mk_dec_eq_instance
 
 def to_str : label → string
 | default := "<default>"
@@ -63,6 +62,44 @@ def to_nat : label → ℕ
 | ε := 16
 | x := 17
 | p := 18
+
+section proofs
+open tactic
+
+meta def prove_neq_case_core : tactic unit :=
+do H ← intro `H,
+   trace "before: ", trace_state,
+   dunfold_at [`certigrad.label.to_nat] H,
+   trace "after: ", trace_state,
+   H ← get_local `H,
+   ty ← infer_type H,
+   nty ← return $ expr.app (expr.const `not []) ty,
+   trace nty,
+   assert `H_not nty,
+   dec_triv,
+   exfalso,
+   get_local `H_not >>= λ H_not, exact (expr.app H_not H)
+
+lemma eq_iff_to_nat_eq : ∀ x y : label, (x = y) ↔ (to_nat x = to_nat y) :=
+begin
+intros x y,
+split,
+{
+intro H_eq,
+rw H_eq,
+},
+{
+cases x, all_goals { cases y, all_goals { (prove_neq_case_core <|> (intro1 >> reflexivity)) } }
+}
+end
+end proofs
+
+def dec_eq (x y : label) : decidable (x = y) :=
+if x^.to_nat = y^.to_nat
+
+--instance : decidable_eq label := by tactic.mk_dec_eq_instance
+
+
 
 def less_than (x y : label) : Prop := x^.to_nat < y^.to_nat
 

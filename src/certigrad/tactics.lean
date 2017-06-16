@@ -5,7 +5,6 @@ Author: Daniel Selsam
 
 Miscellaneous tactics.
 -/
-import .tfacts
 
 namespace tactic
 
@@ -59,7 +58,7 @@ meta def norm_all_nums : tactic unit :=
                                      trace "\nsuccess: ", trace new_val,
                                      return ⟨(), new_val, some pf⟩) in
   at_target (conv.to_tactic (conv.bottom_up norm_conv) `eq)
-
+/-
 
 meta def refs_neq : tactic unit :=
   assumption <|> (mk_const `pair_neq_of_neq₁ >>= apply >> assumption) <|> dec_triv
@@ -279,5 +278,5 @@ do tgt ← target,
 
 meta def cheat_pis : tactic unit :=
 (applyc `and.intro >> any_goals (cheat_pis)) <|> (target >>= (λ tgt, if expr.is_pi tgt then mk_sorry >>= exact else skip))
-
+-/
 end tactic

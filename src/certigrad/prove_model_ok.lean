@@ -167,7 +167,7 @@ meta def gsimpt (tac : tactic unit) : tactic unit := do
 meta def cgsimpt (tac : tactic unit) : tactic unit := do
   s ← join_user_simp_lemmas tt [`cgsimp],
 --  repeat $ first [gsimpt tac >> trace "SIMP", dsimp_core s >> trace "DSIMP", /- prove_continuous >> trace "CONT" -/, prove_is_mvn_integrable >> trace "MVN", dec_triv >> trace "DT"]
-  repeat $ first [gsimpt tac >> trace "SIMP", dsimp_core s >> trace "DSIMP", dec_triv >> trace "DECTRIV"]
+  repeat $ first [gsimpt tac >> trace "SIMP", dsimp_core s >> trace "DSIMP", (target >>= λ tgt, dec_triv >> trace "DECTRIV: " >> trace tgt)]
 
 meta def cgsimpn : ℕ → tactic unit
 | 0 := cgsimpt skip

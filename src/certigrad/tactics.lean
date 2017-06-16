@@ -58,10 +58,9 @@ meta def norm_all_nums : tactic unit :=
                                      trace "\nsuccess: ", trace new_val,
                                      return ⟨(), new_val, some pf⟩) in
   at_target (conv.to_tactic (conv.bottom_up norm_conv) `eq)
-/-
 
 meta def refs_neq : tactic unit :=
-  assumption <|> (mk_const `pair_neq_of_neq₁ >>= apply >> assumption) <|> dec_triv
+  assumption <|> (mk_const `pair_neq_of_neq₁ >>= apply >> assumption)
 
 meta def dget_dinsert : tactic unit := do
   s ← simp_lemmas.add_simp simp_lemmas.mk `certigrad.env.get_insert_same >>= flip simp_lemmas.add_simp `certigrad.env.get_insert_diff,
@@ -73,6 +72,19 @@ meta def dget_dinsert : tactic unit := do
                                                         `eq e,
                      return (new_e, pf))
 
+meta def dget_dinsert_at (n : name) : tactic unit := do
+  s ← simp_lemmas.add_simp simp_lemmas.mk `certigrad.env.get_insert_same >>= flip simp_lemmas.add_simp `certigrad.env.get_insert_diff,
+  at_hyp n (λ e, do (a, new_e, pf) ← ext_simplify_core () {} s
+                                                        (λ u, failed)
+                                                        (λ a s r p e, failed)
+                                                        (λ a s r p e, do ⟨u, new_e, pr⟩ ← conv.apply_lemmas_core s refs_neq r e,
+                                                                         return ((), new_e, pr, tt))
+                                                        `eq e,
+                     return (new_e, pf))
+
+
+/-
+
 meta def cheat_refs_neq : tactic unit :=
 do (lhs, rhs) ← target >>= match_ne,
    if lhs = rhs then failed else mk_sorry >>= exact
@@ -83,16 +95,6 @@ meta def dget_dinsert_cheat : tactic unit := do
                                                         (λ u, failed)
                                                         (λ a s r p e, failed)
                                                         (λ a s r p e, do ⟨u, new_e, pr⟩ ← conv.apply_lemmas_core s cheat_refs_neq r e,
-                                                                         return ((), new_e, pr, tt))
-                                                        `eq e,
-                     return (new_e, pf))
-
-meta def dget_dinsert_at (n : name) : tactic unit := do
-  s ← simp_lemmas.add_simp simp_lemmas.mk `certigrad.env.get_insert_same >>= flip simp_lemmas.add_simp `certigrad.env.get_insert_diff,
-  at_hyp n (λ e, do (a, new_e, pf) ← ext_simplify_core () {} s
-                                                        (λ u, failed)
-                                                        (λ a s r p e, failed)
-                                                        (λ a s r p e, do ⟨u, new_e, pr⟩ ← conv.apply_lemmas_core s refs_neq r e,
                                                                          return ((), new_e, pr, tt))
                                                         `eq e,
                      return (new_e, pf))

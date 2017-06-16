@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2017 Daniel Selsam. All rights reserved.
+1;4205;0cCopyright (c) 2017 Daniel Selsam. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Daniel Selsam
 
@@ -8,8 +8,7 @@ applied to the naive variational encoder.
 -/
 import .util .naive ..prove_model_ok ..pre
 
-set_option class.instance_max_depth 100000
-set_option max_memory 10000
+set_option max_memory 4096
 set_option pp.max_depth 100000
 set_option pp.max_steps 10000000
 
@@ -42,28 +41,36 @@ lemma g_final_tgts_in_inputs : g^.targets ⊆ env.keys fdict := sorry --by cgsim
 lemma g_final_pdfs_exist_at : pdfs_exist_at g^.nodes fdict := sorry --by cgsimp
 
 -- TODO(dhs): The tactic is fast, but have yet to finish type-checking the proof
-lemma g_final_grads_exist_at_he : grads_exist_at g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) := sorry --by cgsimp
+lemma g_final_grads_exist_at_he : grads_exist_at g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) := by cgsimp
+
+lemma g_final_grads_exist_at_hem : grads_exist_at g^.nodes fdict (ID.str label.W_encode_μ, [a^.nz, a^.ne]) := by cgsimp
+
+lemma g_final_grads_exist_at_hels₂ : grads_exist_at g^.nodes fdict (ID.str label.W_encode_logσ₂, [a^.nz, a^.ne]) := by cgsimp
+
+lemma g_final_grads_exist_at_hd : grads_exist_at g^.nodes fdict (ID.str label.W_decode, [a^.nd, a^.nz]) := by cgsimp
+
+lemma g_final_grads_exist_at_hdp : grads_exist_at g^.nodes fdict (ID.str label.W_decode_p, [a^.n_in, a^.nd]) := by cgsimp
 
 -- TODO(dhs): this one works now but is slow
 lemma g_final_is_gintegrable_he :
   is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_encode, [a^.ne, a^.n_in])⟧)
-                 fdict g^.nodes dvec.head := by cgsimp >> prove_is_mvn_integrable
+                 fdict g^.nodes dvec.head := sorry -- by cgsimp >> prove_is_mvn_integrable
 
 lemma g_final_is_gintegrable_hem :
   is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_encode_μ, [a^.nz, a^.ne])⟧)
-                 fdict g^.nodes dvec.head := by cgsimp >> prove_is_mvn_integrable
+                 fdict g^.nodes dvec.head := sorry -- by cgsimp >> prove_is_mvn_integrable
 
 lemma g_final_is_gintegrable_hels₂ :
   is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_encode_logσ₂, [a^.nz, a^.ne])⟧)
-                 fdict g^.nodes dvec.head := by cgsimp >> prove_is_mvn_integrable
+                 fdict g^.nodes dvec.head := sorry -- by cgsimp >> prove_is_mvn_integrable
 
 lemma g_final_is_gintegrable_hd :
   is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_decode, [a^.nd, a^.nz])⟧)
-                 fdict g^.nodes dvec.head := by cgsimp >> prove_is_mvn_integrable
+                 fdict g^.nodes dvec.head := sorry -- by cgsimp >> prove_is_mvn_integrable
 
 lemma g_final_is_gintegrable_hdp :
   is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_decode_p, [a^.n_in, a^.nd])⟧)
-                 fdict g^.nodes dvec.head := by cgsimp >> prove_is_mvn_integrable
+                 fdict g^.nodes dvec.head := sorry -- by cgsimp >> prove_is_mvn_integrable
 
 lemma g_final_diff_under_int_hem :
   can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_encode, [a^.nz, a^.ne]) := sorry -- by cgsimp

@@ -41,15 +41,15 @@ lemma g_final_tgts_in_inputs : g^.targets ⊆ env.keys fdict := sorry --by cgsim
 lemma g_final_pdfs_exist_at : pdfs_exist_at g^.nodes fdict := sorry --by cgsimp
 
 -- TODO(dhs): The tactic is fast, but have yet to finish type-checking the proof
-lemma g_final_grads_exist_at_he : grads_exist_at g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) := by cgsimp
+lemma g_final_grads_exist_at_he : grads_exist_at g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) := sorry -- by cgsimp
 
-lemma g_final_grads_exist_at_hem : grads_exist_at g^.nodes fdict (ID.str label.W_encode_μ, [a^.nz, a^.ne]) := by cgsimp
+lemma g_final_grads_exist_at_hem : grads_exist_at g^.nodes fdict (ID.str label.W_encode_μ, [a^.nz, a^.ne]) := sorry -- by cgsimp
 
-lemma g_final_grads_exist_at_hels₂ : grads_exist_at g^.nodes fdict (ID.str label.W_encode_logσ₂, [a^.nz, a^.ne]) := by cgsimp
+lemma g_final_grads_exist_at_hels₂ : grads_exist_at g^.nodes fdict (ID.str label.W_encode_logσ₂, [a^.nz, a^.ne]) := sorry -- by cgsimp
 
-lemma g_final_grads_exist_at_hd : grads_exist_at g^.nodes fdict (ID.str label.W_decode, [a^.nd, a^.nz]) := by cgsimp
+lemma g_final_grads_exist_at_hd : grads_exist_at g^.nodes fdict (ID.str label.W_decode, [a^.nd, a^.nz]) := sorry -- by cgsimp
 
-lemma g_final_grads_exist_at_hdp : grads_exist_at g^.nodes fdict (ID.str label.W_decode_p, [a^.n_in, a^.nd]) := by cgsimp
+lemma g_final_grads_exist_at_hdp : grads_exist_at g^.nodes fdict (ID.str label.W_decode_p, [a^.n_in, a^.nd]) := sorry -- by cgsimp
 
 -- TODO(dhs): this one works now but is slow
 lemma g_final_is_gintegrable_he :
@@ -72,9 +72,21 @@ lemma g_final_is_gintegrable_hdp :
   is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_decode_p, [a^.n_in, a^.nd])⟧)
                  fdict g^.nodes dvec.head := sorry -- by cgsimp >> prove_is_mvn_integrable
 
+lemma g_final_diff_under_int_he :
+  can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) := by cgsimp
+
 lemma g_final_diff_under_int_hem :
-  can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_encode, [a^.nz, a^.ne]) := sorry -- by cgsimp
--- TODO(dhs): I don't know if this works or not, it takes freaking forever
+  can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_encode_μ, [a^.nz, a^.ne]) := by cgsimp
+
+lemma g_final_diff_under_int_hels₂ :
+  can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_encode_logσ₂, [a^.nz, a^.ne]) := by cgsimp
+
+lemma g_final_diff_under_int_hd :
+  can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_decode, [a^.nd, a^.nz]) := by cgsimp
+
+lemma g_final_diff_under_int_hdp :
+  can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_decode_p, [a^.n_in, a^.nd]) := by cgsimp
+
 
 
 

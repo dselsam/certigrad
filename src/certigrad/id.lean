@@ -22,6 +22,12 @@ private def add : ID → ID → ID
 | (ID.nat n₁) (ID.nat n₂) := ID.nat (n₁ + n₂)
 | _           _           := default ID
 
+def to_str : ID → string
+| (str l) := to_string l
+| (nat n) := "#" ++ to_string n
+
+instance : has_to_string ID := ⟨to_str⟩
+
 def less_than : ID → ID → Prop
 | (nat n)  (str s) := true
 | (str s)  (nat n) := false

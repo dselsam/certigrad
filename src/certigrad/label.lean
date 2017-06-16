@@ -19,6 +19,29 @@ inductive label : Type
 
 namespace label
 
+def to_str : label → string
+| default := "<default>"
+| batch_start := "batch_start"
+| W_encode := "W_encode"
+| h_encode := "h_encode"
+| W_encode_μ := "W_encode_μ"
+| W_encode_logσ₂ := "W_encode_logσ₂"
+| W_decode := "W_decode"
+| h_decode := "h_decode"
+| W_decode_p := "W_decode_p"
+| μ := "μ"
+| σ := "σ"
+| σ₂ := "σ₂"
+| log_σ₂ := "log_σ₂"
+| z := "z"
+| encoding_loss := "encoding_loss"
+| decoding_loss := "decoding_loss"
+| ε := "ε"
+| x := "x"
+| p := "p"
+
+instance : has_to_string label := ⟨to_str⟩
+
 def to_nat : label → ℕ
 | default := 0
 | batch_start := 1

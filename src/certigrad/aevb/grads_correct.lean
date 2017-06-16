@@ -33,7 +33,11 @@ attribute [cgsimp] g fdict
 
 lemma g_final_nodups : nodup (env.keys fdict ++ map node.ref g^.nodes) := sorry --by cgsimp
 
-lemma g_final_ps_in_env : all_parents_in_env fdict g^.nodes := sorry --by cgsimp
+lemma g_final_ps_in_env : all_parents_in_env fdict g^.nodes :=
+begin
+cgsimp
+
+end
 
 lemma g_final_pdfs_exist_at : pdfs_exist_at g^.nodes fdict := sorry --by cgsimp
 

@@ -22,6 +22,8 @@ g(θ) = ∫ (λ x, f θ x)
 g'(θ) = ∫ (λ x, ∇ (λ θ₀, f θ₀ x) θ)
 -/
 
+--set_option pp.locals_full_names true
+
 example (a : arch) (ws : weights a) (x_data : T [a.n_in, a.n_x]) :
     T.is_uniformly_integrable_around
            (λ (θ₀ : T ((ID.str label.W_decode, [a.nd, a.nz]).snd)) (x : T ((ID.str label.ε, [a.nz, a.bs]).snd)),
@@ -59,7 +61,28 @@ example (a : arch) (ws : weights a) (x_data : T [a.n_in, a.n_x]) :
                 θ₀)
            ws.W_decode :=
 begin
-simp only [T.grad_scale_f],
+--simp only [T.grad_scale_f],
+T.simplify_grad,
+simp_only [T.grad_bernoulli_neglogpdf₁
+                       (λ (θ₀ : T [a.n_in, a.bs]),
+                          T.mvn_iso_kl
+                              (T.gemm (ws.W_encode_μ)
+                                 (T.softplus
+                                    (T.gemm (ws.W_encode)
+                                       (T.get_col_range (a.bs) x_data
+                                          (T.round (ws.batch_start))))))
+                              (T.sqrt
+                                 (T.exp
+                                    (T.gemm (ws.W_encode_logσ₂)
+                                       (T.softplus
+                                          (T.gemm (ws.W_encode)
+                                             (T.get_col_range (a.bs) x_data
+                                                (T.round (ws.batch_start)))))))) +
+                            θ₀)],
+
+
+--simp only [T.grad_const],
+
 -- TODO(dhs): need to simplify the gradient inside the lambda
 -- TODO(dhs): need bernoulli_logpdf and mvn_iso_kl rules (or else would need to do binary manually)
 -- TODO(dhs): may need some more bbtw rules as well

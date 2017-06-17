@@ -74,19 +74,19 @@ axiom is_cdifferentiable_div₁ {shape : S} (k : T shape → ℝ) (x₁ x₂ : T
 axiom is_cdifferentiable_div₂ {shape : S} (k : T shape → ℝ) (x₁ x₂ : T shape) : square x₂ > 0 →
   is_cdifferentiable k (x₁ / x₂) → is_cdifferentiable (λ x₂, k (x₁ / x₂)) x₂
 
-axiom is_cdifferentiable_sum {shape : S} (k : ℝ → ℝ) (x : T shape) :
+axiom is_cdifferentiable_sum (k : ℝ → ℝ) (shape : S) (x : T shape) :
   is_cdifferentiable k (sum x) → is_cdifferentiable (λ x, k (sum x)) x
 
-axiom is_cdifferentiable_prod {shape : S} (k : ℝ → ℝ) (x : T shape) :
+axiom is_cdifferentiable_prod (k : ℝ → ℝ) (shape : S) (x : T shape) :
   is_cdifferentiable k (prod x) → is_cdifferentiable (λ x, k (prod x)) x
 
 axiom is_cdifferentiable_square {shape : S} (k : T shape → ℝ) (x : T shape) :
   is_cdifferentiable k (square x) → is_cdifferentiable (λ x, k (square x)) x
 
-axiom is_cdifferentiable_gemm₁ {m n p : ℕ} (k : T [m, p] → ℝ) (M : T [m, n]) (N : T [n, p]) :
+axiom is_cdifferentiable_gemm₁ {m p : ℕ} (k : T [m, p] → ℝ) (n : ℕ) (M : T [m, n]) (N : T [n, p]) :
   is_cdifferentiable k (gemm M N) → is_cdifferentiable (λ M, k (gemm M N)) M
 
-axiom is_cdifferentiable_gemm₂ {m n p : ℕ} (k : T [m, p] → ℝ) (M : T [m, n]) (N : T [n, p]) :
+axiom is_cdifferentiable_gemm₂ {m p : ℕ} (k : T [m, p] → ℝ) (n : ℕ) (M : T [m, n]) (N : T [n, p]) :
   is_cdifferentiable k (gemm M N) → is_cdifferentiable (λ N, k (gemm M N)) N
 
 axiom is_cdifferentiable_add_fs {shape : S} (f₁ f₂ : T shape → ℝ) (θ : T shape):
@@ -332,6 +332,7 @@ meta def build_simplify_grad_simp_lemmas (k : expr) : tactic simp_lemmas :=
 do es ← monad.mapm to_expr
                    [``(@certigrad.T.grad_const)
                   , ``(@certigrad.T.grad_id)
+                  , ``(@certigrad.T.grad_scale_f)
                   , ``(certigrad.T.grad_exp %%k)
                   , ``(certigrad.T.grad_log %%k)
                   , ``(certigrad.T.grad_scale %%k)
@@ -349,7 +350,6 @@ do es ← monad.mapm to_expr
                   , ``(certigrad.T.grad_square %%k)
                   , ``(certigrad.T.grad_softplus %%k)
                   , ``(certigrad.T.grad_sigmoid %%k)
-                  , ``(certigrad.T.grad_scale_f)
 ],
    s ← simp_lemmas.append simp_lemmas.mk es,
    -- These have shape requirements that may cause `to_expr` to fail
@@ -363,10 +363,14 @@ do es ← monad.mapm to_expr
    s ← try_add_simp s ```(certigrad.T.grad_bernoulli_neglogpdf₂ %%k),
    return s
 
-meta def prove_preconditions : tactic unit :=
-repeat $ first (map applyc [`sqrt_pos, `square_pos_of_pos, `exp_pos, `sigmoid_pos, `sigmoid_lt1, `lt1_alt, `one_plus_pos,
-                            `plus_one_pos, `one_pos, `neg_of_pos, `const_pos_of_pos, `mul_pos_of_pos_pos, `pi_pos,
-                            `inv_pos, `div_pos_pos, `two_pos, `two_pi_pos] ++ [assumption])
+meta def prove_preconditions_core : tactic unit :=
+first (assumption :: map applyc [`certigrad.T.sqrt_pos, `certigrad.T.square_pos_of_pos, `certigrad.T.exp_pos,
+                                 `certigrad.T.sigmoid_pos, `certigrad.T.sigmoid_lt1, `certigrad.T.lt1_alt, `certigrad.T.one_plus_pos,
+                                 `certigrad.T.plus_one_pos, `certigrad.T.one_pos, `certigrad.T.neg_of_pos, `certigrad.T.const_pos_of_pos,
+                                 `certigrad.T.mul_pos_of_pos_pos, `certigrad.T.pi_pos,
+                                 `certigrad.T.inv_pos, `certigrad.T.div_pos_pos, `certigrad.T.two_pos, `certigrad.T.two_pi_pos])
+
+meta def prove_preconditions : tactic unit := repeat prove_preconditions_core
 
 meta def simplify_grad_core : conv unit :=
 λ r e, do guard $ r = `eq,
@@ -396,6 +400,14 @@ meta def prove_differentiable_core (grad : expr) : tactic unit :=
 do k ← compute_k grad,
    first [applyc `certigrad.T.is_cdifferentiable_const
         , applyc `certigrad.T.is_cdifferentiable_id
+          -- these haven't been defined yet
+        , to_expr ```(T.is_cdifferentiable_sigmoid %%k) >>= apply
+        , to_expr ```(T.is_cdifferentiable_softplus %%k) >>= apply
+        , to_expr ```(T.is_cdifferentiable_mvn_iso_kl₁ %%k) >>= apply
+        , to_expr ```(T.is_cdifferentiable_mvn_iso_kl₂ %%k) >>= apply
+        , to_expr ```(T.is_cdifferentiable_bernoulli_neglogpdf₁ %%k) >>= apply
+        , to_expr ```(T.is_cdifferentiable_bernoulli_neglogpdf₂ %%k) >>= apply
+
         , to_expr ``(T.is_cdifferentiable_exp %%k) >>= apply
         , to_expr ``(T.is_cdifferentiable_log %%k) >>= apply
         , to_expr ``(T.is_cdifferentiable_sqrt %%k) >>= apply
@@ -417,7 +429,7 @@ do k ← compute_k grad,
         , to_expr ``(T.is_cdifferentiable_gemm₂ %%k) >>= apply
 ]
 
-meta def prove_differentiable : tactic unit := repeat $ (target >>= find_is_cdifferentiable  >>= prove_differentiable_core) <|> any_goals assumption
+meta def prove_differentiable : tactic unit := repeat $ (target >>= find_is_cdifferentiable  >>= prove_differentiable_core) <|> prove_preconditions_core
 
 end simplify_grad
 
@@ -485,6 +497,46 @@ rw T.grad_binary (λ θ₁ θ₂, k (- T.sum (θ₁ * T.log p + (1 - θ₂) * T.
 dsimp,
 simplify_grad,
 simp [T.smul.def, const_neg, left_distrib, right_distrib],
+end
+
+-- Compounds with prove_differentiable
+lemma is_cdifferentiable_sigmoid {shape : S} (k : T shape → ℝ) (θ : T shape) :
+  is_cdifferentiable k (sigmoid θ) → is_cdifferentiable (λ θ, k (sigmoid θ)) θ :=
+begin intro H, dunfold sigmoid, prove_differentiable end
+
+lemma is_cdifferentiable_softplus {shape : S} (k : T shape → ℝ) (θ : T shape) :
+  is_cdifferentiable k (softplus θ) → is_cdifferentiable (λ θ, k (softplus θ)) θ :=
+begin intro H, dunfold softplus, prove_differentiable end
+
+lemma is_cdifferentiable_mvn_iso_kl₁ (k : ℝ → ℝ) (shape : S) (μ σ : T shape) :
+  is_cdifferentiable k (mvn_iso_kl μ σ) → is_cdifferentiable (λ μ, k (mvn_iso_kl μ σ)) μ :=
+begin intro H, dunfold mvn_iso_kl, prove_differentiable end
+
+lemma is_cdifferentiable_mvn_iso_kl₂ (k : ℝ → ℝ) (shape : S) (μ σ : T shape) (H_σ : σ > 0) :
+  is_cdifferentiable k (mvn_iso_kl μ σ) → is_cdifferentiable (λ σ, k (mvn_iso_kl μ σ)) σ :=
+begin
+intro H, dunfold mvn_iso_kl,
+apply is_cdifferentiable_binary (λ θ₁ θ₂, k (-2⁻¹ * T.sum (1 + T.log (square θ₁) + -square μ + -square θ₂))),
+{ dsimp, prove_differentiable },
+{ dsimp, prove_differentiable }
+ end
+
+lemma is_cdifferentiable_bernoulli_neglogpdf₁ (k : ℝ → ℝ) (shape : S) (p z : T shape) (H_p₁ : p > 0) (H_p₂ : p < 1) :
+  is_cdifferentiable k (bernoulli_neglogpdf p z) → is_cdifferentiable (λ p, k (bernoulli_neglogpdf p z)) p :=
+begin
+intro H, dunfold bernoulli_neglogpdf,
+apply is_cdifferentiable_binary (λ θ₁ θ₂, k (-T.sum (z * T.log θ₁ + (1 + -z) * T.log (1 + -θ₂)))),
+{ dsimp, prove_differentiable },
+{ dsimp, prove_differentiable }
+end
+
+lemma is_cdifferentiable_bernoulli_neglogpdf₂ (k : ℝ → ℝ) (shape : S) (p z : T shape) :
+  is_cdifferentiable k (bernoulli_neglogpdf p z) → is_cdifferentiable (λ z, k (bernoulli_neglogpdf p z)) z :=
+begin
+intro H, dunfold bernoulli_neglogpdf,
+apply is_cdifferentiable_binary (λ θ₁ θ₂, k (-T.sum (θ₁ * T.log p + (1 + -θ₂) * T.log (1 + -p)))),
+{ dsimp, prove_differentiable },
+{ dsimp, prove_differentiable }
 end
 
 -- Random

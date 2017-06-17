@@ -256,15 +256,8 @@ lemma mul_add (shape : S) : is_odifferentiable (@function.mul_add shape) (@preco
 | ⟦z, σ, μ⟧ H_pre (n+3) fshape H_fshape_at_idx k H_k := false.rec _ (at_idx_over H_fshape_at_idx (by tactic.dec_triv))
 
 lemma mvn_iso_kl (shape : S) : is_odifferentiable (@function.mvn_iso_kl shape) (@preconditions.mvn_iso_kl shape)
-| ⟦μ, σ⟧ H_pre 0 fshape H_fshape_at_idx k H_k := by { start_odiff, dsimp [function.mvn_iso_kl, T.mvn_iso_kl, dvec.head, dvec.head2], prove_differentiable }
-| ⟦μ, σ⟧ H_pre 1 fshape H_fshape_at_idx k H_k :=
-have H_σ₂ : square σ > 0, from square_pos_of_pos H_pre,
-begin
-start_odiff, dsimp [function.mvn_iso_kl, T.mvn_iso_kl, dvec.head, dvec.head2],
-apply is_cdifferentiable_binary (λ θ₁ θ₂, k (-2⁻¹ * T.sum (1 + T.log (square θ₁) + -square μ + -square θ₂))),
-{ dsimp, prove_differentiable },
-{ dsimp, prove_differentiable }
-end
+| ⟦μ, σ⟧ H_pre 0 fshape H_fshape_at_idx k H_k := by { start_odiff, dsimp [function.mvn_iso_kl, dvec.head, dvec.head2], prove_differentiable }
+| ⟦μ, σ⟧ H_pre 1 fshape H_fshape_at_idx k H_k := by { start_odiff, dsimp [function.mvn_iso_kl, dvec.head, dvec.head2], prove_differentiable }
 
 | ⟦μ, σ⟧ H_pre (n+2) fshape H_fshape_at_idx k H_k := false.rec _ (at_idx_over H_fshape_at_idx (by tactic.dec_triv))
 
@@ -273,22 +266,11 @@ assume xs H_pre idx fshape H_fshape_at_idx k H_k, false.rec _ H_pre
 
 lemma bernoulli_neglogpdf (shape : S) : is_odifferentiable (@function.bernoulli_neglogpdf shape) (@preconditions.bernoulli_neglogpdf shape)
 | ⟦p, z⟧ H_pre 0 fshape H_fshape_at_idx k H_k :=
-have H_p : p > 0, from H_pre^.left,
-have H_1mp : 1 - p > 0, from lt1_alt H_pre^.right,
-begin
-start_odiff, dsimp [function.bernoulli_neglogpdf, T.bernoulli_neglogpdf, dvec.head, dvec.head2],
-apply is_cdifferentiable_binary (λ θ₁ θ₂, k (-T.sum (z * T.log θ₁ + (1 + -z) * T.log (1 + -θ₂)))),
-{ dsimp, prove_differentiable },
-{ dsimp, prove_differentiable }
-end
+have H_p₁ : p > 0, from H_pre^.left,
+have H_p₂ : p < 1, from H_pre^.right,
+by { start_odiff, dsimp [function.bernoulli_neglogpdf, dvec.head, dvec.head2], prove_differentiable }
 
-| ⟦p, z⟧ H_pre 1 fshape H_fshape_at_idx k H_k :=
-begin
-start_odiff, dsimp [function.bernoulli_neglogpdf, T.bernoulli_neglogpdf, dvec.head, dvec.head2],
-apply is_cdifferentiable_binary (λ θ₁ θ₂, k (-T.sum (θ₁ * T.log p + (1 + -θ₂) * T.log (1 + -p)))),
-{ dsimp, prove_differentiable },
-{ dsimp, prove_differentiable }
-end
+| ⟦p, z⟧ H_pre 1 fshape H_fshape_at_idx k H_k := by { start_odiff, dsimp [function.bernoulli_neglogpdf, dvec.head, dvec.head2], prove_differentiable }
 
 | ⟦μ, σ⟧ H_pre (n+2) fshape H_fshape_at_idx k H_k := false.rec _ (at_idx_over H_fshape_at_idx (by tactic.dec_triv))
 

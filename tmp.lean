@@ -108,7 +108,7 @@ T.is_uniformly_integrable_around
     (ws.W_decode_p)
 :=
 begin
-T.prove_is_mvn_uintegrable,
+prove_is_mvn_uintegrable,
 
 
 

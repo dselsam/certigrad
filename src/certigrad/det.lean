@@ -559,9 +559,7 @@ rw -T.grad_tmulT,
 dunfold function.mvn_iso_kl dvec.head dvec.head2 dvec.head3,
 simplify_grad,
 dunfold pullback.mvn_iso_kl dvec.head,
-simp [T.smul.def, T.const_neg, T.const_mul, T.const_zero, T.const_one, T.const_bit0, T.const_bit1, T.const_inv],
-
-simp
+simp [T.smul.def, T.const_neg, T.const_mul, T.const_zero, T.const_one, T.const_bit0, T.const_bit1, T.const_inv]
 end
 
 | ⟦μ, σ⟧ y H_y g_out 1 fshape H_fshape_at_idx H_pre :=

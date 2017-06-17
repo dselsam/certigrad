@@ -324,8 +324,8 @@ if is_napp_of e `certigrad.T.grad 3 then head_eta_expand e else tactic.fail "not
 meta def try_add_simp (s : simp_lemmas) (p : pexpr) : tactic simp_lemmas :=
 do oe ← try_core $ to_expr p,
    match oe with
-   | none := do trace "not added: ", trace p, return s
-   | (some e) := do trace "added: ", trace e, simp_lemmas.add s e
+   | none := return s
+   | (some e) := simp_lemmas.add s e
    end
 
 meta def build_simplify_grad_simp_lemmas (k : expr) : tactic simp_lemmas :=
@@ -357,10 +357,10 @@ do es ← monad.mapm to_expr
    s ← try_add_simp s ``(certigrad.T.grad_gemm₂ %%k),
    s ← try_add_simp s ``(certigrad.T.grad_sum %%k),
    -- These haven't been defined yet
-   s ← try_add_simp s ``(certigrad.T.grad_mvn_iso_kl₁ %%k),
-   s ← try_add_simp s ``(certigrad.T.grad_mvn_iso_kl₂ %%k),
-   s ← try_add_simp s ``(certigrad.T.grad_bernoulli_neglogpdf₁ %%k),
-   s ← try_add_simp s ``(certigrad.T.grad_bernoulli_neglogpdf₂ %%k),
+   s ← try_add_simp s ```(certigrad.T.grad_mvn_iso_kl₁ %%k),
+   s ← try_add_simp s ```(certigrad.T.grad_mvn_iso_kl₂ %%k),
+   s ← try_add_simp s ```(certigrad.T.grad_bernoulli_neglogpdf₁ %%k),
+   s ← try_add_simp s ```(certigrad.T.grad_bernoulli_neglogpdf₂ %%k),
    return s
 
 meta def prove_preconditions : tactic unit :=

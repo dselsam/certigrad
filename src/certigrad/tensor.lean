@@ -194,6 +194,7 @@ constant is_uniformly_integrable_around : Π {shape₁ shape₂ shape₃ : S} (f
 -- ω(exp -x²) ∧ o(exp x²)
 constant is_btw_exp₂ {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : Prop
 constant is_linear {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : Prop
+constant is_bounded_btw_exp₂_around {shape₁ shape₂ shape₃ : S} (f : Π (x : T shape₁) (θ : T shape₂), T shape₃) (θ : T shape₂) : Prop
 
 -- continuously differentiable
 constant is_cdifferentiable : Π {ishape : S}, (T ishape → ℝ) → T ishape → Prop

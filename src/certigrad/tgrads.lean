@@ -117,9 +117,7 @@ axiom grad_chain_rule : ∀ {shape₁ shape₂ : S} (f : T shape₁ → T shape�
   ∇ (λ (θ₀ : T shape₁), g (f θ₀)) θ = tmulT (D f θ) (∇ g (f θ))
 
 -- See Lang (Page 340, Theorem 3.4)
--- f continuous (I think in both x and θ)
--- f 2-differentiable
--- grad_2 f continuous (I think in both x and θ)
+-- f continuously differentiable
 -- f and grad_2 f both uniformly integrable
 axiom grad_integral : ∀ {ishape tshape : S} (f : T ishape → T tshape → ℝ) (θ : T tshape),
   (∀ x, is_cdifferentiable (f x) θ) →

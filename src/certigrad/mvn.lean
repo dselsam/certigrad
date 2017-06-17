@@ -24,6 +24,9 @@ first [
      , applyc `certigrad.T.is_btw_const
      , applyc `certigrad.T.is_btw_sigmoid
      , applyc `certigrad.T.is_btw_softplus
+     , applyc `certigrad.T.is_btw_sum
+     , applyc `certigrad.T.is_btw_log_sigmoid
+     , applyc `certigrad.T.is_btw_log_1msigmoid
      , applyc `certigrad.T.is_btw_gemm
      , applyc `certigrad.T.is_btw_transpose
      , applyc `certigrad.T.is_btw_neg

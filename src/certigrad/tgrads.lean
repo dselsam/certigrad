@@ -425,6 +425,45 @@ meta def prove_differentiable : tactic unit := repeat $ (target >>= find_is_cdif
 
 end simplify_grad
 
+-- Compounds with simplify_grad
+
+lemma grad_mvn_iso_kl₁ {shape : S} (k : ℝ → ℝ) (μ σ : T shape) : ∇ (λ μ, k (mvn_iso_kl μ σ)) μ = ∇ k (mvn_iso_kl μ σ) ⬝ μ :=
+begin
+dunfold T.mvn_iso_kl,
+simplify_grad,
+simp [T.smul.def, T.const_neg, T.const_mul, T.const_zero, T.const_one, T.const_bit0, T.const_bit1, T.const_inv],
+rw [-(mul_assoc (2 : T shape) 2⁻¹), T.mul_inv_cancel two_pos],
+simp
+end
+
+lemma grad_mvn_iso_kl₂ {shape : S} (k : ℝ → ℝ) (μ σ : T shape) (H_σ : σ > 0) (H_k : is_cdifferentiable k (mvn_iso_kl μ σ)) :
+  ∇ (λ σ, k (mvn_iso_kl μ σ)) σ = ∇ k (mvn_iso_kl μ σ) ⬝ (σ - (1 / σ)) :=
+have H_σ₂ : square σ > 0, from square_pos_of_pos H_σ,
+have H_diff₁ : is_cdifferentiable (λ (θ₀ : T shape), k (-2⁻¹ * T.sum (1 + T.log (square θ₀) - square μ - square σ))) σ, by prove_differentiable,
+have H_diff₂ : is_cdifferentiable (λ (θ₀ : T shape), k (-2⁻¹ * T.sum (1 + T.log (square σ) - square μ - square θ₀))) σ, by prove_differentiable,
+
+begin
+dunfold T.mvn_iso_kl,
+rw (T.grad_binary (λ θ₁ θ₂, k ((- 2⁻¹) * T.sum (1 + T.log (square θ₁) - square μ - square θ₂))) _ H_diff₁ H_diff₂),
+dsimp,
+simplify_grad,
+simp [T.smul.def, T.const_neg, T.const_mul, T.const_zero,
+      T.const_one, T.const_bit0, T.const_bit1, T.const_inv,
+      left_distrib, right_distrib],
+rw [-(mul_assoc (2 : T shape) 2⁻¹), T.mul_inv_cancel two_pos],
+erw T.neg_div,
+simp [mul_neg_eq_neg_mul_symm, neg_mul_eq_neg_mul_symm],
+apply congr_arg, apply congr_arg,
+simp only [T.mul_div_mul, square],
+rw [-mul_assoc, T.mul_div_mul, (@T.div_self_square _ σ H_σ)],
+simp,
+rw [-(mul_assoc (2 : T shape) 2⁻¹), T.mul_inv_cancel two_pos],
+simp,
+rw T.div_mul_inv,
+simp
+end
+
+
 -- Random
 
 lemma mvn_iso_grad_logpdf_μ_correct {shape : S} (μ σ x : T shape) (H_σ : σ > 0) :

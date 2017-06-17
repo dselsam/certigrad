@@ -13,6 +13,9 @@ namespace T
 axiom is_integrable_mvn_of_sub_exp {shape₁ shape₂ : S} (μ σ : T shape₁) (f : T shape₁ → T shape₂) :
   is_btw_exp₂ f → is_integrable (λ x, mvn_iso_pdf μ σ x ⬝ f x)
 
+axiom is_uintegrable_mvn_of_bounded_exp₂_around {shape₁ shape₂ shape₃ : S} (pdf : T shape₁ → ℝ) (f : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) :
+  is_bounded_btw_exp₂_around f θ → is_uniformly_integrable_around (λ θ₀ x, pdf x ⬝ f x θ₀) θ
+
 end T
 
 section tactic
@@ -52,6 +55,24 @@ first [
 meta def prove_is_mvn_integrable : tactic unit :=
 do applyc `certigrad.T.is_integrable_mvn_of_sub_exp,
    repeat prove_is_mvn_integrable_core
+
+meta def prove_is_mvn_uintegrable_core : tactic unit :=
+first [applyc `certigrad.T.is_bbtw_id_of_btw
+     , applyc `certigrad.T.is_bbtw_bernoulli_neglogpdf
+     , applyc `certigrad.T.is_bbtw_softplus
+     , applyc `certigrad.T.is_bbtw_sum
+     , applyc `certigrad.T.is_bbtw_log_sigmoid
+     , applyc `certigrad.T.is_bbtw_log_1msigmoid
+     , applyc `certigrad.T.is_bbtw_gemm
+     , applyc `certigrad.T.is_bbtw_gemm₁
+     , applyc `certigrad.T.is_bbtw_neg
+     , applyc `certigrad.T.is_bbtw_mul
+     , applyc `certigrad.T.is_bbtw_add
+]
+
+meta def prove_is_mvn_uintegrable : tactic unit :=
+do applyc `certigrad.T.is_uintegrable_mvn_of_bounded_exp₂_around,
+   repeat (prove_is_mvn_uintegrable_core <|> prove_is_mvn_integrable_core)
 
 end tactic
 

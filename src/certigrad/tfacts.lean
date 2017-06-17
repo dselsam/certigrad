@@ -461,32 +461,45 @@ axiom is_linear_div {shape₁ shape₂ : S} (f g : T shape₁ → T shape₂) : 
 axiom is_bbtw_id_of_btw {shape₁ shape₂ shape₃ : S} (f : Π (x : T shape₁), T shape₃) (θ : T shape₂) :
   is_btw_exp₂ f → is_bounded_btw_exp₂_around (λ x θ₀, f x) θ
 
-axiom is_bbtw_softplus {shape₁ shape₂ shape₃ : S} (f : T shape₁ → T shape₂ → T shape₃) :
-  is_btw_exp₂ f → is_btw_exp₂ (λ (x : T shape₁), softplus (f x))
-axiom is_bbtw_sum {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_btw_exp₂ f → is_btw_exp₂ (λ (x : T shape₁), sum (f x))
-axiom is_bbtw_log_sigmoid {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_btw_exp₂ f → is_btw_exp₂ (λ (x : T shape₁), log (sigmoid (f x)))
-axiom is_bbtw_log_1msigmoid {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_btw_exp₂ f → is_btw_exp₂ (λ (x : T shape₁), log (1 - sigmoid (f x))
+axiom is_bbtw_softplus {shape₁ shape₂ shape₃ : S} (f : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) :
+  is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around (λ x θ₀, softplus (f x θ₀)) θ
 
---axiom is_btw_const {shape₁ shape₂ : S} (y : T shape₂) : is_btw_exp₂ (λ (x : T shape₁), y)
+axiom is_bbtw_sum {shape₁ shape₂ shape₃ : S} (f : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) :
+  is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around (λ x θ₀, sum (f x θ₀)) θ
 
+axiom is_bbtw_log_sigmoid {shape₁ shape₂ shape₃ : S} (f : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) :
+  is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around (λ x θ₀, log (sigmoid (f x θ₀))) θ
 
+axiom is_bbtw_log_1msigmoid {shape₁ shape₂ shape₃ : S} (f : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) :
+  is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around (λ x θ₀, log (1 - sigmoid (f x θ₀))) θ
+
+axiom is_bbtw_gemm {shape₁ : S} {m n p : ℕ} (f : T shape₁ → T [n, p]) (θ : T [m, n]) :
+  is_btw_exp₂ f → is_bounded_btw_exp₂_around (λ x θ₀, gemm θ₀ (f x)) θ
+
+axiom is_bbtw_gemm₁ {shape₁ shape₂ : S} {m n p : ℕ} (f : T shape₁ → T shape₂ → T [n, p]) (θ : T shape₂) (M : T [m, n]) :
+  is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around (λ x θ₀, gemm M (f x θ₀)) θ
+
+axiom is_bbtw_add {shape₁ shape₂ shape₃ : S} (f g : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) :
+  is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around g θ → is_bounded_btw_exp₂_around (λ x θ₀, f x θ₀ + g x θ₀) θ
+
+axiom is_bbtw_mul {shape₁ shape₂ shape₃ : S} (f g : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) :
+  is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around g θ → is_bounded_btw_exp₂_around (λ x θ₀, f x θ₀ * g x θ₀) θ
+
+axiom is_bbtw_neg {shape₁ shape₂ shape₃ : S} (f : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) :
+  is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around (λ x θ₀, - (f x θ₀)) θ
+
+lemma is_bbtw_bernoulli_neglogpdf {shape₁ shape₂ shape₃ : S} (f : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) (p : T shape₃) :
+  is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around (λ x θ₀, bernoulli_neglogpdf (sigmoid (f x θ₀)) p) θ :=
+begin
+intro H,
+dunfold bernoulli_neglogpdf,
+apply is_bbtw_neg, apply is_bbtw_sum, apply is_bbtw_add,
+apply is_bbtw_mul, apply is_bbtw_id_of_btw, apply is_btw_const, apply is_bbtw_log_sigmoid, exact H,
+apply is_bbtw_mul, apply is_bbtw_id_of_btw, apply is_btw_const, apply is_bbtw_log_1msigmoid, exact H
+end
+
+-- misc
 axiom integral_scale_shift_var {shape fshape : S} (f : T shape → T fshape) (α β : T shape) : ∫ (λ x, f (α * x + β)) = ∫ (λ x, prod α⁻¹ ⬝ f x)
-
--- uniformly_integrable
-axiom uintegrable_around_add {shape₁ shape₂ shape₃ : S} (pdf : T shape₁ → ℝ) (f g : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) :
-   is_uniformly_integrable_around (λ θ₀ x, pdf x ⬝ f x θ₀) θ
-→  is_uniformly_integrable_around (λ θ₀ x, pdf x ⬝ g x θ₀) θ
-→  is_uniformly_integrable_around (λ θ₀ x, pdf x ⬝ (f x θ₀ + g x θ₀)) θ
-
-axiom uintegrable_around_indep {shape₁ shape₂ shape₃ : S} (pdf : T shape₁ → ℝ) (f : T shape₁ → T shape₃) (θ : T shape₂) :
-  is_integrable (λ x, pdf x ⬝ f x) →  is_uniformly_integrable_around (λ θ₀ x₀, pdf x₀ ⬝ f x₀) θ
-
-axiom uintegrable_around_continuous {shape₁ shape₂ shape₃ : S} (pdf : T shape₁ → ℝ) (f : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) :
-  is_integrable (λ x, pdf x ⬝ f x θ) →
-  (∀ x, is_continuous (λ θ₀, pdf x ⬝ f x θ₀) θ) →
-  is_uniformly_integrable_around (λ θ₀ x, pdf x ⬝ f x θ₀) θ
-
-
 
 @[simp]
 lemma force_ok {shape : S} (x : T shape) : force x shape = x := by { dunfold force, simp }

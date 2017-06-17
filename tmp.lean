@@ -1,4 +1,4 @@
-import certigrad.prove_model_ok certigrad.aevb.util
+import certigrad.prove_model_ok certigrad.aevb.util certigrad.mvn
 
 namespace certigrad
 namespace aevb
@@ -23,41 +23,48 @@ g'(θ) = ∫ (λ x, ∇ (λ θ₀, f θ₀ x) θ)
 -/
 
 example (a : arch) (ws : weights a) (x_data : T [a.n_in, a.n_x]) :
- T.is_uniformly_integrable_around
-         (λ (θ₀ : T ((ID.str label.W_decode, [a.nd, a.nz]).snd)) (x : T ((ID.str label.ε, [a.nz, a.bs]).snd)),
-            T.mvn_iso_pdf 0 1 x ⬝
-              (T.mvn_iso_kl
-                   (T.gemm (ws.W_encode_μ)
-                      (T.softplus (T.gemm (ws.W_encode) (T.get_col_range (a.bs) x_data (T.round (ws.batch_start))))))
-                   (T.sqrt
-                      (T.exp
-                         (T.gemm (ws.W_encode_logσ₂)
-                            (T.softplus
-                               (T.gemm (ws.W_encode) (T.get_col_range (a.bs) x_data (T.round (ws.batch_start)))))))) +
-                 T.bernoulli_neglogpdf
-                   (T.sigmoid
-                      (T.gemm (ws.W_decode_p)
-                         (T.softplus
-                            (T.gemm θ₀
-                               (x *
-                                    T.sqrt
-                                      (T.exp
-                                         (T.gemm (ws.W_encode_logσ₂)
-                                            (T.softplus
-                                               (T.gemm (ws.W_encode)
-                                                  (T.get_col_range (a.bs) x_data (T.round (ws.batch_start))))))) +
-                                  T.gemm (ws.W_encode_μ)
-                                    (T.softplus
-                                       (T.gemm (ws.W_encode)
-                                          (T.get_col_range (a.bs) x_data (T.round (ws.batch_start))))))))))
-                   (T.get_col_range (a.bs) x_data (T.round (ws.batch_start)))))
-         ws.W_decode :=
+    T.is_uniformly_integrable_around
+           (λ (θ₀ : T ((ID.str label.W_decode, [a.nd, a.nz]).snd)) (x : T ((ID.str label.ε, [a.nz, a.bs]).snd)),
+              ∇
+                (λ (θ₁ : T ((ID.str label.W_decode, [a.nd, a.nz]).snd)),
+                   T.mvn_iso_pdf 0 1 x ⬝
+                     (T.mvn_iso_kl
+                          (T.gemm (ws.W_encode_μ)
+                             (T.softplus
+                                (T.gemm (ws.W_encode) (T.get_col_range (a.bs) x_data (T.round (ws.batch_start))))))
+                          (T.sqrt
+                             (T.exp
+                                (T.gemm (ws.W_encode_logσ₂)
+                                   (T.softplus
+                                      (T.gemm (ws.W_encode)
+                                         (T.get_col_range (a.bs) x_data (T.round (ws.batch_start)))))))) +
+                        T.bernoulli_neglogpdf
+                          (T.sigmoid
+                             (T.gemm (ws.W_decode_p)
+                                (T.softplus
+                                   (T.gemm θ₁
+                                      (x *
+                                           T.sqrt
+                                             (T.exp
+                                                (T.gemm (ws.W_encode_logσ₂)
+                                                   (T.softplus
+                                                      (T.gemm (ws.W_encode)
+                                                         (T.get_col_range (a.bs) x_data
+                                                            (T.round (ws.batch_start))))))) +
+                                         T.gemm (ws.W_encode_μ)
+                                           (T.softplus
+                                              (T.gemm (ws.W_encode)
+                                                 (T.get_col_range (a.bs) x_data (T.round (ws.batch_start))))))))))
+                          (T.get_col_range (a.bs) x_data (T.round (ws.batch_start)))))
+                θ₀)
+           ws.W_decode :=
 begin
-dunfold T.bernoulli_neglogpdf,
-
---apply T.uintegrable_around_continuous,
---prove_is_mvn_integrable,
-
+simp only [T.grad_scale_f],
+-- TODO(dhs): need to simplify the gradient inside the lambda
+-- TODO(dhs): need bernoulli_logpdf and mvn_iso_kl rules (or else would need to do binary manually)
+-- TODO(dhs): may need some more bbtw rules as well
+end
+#exit
 
 /-
 axiom uintegrable_around_add {shape₁ shape₂ shape₃ : S} (pdf : T shape₁ → ℝ) (f g : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) :

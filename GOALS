@@ -1,7 +1,7 @@
 a : arch,
 ws : weights a,
 x_data : T [a.n_in, a.n_x]
-⊢ (T.is_uniformly_integrable_around
+ (T.is_uniformly_integrable_around
          (λ (θ₀ : T ((ID.str label.W_decode, [a.nd, a.nz]).snd)) (x : T ((ID.str label.ε, [a.nz, a.bs]).snd)),
             T.mvn_iso_pdf 0 1 x ⬝
               (T.mvn_iso_kl

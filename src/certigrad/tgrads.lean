@@ -345,6 +345,7 @@ do k ← compute_k grad,
         , to_expr ``(T.grad_square %%k) >>= rwe
         , to_expr ``(T.grad_softplus %%k) >>= rwe
         , to_expr ``(T.grad_sigmoid %%k) >>= rwe
+        , rewrite `certigrad.T.grad_scale_f
 ]
 
 meta def find_grad : expr → tactic expr := λ e,

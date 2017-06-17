@@ -321,12 +321,16 @@ do k ← compute_outer_inner_functions grad,
 meta def check_grad (e : expr) : tactic expr :=
 if is_napp_of e `certigrad.T.grad 3 then head_eta_expand e else tactic.fail "not ∇"
 
-lemma tmp_eq_of_self_eq {α : Type*} (x : α) : (x = x) = true := sorry
+meta def try_add_simp (s : simp_lemmas) (p : pexpr) : tactic simp_lemmas :=
+do oe ← try_core $ to_expr p,
+   match oe with
+   | none := do trace "not added: ", trace p, return s
+   | (some e) := do trace "added: ", trace e, simp_lemmas.add s e
+   end
 
 meta def build_simplify_grad_simp_lemmas (k : expr) : tactic simp_lemmas :=
 do es ← monad.mapm to_expr
-                   [``(@certigrad.T.tmp_eq_of_self_eq)
-                  , ``(@certigrad.T.grad_const)
+                   [``(@certigrad.T.grad_const)
                   , ``(@certigrad.T.grad_id)
                   , ``(certigrad.T.grad_exp %%k)
                   , ``(certigrad.T.grad_log %%k)
@@ -348,24 +352,16 @@ do es ← monad.mapm to_expr
                   , ``(certigrad.T.grad_scale_f)
 ],
    s ← simp_lemmas.append simp_lemmas.mk es,
-   -- TODO(dhs): clean this up with combinators
-   gemm₁ ← try_core $ to_expr ``(certigrad.T.gemm₁ %%k),
-   gemm₂ ← try_core $ to_expr ``(certigrad.T.gemm₂ %%k),
-   sum ← try_core $ to_expr ``(certigrad.T.grad_sum %%k),
-   s ← match gemm₁ with
-       | none := return s
-       | (some e) := simp_lemmas.add s e
-       end,
-   s ← match gemm₂ with
-       | none := return s
-       | (some e) := simp_lemmas.add s e
-       end,
-   s ← match sum with
-       | none := return s
-       | (some e) := simp_lemmas.add s e
-       end,
+   -- These have shape requirements that may cause `to_expr` to fail
+   s ← try_add_simp s ``(certigrad.T.grad_gemm₁ %%k),
+   s ← try_add_simp s ``(certigrad.T.grad_gemm₂ %%k),
+   s ← try_add_simp s ``(certigrad.T.grad_sum %%k),
+   -- These haven't been defined yet
+   s ← try_add_simp s ``(certigrad.T.grad_mvn_iso_kl₁ %%k),
+   s ← try_add_simp s ``(certigrad.T.grad_mvn_iso_kl₂ %%k),
+   s ← try_add_simp s ``(certigrad.T.grad_bernoulli_neglogpdf₁ %%k),
+   s ← try_add_simp s ``(certigrad.T.grad_bernoulli_neglogpdf₂ %%k),
    return s
-
 
 meta def prove_preconditions : tactic unit :=
 repeat $ first (map applyc [`sqrt_pos, `square_pos_of_pos, `exp_pos, `sigmoid_pos, `sigmoid_lt1, `lt1_alt, `one_plus_pos,
@@ -427,7 +423,7 @@ end simplify_grad
 
 -- Compounds with simplify_grad
 
-lemma grad_mvn_iso_kl₁ {shape : S} (k : ℝ → ℝ) (μ σ : T shape) : ∇ (λ μ, k (mvn_iso_kl μ σ)) μ = ∇ k (mvn_iso_kl μ σ) ⬝ μ :=
+lemma grad_mvn_iso_kl₁ (k : ℝ → ℝ) (shape : S) (μ σ : T shape) : ∇ (λ μ, k (mvn_iso_kl μ σ)) μ = ∇ k (mvn_iso_kl μ σ) ⬝ μ :=
 begin
 dunfold T.mvn_iso_kl,
 simplify_grad,
@@ -436,7 +432,7 @@ rw [-(mul_assoc (2 : T shape) 2⁻¹), T.mul_inv_cancel two_pos],
 simp
 end
 
-lemma grad_mvn_iso_kl₂ {shape : S} (k : ℝ → ℝ) (μ σ : T shape) (H_σ : σ > 0) (H_k : is_cdifferentiable k (mvn_iso_kl μ σ)) :
+lemma grad_mvn_iso_kl₂ (k : ℝ → ℝ) (shape : S) (μ σ : T shape) (H_σ : σ > 0) (H_k : is_cdifferentiable k (mvn_iso_kl μ σ)) :
   ∇ (λ σ, k (mvn_iso_kl μ σ)) σ = ∇ k (mvn_iso_kl μ σ) ⬝ (σ - (1 / σ)) :=
 have H_σ₂ : square σ > 0, from square_pos_of_pos H_σ,
 have H_diff₁ : is_cdifferentiable (λ (θ₀ : T shape), k (-2⁻¹ * T.sum (1 + T.log (square θ₀) - square μ - square σ))) σ, by prove_differentiable,
@@ -463,6 +459,33 @@ rw T.div_mul_inv,
 simp
 end
 
+lemma grad_bernoulli_neglogpdf₁ (k : ℝ → ℝ) (shape : S) (p z : T shape)
+                                (H_p₁ : 0 < p) (H_p₂ : 0 < 1 - p) (H_k : is_cdifferentiable k (bernoulli_neglogpdf p z)) :
+  ∇ (λ p, k (bernoulli_neglogpdf p z)) p = ∇ k (bernoulli_neglogpdf p z) ⬝ ((1 - z) / (1 - p) - z / p) :=
+have H_diff₁ : is_cdifferentiable (λ (θ₀ : T shape), k (-T.sum (z * T.log θ₀ + (1 - z) * T.log (1 - p)))) p, by prove_differentiable,
+have H_diff₂ : is_cdifferentiable (λ (θ₀ : T shape), k (-T.sum (z * T.log p + (1 - z) * T.log (1 - θ₀)))) p, by prove_differentiable,
+
+begin
+dunfold T.bernoulli_neglogpdf,
+rw T.grad_binary (λ θ₁ θ₂, k ( - T.sum (z * T.log θ₁ + (1 - z) * T.log (1 - θ₂)))) _ H_diff₁ H_diff₂,
+dsimp,
+simplify_grad,
+simp [T.smul.def, const_neg, T.neg_div, T.div_mul_inv, left_distrib, right_distrib],
+end
+
+lemma grad_bernoulli_neglogpdf₂ (k : ℝ → ℝ) (shape : S) (p z : T shape)
+                                (H_p₁ : 0 < p) (H_p₂ : 0 < 1 - p) (H_k : is_cdifferentiable k (bernoulli_neglogpdf p z)) :
+  ∇ (λ z, k (bernoulli_neglogpdf p z)) z = ∇ k (bernoulli_neglogpdf p z) ⬝ (log (1 - p) - log p) :=
+have H_diff₁ : is_cdifferentiable (λ (θ₀ : T shape), k (-T.sum (θ₀ * T.log p + (1 - z) * T.log (1 - p)))) z, by prove_differentiable,
+have H_diff₂ : is_cdifferentiable (λ (θ₀ : T shape), k (-T.sum (z * T.log p + (1 - θ₀) * T.log (1 - p)))) z, by prove_differentiable,
+
+begin
+dunfold T.bernoulli_neglogpdf,
+rw T.grad_binary (λ θ₁ θ₂, k (- T.sum (θ₁ * T.log p + (1 - θ₂) * T.log (1 - p)))) _ H_diff₁ H_diff₂,
+dsimp,
+simplify_grad,
+simp [T.smul.def, const_neg, left_distrib, right_distrib],
+end
 
 -- Random
 

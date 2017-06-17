@@ -556,11 +556,11 @@ simp,
 dsimp,
 rw -T.grad_tmulT,
 
-dunfold function.mvn_iso_kl T.mvn_iso_kl dvec.head dvec.head2 dvec.head3,
+dunfold function.mvn_iso_kl dvec.head dvec.head2 dvec.head3,
 simplify_grad,
 dunfold pullback.mvn_iso_kl dvec.head,
 simp [T.smul.def, T.const_neg, T.const_mul, T.const_zero, T.const_one, T.const_bit0, T.const_bit1, T.const_inv],
-rw T.mul_inv_cancel two_pos,
+
 simp
 end
 

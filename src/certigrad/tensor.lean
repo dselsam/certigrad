@@ -13,89 +13,37 @@ namespace certigrad
 
 @[reducible] def S : Type := list ℕ
 
-noncomputable def tensor : S → Type
-| []      := real
-| (d::ds) := fin d → tensor ds
-
-namespace tensor
-
--- We construct a few things from the reals just to illustrate what it would look like
-
-noncomputable def lift₀ (α : real) : Π (shape : S), tensor shape
-| []      := α
-| (d::ds) := λ i, lift₀ ds
-
-noncomputable def lift₁ (f : real → real) : Π (shape : S), tensor shape → tensor shape
-| []      α := f α
-| (d::ds) x := λ i, lift₁ ds (x i)
-
-noncomputable def lift₂ (f : real → real → real) : Π (shape : S), tensor shape → tensor shape → tensor shape
-| []      α β := f α β
-| (d::ds) x y := λ i, lift₂ ds (x i) (y i)
-
-def plift₂ (f : real → real → Prop) : Π (shape : S), tensor shape → tensor shape → Prop
-| []      α β := f α β
-| (d::ds) x y := ∀ i, plift₂ ds (x i) (y i)
-
-noncomputable def zero (shape : S) : tensor shape := lift₀ real.zero shape
-noncomputable def one (shape : S) : tensor shape := lift₀ real.one shape
-noncomputable def pi (shape : S) : tensor shape := lift₀ real.pi shape
-
-noncomputable def neg {shape : S} : tensor shape → tensor shape := lift₁ real.neg shape
-noncomputable def inv {shape : S} : tensor shape → tensor shape := lift₁ real.inv shape
-noncomputable def log {shape : S} : tensor shape → tensor shape := lift₁ real.log shape
-noncomputable def exp {shape : S} : tensor shape → tensor shape := lift₁ real.exp shape
-noncomputable def sqrt {shape : S} : tensor shape → tensor shape := lift₁ real.sqrt shape
-noncomputable def tanh {shape : S} : tensor shape → tensor shape := lift₁ real.tanh shape
-
-noncomputable def add {shape : S} : tensor shape → tensor shape → tensor shape := lift₂ real.add shape
-noncomputable def mul {shape : S} : tensor shape → tensor shape → tensor shape := lift₂ real.mul shape
-noncomputable def sub {shape : S} : tensor shape → tensor shape → tensor shape := lift₂ real.sub shape
-noncomputable def div {shape : S} : tensor shape → tensor shape → tensor shape := lift₂ real.div shape
-
-noncomputable def lt {shape : S} : tensor shape → tensor shape → Prop := plift₂ real.lt shape
-noncomputable def le {shape : S} : tensor shape → tensor shape → Prop := plift₂ real.le shape
-
-noncomputable def pow : Π {shape : S}, tensor shape → tensor [] → tensor shape
-| []      x α := real.pow x α
-| (d::ds) x α := λ i, pow (x i) α
-
-noncomputable def of_nat : ℕ → tensor [] := real.of_nat
-noncomputable def round : tensor [] → ℕ := real.round
-
-end tensor
-
-structure T (shape : S) := (val : tensor shape)
+constant T (shape : S) : Type
 notation `ℝ` := T []
 
 namespace T
 
 -- Constants that compute (excluding const, lt, le)
 
-@[irreducible] def const (α : ℝ) (shape : S) : T shape := ⟨tensor.lift₀ α^.val shape⟩
+constant const (α : ℝ) (shape : S) : T shape
 
-@[irreducible] def zero (shape : S) : T shape := ⟨tensor.zero shape⟩
-@[irreducible] def one (shape : S) : T shape := ⟨tensor.one shape⟩
-@[irreducible] def pi (shape : S) : T shape := ⟨tensor.pi shape⟩
+constant zero (shape : S) : T shape
+constant one (shape : S) : T shape
+constant pi (shape : S) : T shape
 
-@[irreducible] def neg {shape : S} (x : T shape) : T shape := ⟨tensor.neg x^.val⟩
-@[irreducible] def inv {shape : S} (x : T shape) : T shape := ⟨tensor.inv x^.val⟩
-@[irreducible] def log {shape : S} (x : T shape) : T shape := ⟨tensor.log x^.val⟩
-@[irreducible] def exp {shape : S} (x : T shape) : T shape := ⟨tensor.exp x^.val⟩
-@[irreducible] def sqrt {shape : S} (x : T shape) : T shape := ⟨tensor.sqrt x^.val⟩
-@[irreducible] def tanh {shape : S} (x : T shape) : T shape := ⟨tensor.tanh x^.val⟩
+constant neg {shape : S} (x : T shape) : T shape
+constant inv {shape : S} (x : T shape) : T shape
+constant log {shape : S} (x : T shape) : T shape
+constant exp {shape : S} (x : T shape) : T shape
+constant sqrt {shape : S} (x : T shape) : T shape
+constant tanh {shape : S} (x : T shape) : T shape
 
-@[irreducible] def add {shape : S} (x y : T shape) : T shape := ⟨tensor.add x^.val y^.val⟩
-@[irreducible] def mul {shape : S} (x y : T shape) : T shape := ⟨tensor.mul x^.val y^.val⟩
-@[irreducible] def sub {shape : S} (x y : T shape) : T shape := ⟨tensor.sub x^.val y^.val⟩
-@[irreducible] def div {shape : S} (x y : T shape) : T shape := ⟨tensor.div x^.val y^.val⟩
+constant add {shape : S} (x y : T shape) : T shape
+constant mul {shape : S} (x y : T shape) : T shape
+constant sub {shape : S} (x y : T shape) : T shape
+constant div {shape : S} (x y : T shape) : T shape
 
-@[irreducible] def lt {shape : S} (x y : T shape) : Prop := tensor.lt x^.val y^.val
-@[irreducible] def le {shape : S} (x y : T shape) : Prop := tensor.le x^.val y^.val
+constant lt {shape : S} (x y : T shape) : Prop
+constant le {shape : S} (x y : T shape) : Prop
 
-@[irreducible] def pow {shape : S} (x : T shape) (α : ℝ) : T shape := ⟨tensor.pow x^.val α^.val⟩
-@[irreducible] def of_nat (n : ℕ) : ℝ := ⟨real.of_nat n⟩
-@[irreducible] def round (α : ℝ) : ℕ := real.round α^.val
+constant pow {shape : S} (x : T shape) (α : ℝ) : T shape
+constant of_nat (n : ℕ) : ℝ
+constant round (α : ℝ) : ℕ
 
 constant fail (shape : S) : T shape
 constant silent_fail (shape : S) : T shape
@@ -193,7 +141,7 @@ constant is_uniformly_integrable_around : Π {shape₁ shape₂ shape₃ : S} (f
 
 -- ω(exp -x²) ∧ o(exp x²)
 constant is_btw_exp₂ {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : Prop
-constant is_linear {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : Prop
+constant is_sub_quadratic {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : Prop
 constant is_bounded_btw_exp₂_around {shape₁ shape₂ shape₃ : S} (f : Π (x : T shape₁) (θ : T shape₂), T shape₃) (θ : T shape₂) : Prop
 
 -- continuously differentiable

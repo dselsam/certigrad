@@ -5,7 +5,7 @@ Author: Daniel Selsam
 
 Properties of the multivariate isotropic Gaussian distribution.
 -/
-import .tfacts
+import .tfacts .tgrads
 
 namespace certigrad
 namespace T
@@ -40,39 +40,47 @@ first [
      , applyc `certigrad.T.is_btw_div
      , applyc `certigrad.T.is_btw_exp
 
-     , applyc `certigrad.T.is_linear_id
-     , applyc `certigrad.T.is_linear_const
-     , applyc `certigrad.T.is_linear_gemm
-     , applyc `certigrad.T.is_linear_transpose
-     , applyc `certigrad.T.is_linear_neg
-     , applyc `certigrad.T.is_linear_inv
-     , applyc `certigrad.T.is_linear_add
-     , applyc `certigrad.T.is_linear_mul
-     , applyc `certigrad.T.is_linear_sub
-     , applyc `certigrad.T.is_linear_div
+     , applyc `certigrad.T.is_sub_quadratic_id
+     , applyc `certigrad.T.is_sub_quadratic_const
+     , applyc `certigrad.T.is_sub_quadratic_gemm
+     , applyc `certigrad.T.is_sub_quadratic_transpose
+     , applyc `certigrad.T.is_sub_quadratic_neg
+     , applyc `certigrad.T.is_sub_quadratic_add
+     , applyc `certigrad.T.is_sub_quadratic_softplus
+     , applyc `certigrad.T.is_sub_quadratic_mul₁
+     , applyc `certigrad.T.is_sub_quadratic_mul₂
+     , applyc `certigrad.T.is_sub_quadratic_sub
 ]
 
 meta def prove_is_mvn_integrable : tactic unit :=
 do applyc `certigrad.T.is_integrable_mvn_of_sub_exp,
    repeat prove_is_mvn_integrable_core
 
-meta def prove_is_mvn_uintegrable_core : tactic unit :=
-first [applyc `certigrad.T.is_bbtw_id_of_btw
+meta def prove_is_mvn_uintegrable_core_helper : tactic unit :=
+first [applyc `certigrad.T.is_bbtw_of_btw
+     , applyc `certigrad.T.is_bbtw_id
      , applyc `certigrad.T.is_bbtw_bernoulli_neglogpdf
      , applyc `certigrad.T.is_bbtw_softplus
      , applyc `certigrad.T.is_bbtw_sum
      , applyc `certigrad.T.is_bbtw_log_sigmoid
      , applyc `certigrad.T.is_bbtw_log_1msigmoid
      , applyc `certigrad.T.is_bbtw_gemm
-     , applyc `certigrad.T.is_bbtw_gemm₁
      , applyc `certigrad.T.is_bbtw_neg
+     , applyc `certigrad.T.is_bbtw_inv
      , applyc `certigrad.T.is_bbtw_mul
+     , applyc `certigrad.T.is_bbtw_sub
      , applyc `certigrad.T.is_bbtw_add
-]
+     , applyc `certigrad.T.is_bbtw_exp
+] <|> (intro1 >> skip)
+
+meta def prove_is_mvn_uintegrable_core : tactic unit :=
+do try T.simplify_grad,
+   applyc `certigrad.T.is_uintegrable_mvn_of_bounded_exp₂_around,
+   repeat (prove_is_mvn_uintegrable_core_helper <|> prove_is_mvn_integrable_core)
 
 meta def prove_is_mvn_uintegrable : tactic unit :=
-do applyc `certigrad.T.is_uintegrable_mvn_of_bounded_exp₂_around,
-   repeat (prove_is_mvn_uintegrable_core <|> prove_is_mvn_integrable_core)
+-- TODO(dhs): why do I need the `try`?
+(split >> focus [prove_is_mvn_uintegrable, prove_is_mvn_uintegrable]) <|> try prove_is_mvn_uintegrable_core
 
 end tactic
 

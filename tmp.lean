@@ -1,6 +1,13 @@
 import .src.certigrad.prove_model_ok .src.certigrad.aevb.util .src.certigrad.mvn
 
 namespace certigrad
+
+namespace T
+
+meta def msimplify_grad : tactic unit := simplify_grad_core (tactic.trace "PROVE" >> prove_differentiable)
+
+end T
+
 namespace aevb
 
 /-
@@ -25,37 +32,17 @@ g'(θ) = ∫ (λ x, ∇ (λ θ₀, f θ₀ x) θ)
 --set_option pp.locals_full_names true
 --set_option trace.simplify.rewrite_failure true
 --set_option trace.simplify true
-
+/-
 example (shape : S) (m n : ℕ) (x : T shape) (y : T [m, n]) :  0 < 1 - T.sigmoid (T.softplus y) :=
 begin
 T.prove_preconditions_core,
 end
-#exit
-
-set_option trace.type_context.is_def_eq true
-set_option trace.type_context.is_def_eq_detail true
-
-example (shape : S) (m n : ℕ)  (y : T [m, n]) (z : T shape) :
---0 < 1 - T.sigmoid (T.softplus z)
-0 < 1 - T.sigmoid (T.softplus y)
-:=
-/- *
-                    T.sqrt
-                      (T.exp
-                         (T.gemm (ws.W_encode_logσ₂)
-                            (T.softplus
-                               (T.gemm (ws.W_encode) (T.get_col_range (a.bs) x_data (T.round (ws.batch_start))))))) +
-                  T.gemm (ws.W_encode_μ)
-                    (T.softplus (T.gemm (ws.W_encode) (T.get_col_range (a.bs) x_data (T.round (ws.batch_start))))))))) :=
 -/
-begin
-apply T.lt1_alt,
 
---apply @T.lt1_alt
---T.prove_preconditions_core
-end
-#exit
-/-
+--set_option trace.type_context.is_def_eq true
+--set_option trace.type_context.is_def_eq_detail true
+
+example (a : arch) (ws : weights a) (x_data : T [a^.n_in, a^.n_x]) (x : T [a^.nz, a^.bs]) (θ : T [a^.nd, a^.nz]) :
 T.is_cdifferentiable
   (λ (x_1 : ℝ),
      T.mvn_iso_pdf 0 1 x ⬝
@@ -79,57 +66,50 @@ T.is_cdifferentiable
                               (T.softplus
                                  (T.gemm (ws.W_encode) (T.get_col_range (a.bs) x_data (T.round (ws.batch_start))))))) +
                     T.gemm (ws.W_encode_μ)
-n                      (T.softplus
+                      (T.softplus
                          (T.gemm (ws.W_encode) (T.get_col_range (a.bs) x_data (T.round (ws.batch_start))))))))))
-     (T.get_col_range (a.bs) x_data (T.round (ws.batch_start)))) :=
+     (T.get_col_range (a.bs) x_data (T.round (ws.batch_start))))
+ :=
 begin
 T.prove_differentiable,
 
 
 end
--/
-
-set_option trace.simplify true
-set_option trace.simp_lemmas.rewrite.failure true
 
 example (a : arch) (ws : weights a) (x_data : T [a.n_in, a.n_x]) :
-    T.is_uniformly_integrable_around
-           (λ (θ₀ : T ((ID.str label.W_decode, [a.nd, a.nz]).snd)) (x : T ((ID.str label.ε, [a.nz, a.bs]).snd)),
-              ∇
-                (λ (θ₁ : T ((ID.str label.W_decode, [a.nd, a.nz]).snd)),
-                   T.mvn_iso_pdf 0 1 x ⬝
-                     (T.mvn_iso_kl
-                          (T.gemm (ws.W_encode_μ)
-                             (T.softplus
-                                (T.gemm (ws.W_encode) (T.get_col_range (a.bs) x_data (T.round (ws.batch_start))))))
-                          (T.sqrt
-                             (T.exp
-                                (T.gemm (ws.W_encode_logσ₂)
-                                   (T.softplus
-                                      (T.gemm (ws.W_encode)
-                                         (T.get_col_range (a.bs) x_data (T.round (ws.batch_start)))))))) +
-                        T.bernoulli_neglogpdf
-                          (T.sigmoid
-                             (T.gemm (ws.W_decode_p)
-                                (T.softplus
-                                   (T.gemm θ₁
-                                      (x *
-                                           T.sqrt
-                                             (T.exp
-                                                (T.gemm (ws.W_encode_logσ₂)
-                                                   (T.softplus
-                                                      (T.gemm (ws.W_encode)
-                                                         (T.get_col_range (a.bs) x_data
-                                                            (T.round (ws.batch_start))))))) +
-                                         T.gemm (ws.W_encode_μ)
-                                           (T.softplus
-                                              (T.gemm (ws.W_encode)
-                                                 (T.get_col_range (a.bs) x_data (T.round (ws.batch_start))))))))))
-                          (T.get_col_range (a.bs) x_data (T.round (ws.batch_start)))))
-                θ₀)
-           ws.W_decode :=
+T.is_uniformly_integrable_around
+    (λ (θ₀ : T ((ID.str label.W_decode_p, [a.n_in, a.nd]).snd)) (x : T ((ID.str label.ε, [a.nz, a.bs]).snd)),
+       T.mvn_iso_pdf 0 1 x ⬝
+         (T.mvn_iso_kl
+              (T.gemm (ws.W_encode_μ)
+                 (T.softplus (T.gemm (ws.W_encode) (T.get_col_range (a.bs) x_data (T.round (ws.batch_start))))))
+              (T.sqrt
+                 (T.exp
+                    (T.gemm (ws.W_encode_logσ₂)
+                       (T.softplus
+                          (T.gemm (ws.W_encode) (T.get_col_range (a.bs) x_data (T.round (ws.batch_start)))))))) +
+            T.bernoulli_neglogpdf
+              (T.sigmoid
+                 (T.gemm θ₀
+                    (T.softplus
+                       (T.gemm (ws.W_decode)
+                          (x *
+                               T.sqrt
+                                 (T.exp
+                                    (T.gemm (ws.W_encode_logσ₂)
+                                       (T.softplus
+                                          (T.gemm (ws.W_encode)
+                                             (T.get_col_range (a.bs) x_data (T.round (ws.batch_start))))))) +
+                             T.gemm (ws.W_encode_μ)
+                               (T.softplus
+                                  (T.gemm (ws.W_encode)
+                                     (T.get_col_range (a.bs) x_data (T.round (ws.batch_start))))))))))
+              (T.get_col_range (a.bs) x_data (T.round (ws.batch_start)))))
+    (ws.W_decode_p)
+:=
 begin
-T.simplify_grad,
+T.prove_is_mvn_uintegrable,
+
 
 
 end

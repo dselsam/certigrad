@@ -332,7 +332,6 @@ meta def build_simplify_grad_simp_lemmas (k : expr) : tactic simp_lemmas :=
 do es ← monad.mapm to_expr
                    [``(@certigrad.T.grad_const)
                   , ``(@certigrad.T.grad_id)
-                  , ``(@certigrad.T.grad_scale_f)
                   , ``(certigrad.T.grad_exp %%k)
                   , ``(certigrad.T.grad_log %%k)
                   , ``(certigrad.T.grad_scale %%k)
@@ -361,6 +360,8 @@ do es ← monad.mapm to_expr
    s ← try_add_simp s ```(certigrad.T.grad_mvn_iso_kl₂ %%k),
    s ← try_add_simp s ```(certigrad.T.grad_bernoulli_neglogpdf₁ %%k),
    s ← try_add_simp s ```(certigrad.T.grad_bernoulli_neglogpdf₂ %%k),
+
+   s ← try_add_simp s ``(@certigrad.T.grad_scale_f),
    return s
 
 meta def prove_preconditions_core : tactic unit :=
@@ -391,7 +392,7 @@ at_target (λ e, do (a, new_e, pf) ← ext_simplify_core () {zeta := ff, beta :=
 meta def check_is_cdifferentiable (e : expr) : tactic expr :=
 if is_napp_of e `certigrad.T.is_cdifferentiable 3 then head_eta_expand e else tactic.fail "not is_cdifferentiable"
 
-meta def prove_differentiable_core (grad : expr) : tactic unit :=
+meta def prove_differentiable_core_helper (grad : expr) : tactic unit :=
 do k ← compute_k grad,
    first [applyc `certigrad.T.is_cdifferentiable_const
         , applyc `certigrad.T.is_cdifferentiable_id
@@ -424,9 +425,10 @@ do k ← compute_k grad,
         , to_expr ``(T.is_cdifferentiable_gemm₂ %%k) >>= apply
 ]
 
-meta def prove_differentiable : tactic unit := repeat ((target >>= check_is_cdifferentiable >>= prove_differentiable_core) <|> prove_preconditions_core)
+meta def prove_differentiable_core : tactic unit := target >>= check_is_cdifferentiable >>= prove_differentiable_core_helper
+meta def prove_differentiable : tactic unit := repeat (prove_differentiable_core <|> prove_preconditions_core)
 
-meta def simplify_grad : tactic unit := simplify_grad_core (prove_preconditions <|> prove_differentiable)
+meta def simplify_grad : tactic unit := simplify_grad_core (repeat $ prove_preconditions_core <|> prove_differentiable_core)
 end simplify_grad
 
 -- Compounds with simplify_grad

@@ -23,11 +23,7 @@ namespace certigrad
 namespace T
 open list
 
-attribute [reducible] const
-lemma const_scalar : ∀ (α : ℝ), const α [] = α
-| ⟨x⟩ := rfl
-attribute [irreducible] const
-
+axiom const_scalar : ∀ (α : ℝ), const α [] = α
 attribute [simp] const_scalar
 
 axiom const_mul {shape : S} : Π (α β : ℝ), const (α * β) shape = const α shape * const β shape
@@ -437,30 +433,34 @@ axiom is_btw_mul {shape₁ shape₂ : S} (f g : T shape₁ → T shape₂) : is_
 axiom is_btw_sub {shape₁ shape₂ : S} (f g : T shape₁ → T shape₂) : is_btw_exp₂ f → is_btw_exp₂ g → is_btw_exp₂ (λ x, f x - g x)
 axiom is_btw_div {shape₁ shape₂ : S} (f g : T shape₁ → T shape₂) : is_btw_exp₂ f → is_btw_exp₂ g → is_btw_exp₂ (λ x, f x / g x)
 
-axiom is_btw_exp {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_linear f → is_btw_exp₂ (λ x, exp (f x))
+axiom is_btw_exp {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_sub_quadratic f → is_btw_exp₂ (λ x, exp (f x))
 
--- linear axioms
+-- sub quadratic axioms
 
-axiom is_linear_id {shape : S} : is_linear (λ (x : T shape), x)
-axiom is_linear_const {shape₁ shape₂ : S} (y : T shape₂) : is_linear (λ (x : T shape₁), y)
+axiom is_sub_quadratic_id {shape : S} : is_sub_quadratic (λ (x : T shape), x)
+axiom is_sub_quadratic_const {shape₁ shape₂ : S} (y : T shape₂) : is_sub_quadratic (λ (x : T shape₁), y)
 
-axiom is_linear_gemm {shape : S} {m n p : ℕ} (f : T shape → T [m, n]) (g : T shape → T [n, p]) :
-  is_linear f → is_linear g → is_linear (λ x, gemm (f x) (g x))
+axiom is_sub_quadratic_gemm {shape : S} {m n p : ℕ} (f : T shape → T [m, n]) (g : T shape → T [n, p]) :
+  is_sub_quadratic f → is_sub_quadratic g → is_sub_quadratic (λ x, gemm (f x) (g x))
 
-axiom is_linear_transpose {shape : S} {m n : ℕ} (f : T shape → T [m, n]) :
-  is_linear f → is_linear (λ x, transpose (f x))
+axiom is_sub_quadratic_transpose {shape : S} {m n : ℕ} (f : T shape → T [m, n]) :
+  is_sub_quadratic f → is_sub_quadratic (λ x, transpose (f x))
 
-axiom is_linear_neg {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_linear f → is_linear (λ x, - (f x))
-axiom is_linear_inv {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_linear f → is_linear (λ x, (f x)⁻¹)
-axiom is_linear_add {shape₁ shape₂ : S} (f g : T shape₁ → T shape₂) : is_linear f → is_linear g → is_linear (λ x, f x + g x)
-axiom is_linear_mul {shape₁ shape₂ : S} (f g : T shape₁ → T shape₂) : is_linear f → is_linear g → is_linear (λ x, f x * g x)
-axiom is_linear_sub {shape₁ shape₂ : S} (f g : T shape₁ → T shape₂) : is_linear f → is_linear g → is_linear (λ x, f x - g x)
-axiom is_linear_div {shape₁ shape₂ : S} (f g : T shape₁ → T shape₂) : is_linear f → is_linear g → is_linear (λ x, f x / g x)
+axiom is_sub_quadratic_softplus {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_sub_quadratic f → is_sub_quadratic (λ x, softplus (f x))
+
+axiom is_sub_quadratic_neg {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_sub_quadratic f → is_sub_quadratic (λ x, - (f x))
+axiom is_sub_quadratic_mul₁ {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) (y : T shape₂) : is_sub_quadratic f → is_sub_quadratic (λ x, y * f x)
+axiom is_sub_quadratic_mul₂ {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) (y : T shape₂) : is_sub_quadratic f → is_sub_quadratic (λ x, f x * y)
+
+axiom is_sub_quadratic_add {shape₁ shape₂ : S} (f g : T shape₁ → T shape₂) : is_sub_quadratic f → is_sub_quadratic g → is_sub_quadratic (λ x, f x + g x)
+axiom is_sub_quadratic_sub {shape₁ shape₂ : S} (f g : T shape₁ → T shape₂) : is_sub_quadratic f → is_sub_quadratic g → is_sub_quadratic (λ x, f x - g x)
 
 -- is_bounded_btw_exp₂_around {shape₁ shape₂ shape₃ : S} (f : Π (x : T shape₁) (θ : T shape₂), T shape₃) (θ : T shape₂) : Prop
 
-axiom is_bbtw_id_of_btw {shape₁ shape₂ shape₃ : S} (f : Π (x : T shape₁), T shape₃) (θ : T shape₂) :
+axiom is_bbtw_of_btw {shape₁ shape₂ shape₃ : S} (f : Π (x : T shape₁), T shape₃) (θ : T shape₂) :
   is_btw_exp₂ f → is_bounded_btw_exp₂_around (λ x θ₀, f x) θ
+
+axiom is_bbtw_id {shape₁ shape₂ : S} (θ : T shape₂) : is_bounded_btw_exp₂_around (λ (x : T shape₁) (θ₀ : T shape₂), θ₀) θ
 
 axiom is_bbtw_softplus {shape₁ shape₂ shape₃ : S} (f : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) :
   is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around (λ x θ₀, softplus (f x θ₀)) θ
@@ -474,20 +474,26 @@ axiom is_bbtw_log_sigmoid {shape₁ shape₂ shape₃ : S} (f : T shape₁ → T
 axiom is_bbtw_log_1msigmoid {shape₁ shape₂ shape₃ : S} (f : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) :
   is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around (λ x θ₀, log (1 - sigmoid (f x θ₀))) θ
 
-axiom is_bbtw_gemm {shape₁ : S} {m n p : ℕ} (f : T shape₁ → T [n, p]) (θ : T [m, n]) :
-  is_btw_exp₂ f → is_bounded_btw_exp₂_around (λ x θ₀, gemm θ₀ (f x)) θ
+axiom is_bbtw_gemm {shape₁ shape₂ : S} {m n p : ℕ} (f : T shape₁ → T shape₂ → T [m, n]) (g : T shape₁ → T shape₂ → T [n, p]) (θ : T shape₂) :
+  is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around g θ → is_bounded_btw_exp₂_around (λ x θ₀, gemm (f x θ₀) (g x θ₀)) θ
 
-axiom is_bbtw_gemm₁ {shape₁ shape₂ : S} {m n p : ℕ} (f : T shape₁ → T shape₂ → T [n, p]) (θ : T shape₂) (M : T [m, n]) :
-  is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around (λ x θ₀, gemm M (f x θ₀)) θ
+axiom is_bbtw_neg {shape₁ shape₂ shape₃ : S} (f : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) :
+  is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around (λ x θ₀, - f x θ₀) θ
+
+axiom is_bbtw_inv {shape₁ shape₂ shape₃ : S} (f : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) :
+  is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around (λ x θ₀, (f x θ₀)⁻¹) θ
 
 axiom is_bbtw_add {shape₁ shape₂ shape₃ : S} (f g : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) :
   is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around g θ → is_bounded_btw_exp₂_around (λ x θ₀, f x θ₀ + g x θ₀) θ
 
+axiom is_bbtw_sub {shape₁ shape₂ shape₃ : S} (f g : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) :
+  is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around g θ → is_bounded_btw_exp₂_around (λ x θ₀, f x θ₀ - g x θ₀) θ
+
 axiom is_bbtw_mul {shape₁ shape₂ shape₃ : S} (f g : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) :
   is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around g θ → is_bounded_btw_exp₂_around (λ x θ₀, f x θ₀ * g x θ₀) θ
 
-axiom is_bbtw_neg {shape₁ shape₂ shape₃ : S} (f : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) :
-  is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around (λ x θ₀, - (f x θ₀)) θ
+axiom is_bbtw_exp {shape₁ shape₂ shape₃ : S} (f : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) :
+  is_sub_quadratic (λ x, f x θ) → (∀ x, is_sub_quadratic (f x)) → is_bounded_btw_exp₂_around (λ x θ₀, exp (f x θ₀)) θ
 
 lemma is_bbtw_bernoulli_neglogpdf {shape₁ shape₂ shape₃ : S} (f : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) (p : T shape₃) :
   is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around (λ x θ₀, bernoulli_neglogpdf (sigmoid (f x θ₀)) p) θ :=
@@ -495,8 +501,8 @@ begin
 intro H,
 dunfold bernoulli_neglogpdf,
 apply is_bbtw_neg, apply is_bbtw_sum, apply is_bbtw_add,
-apply is_bbtw_mul, apply is_bbtw_id_of_btw, apply is_btw_const, apply is_bbtw_log_sigmoid, exact H,
-apply is_bbtw_mul, apply is_bbtw_id_of_btw, apply is_btw_const, apply is_bbtw_log_1msigmoid, exact H
+apply is_bbtw_mul, apply is_bbtw_of_btw, apply is_btw_const, apply is_bbtw_log_sigmoid, exact H,
+apply is_bbtw_mul, apply is_bbtw_of_btw, apply is_btw_const, apply is_bbtw_log_1msigmoid, exact H
 end
 
 -- misc

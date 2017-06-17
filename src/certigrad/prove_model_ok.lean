@@ -45,6 +45,8 @@ end
 @[cgsimp] lemma simp_nodup_cons {α : Type*} {a : α} {l : list α} : a ∉ l → list.nodup (a::l) = list.nodup l := sorry
 
 @[cgsimp] lemma false_imp {P : Prop} : (false → P) = true := sorry
+@[cgsimp] lemma true_imp {P : Prop} : (true → P) = P := sorry
+
 @[cgsimp] lemma simp_mem_nil {α : Type*} (x : α) : (x ∈ @list.nil α) = false := sorry
 @[cgsimp] lemma simp_mem_cons_neq {α : Type*} (x y : α) (xs : list α) : x ≠ y → (x ∈ y :: xs) = (x ∈ xs) := sorry
 @[cgsimp] lemma simp_mem_cons_eq {α : Type*} (x y : α) (xs : list α) : x = y → (x ∈ y :: xs) = true := sorry
@@ -58,6 +60,8 @@ end
 @[cgsimp] lemma simp_nil_append {α : Type*} (s : list α) : [] ++ s = s := sorry
 @[cgsimp] lemma simp_cons_append {α : Type*} (x : α) (s t : list α) : (x::s) ++ t = x::(s ++ t) := sorry
 @[cgsimp] lemma simp_append_nil {α : Type*} (t : list α) : t ++ [] = t := sorry
+
+@[cgsimp] lemma simp_at_idx_nil {α : Type*} [inhabited α] (x : α) (idx : ℕ) : list.at_idx list.nil idx x = false := sorry
 
 @[cgsimp] lemma of_in_list_forall_cons {α : Type*} (ys : list α) (P : α → Prop) (y : α) : (∀ x, x ∈ list.cons y ys → P x) = (P y ∧ (∀ x, x ∈ ys → P x)) := sorry
 @[cgsimp] lemma of_in_list_forall_nil {α : Type*} (P : α → Prop) (y : α) : (∀ (x : α), x ∈  @list.nil α → P x) = true := sorry

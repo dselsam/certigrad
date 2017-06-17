@@ -1,5 +1,5 @@
 /-
-1;4205;0cCopyright (c) 2017 Daniel Selsam. All rights reserved.
+Copyright (c) 2017 Daniel Selsam. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Daniel Selsam
 
@@ -74,23 +74,23 @@ lemma g_final_is_gintegrable_hdp :
 
 lemma g_final_diff_under_int_he :
   can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) :=
-by cgsimp >> prove_is_mvn_uintegrable >> trace "DONE" >> tactic.failed
+sorry -- by cgsimp >> prove_is_mvn_uintegrable >> trace "DONE" >> tactic.failed
 
 lemma g_final_diff_under_int_hem :
   can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_encode_μ, [a^.nz, a^.ne]) :=
-by cgsimp >> prove_is_mvn_uintegrable >> trace "DONE" >> tactic.failed
+sorry -- by cgsimp >> prove_is_mvn_uintegrable >> trace "DONE" >> tactic.failed
 
 lemma g_final_diff_under_int_hels₂ :
   can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_encode_logσ₂, [a^.nz, a^.ne]) :=
-by cgsimp >> prove_is_mvn_uintegrable >> trace "DONE" >> tactic.failed
+sorry -- by cgsimp >> prove_is_mvn_uintegrable >> trace "DONE" >> tactic.failed
 
 lemma g_final_diff_under_int_hd :
   can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_decode, [a^.nd, a^.nz]) :=
-by cgsimp >> prove_is_mvn_uintegrable >> trace "DONE" >> tactic.failed
+by cgsimp >> prove_is_mvn_uintegrable >> trace "DONE"
 
 lemma g_final_diff_under_int_hdp :
   can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_decode_p, [a^.n_in, a^.nd]) :=
-by cgsimp >> prove_is_mvn_uintegrable >> trace "DONE" >> tactic.failed
+sorry -- by cgsimp >> prove_is_mvn_uintegrable >> trace "DONE" >> tactic.failed
 
 
 

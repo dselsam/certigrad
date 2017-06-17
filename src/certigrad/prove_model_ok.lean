@@ -182,13 +182,14 @@ open tactic
 
 meta def gsimpt (tac : tactic unit) : tactic unit := do
   s ← join_user_simp_lemmas tt [`cgsimp],
-  (at_target (λ e, do (a, new_e, pf) ← ext_simplify_core () {} s
-                                                        (λ u, failed)
-                                                        (λ a s r p e, failed)
-                                                        (λ a s r p e, do ⟨u, new_e, pr⟩ ← conv.apply_lemmas_core s tac r e,
-                                                                         return ((), new_e, pr, tt))
-                                                        `eq e,
-                     return (new_e, pf)))
+  tgt ← target,
+  (a, new_tgt, pf) ← ext_simplify_core () {} s
+                                     (λ u, failed)
+                                     (λ a s r p e, failed)
+                                     (λ a s r p e, do ⟨u, new_e, pr⟩ ← conv.apply_lemmas_core s tac r e,
+                                                      return ((), new_e, pr, tt))
+                                     `eq tgt,
+  replace_target new_tgt pf
 
 meta def cgsimpt (tac : tactic unit) : tactic unit := do
   s ← join_user_simp_lemmas tt [`cgsimp],

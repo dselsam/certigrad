@@ -372,27 +372,21 @@ first (assumption :: map applyc [`certigrad.T.sqrt_pos, `certigrad.T.square_pos_
 
 meta def prove_preconditions : tactic unit := repeat prove_preconditions_core
 
-meta def simplify_grad_core : conv unit :=
+meta def simplify_grad_core_helper (tac : tactic unit) : conv unit :=
 λ r e, do guard $ r = `eq,
           grad ← check_grad e,
           k ← compute_k grad,
           s ← build_simplify_grad_simp_lemmas k,
-          conv.apply_lemmas_core s prove_preconditions r e
+          conv.apply_lemmas_core s tac r e
 
-meta def simplify_grad : tactic unit :=
+meta def simplify_grad_core (tac : tactic unit) : tactic unit :=
 at_target (λ e, do (a, new_e, pf) ← ext_simplify_core () {zeta := ff, beta := ff, eta := ff, proj := ff} simp_lemmas.mk
                                                       (λ u, failed)
                                                       (λ a s r p e, failed)
-                                                      (λ a s r p e, do ⟨u, new_e, pr⟩ ← simplify_grad_core r e,
+                                                      (λ a s r p e, do ⟨u, new_e, pr⟩ ← simplify_grad_core_helper tac r e,
                                                                        return ((), new_e, pr, tt))
                                                       `eq e,
                 return (new_e, pf))
-
-example : ∇ (λ x : ℝ, 5 + x) 2 = 1 :=
-begin
-simplify_grad,
-reflexivity
-end
 
 meta def find_is_cdifferentiable : expr → tactic expr := λ e, head_eta_expand e
 
@@ -431,6 +425,7 @@ do k ← compute_k grad,
 
 meta def prove_differentiable : tactic unit := repeat $ (target >>= find_is_cdifferentiable  >>= prove_differentiable_core) <|> prove_preconditions_core
 
+meta def simplify_grad : tactic unit := simplify_grad_core (prove_preconditions <|> prove_differentiable)
 end simplify_grad
 
 -- Compounds with simplify_grad

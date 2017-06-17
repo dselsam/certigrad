@@ -179,16 +179,16 @@ axiom grad_div₂ {shape : S} (k : T shape → ℝ) (x₁ x₂ : T shape) : squa
   ∇ (λ x₂, k (x₁ / x₂)) x₂ = - (∇ k (x₁ / x₂) * x₁) / (square x₂)
 
 -- Tensors
-axiom grad_sum {shape : S} (k : ℝ → ℝ) (x : T shape) :
+axiom grad_sum (k : ℝ → ℝ) (shape : S) (x : T shape) :
   ∇ (λ x, k (sum x)) x = ∇ k (sum x) ⬝ 1
 
 axiom grad_dot₁ {shape : S} (x₁ x₂ : T shape) : ∇ (λ x₁, dot x₁ x₂) x₁ = x₂
 axiom grad_dot₂ {shape : S} (x₁ x₂ : T shape) : ∇ (λ x₂, dot x₁ x₂) x₂ = x₁
 
-axiom grad_gemm₁ {m n p : ℕ} (k : T [m, p] → ℝ) (M : T [m, n]) (N : T [n, p]) :
+axiom grad_gemm₁ {m p : ℕ} (k : T [m, p] → ℝ) (n : ℕ) (M : T [m, n]) (N : T [n, p]) :
 ∇ (λ M, k (gemm M N)) M = gemm (∇ k (gemm M N)) (transpose N)
 
-axiom grad_gemm₂ {m n p : ℕ} (k : T [m, p] → ℝ) (M : T [m, n]) (N : T [n, p]) :
+axiom grad_gemm₂ {m p : ℕ} (k : T [m, p] → ℝ) (n : ℕ) (M : T [m, n]) (N : T [n, p]) :
 ∇ (λ N, k (gemm M N)) N = gemm (transpose M) (∇ k (gemm M N))
 
 -- Compound
@@ -316,45 +316,83 @@ do f ← head_eta_expand g,
 meta def compute_k (grad : expr) : tactic expr :=
 do k ← compute_outer_inner_functions grad,
    k_simp ← reduce_k k,
-   return k_simp
+   head_eta_expand k_simp
 
-meta def rwe (e : expr) : tactic unit := rewrite_core transparency.none tt tt occurrences.all ff e
+meta def check_grad (e : expr) : tactic expr :=
+if is_napp_of e `certigrad.T.grad 3 then head_eta_expand e else tactic.fail "not ∇"
 
-meta def simplify_grad_core (grad : expr) : tactic unit :=
-do k ← compute_k grad,
-   first [rewrite `certigrad.T.grad_const
-        , rewrite `certigrad.T.grad_id
-        , to_expr ``(T.grad_exp %%k) >>= rwe
-        , to_expr ``(T.grad_log %%k) >>= rwe
-        , to_expr ``(T.grad_sqrt %%k) >>= rwe
-        , to_expr ``(T.grad_scale %%k) >>= rwe
-        , to_expr ``(T.grad_neg %%k) >>= rwe
-        , to_expr ``(T.grad_add₁ %%k) >>= rwe
-        , to_expr ``(T.grad_add₂ %%k) >>= rwe
-        , to_expr ``(T.grad_sub₁ %%k) >>= rwe
-        , to_expr ``(T.grad_sub₂ %%k) >>= rwe
-        , to_expr ``(T.grad_mul₁ %%k) >>= rwe
-        , to_expr ``(T.grad_mul₂ %%k) >>= rwe
-        , to_expr ``(T.grad_div₁ %%k) >>= rwe
-        , to_expr ``(T.grad_div₂ %%k) >>= rwe
-        , to_expr ``(T.grad_sum %%k) >>= rwe
-        , rewrite `certigrad.T.grad_dot₁
-        , rewrite `certigrad.T.grad_dot₂
-        , to_expr ``(T.grad_gemm₁ %%k) >>= rwe
-        , to_expr ``(T.grad_gemm₂ %%k) >>= rwe
-        , to_expr ``(T.grad_square %%k) >>= rwe
-        , to_expr ``(T.grad_softplus %%k) >>= rwe
-        , to_expr ``(T.grad_sigmoid %%k) >>= rwe
-        , rewrite `certigrad.T.grad_scale_f
-]
+lemma tmp_eq_of_self_eq {α : Type*} (x : α) : (x = x) = true := sorry
 
-meta def find_grad : expr → tactic expr := λ e,
-let f := get_app_fn e in
-if is_constant_of f `certigrad.T.grad
-then head_eta_expand e
-else first (map find_grad $ get_app_args e)
+meta def build_simplify_grad_simp_lemmas (k : expr) : tactic simp_lemmas :=
+do es ← monad.mapm to_expr
+                   [``(@certigrad.T.tmp_eq_of_self_eq)
+                  , ``(@certigrad.T.grad_const)
+                  , ``(@certigrad.T.grad_id)
+                  , ``(certigrad.T.grad_exp %%k)
+                  , ``(certigrad.T.grad_log %%k)
+                  , ``(certigrad.T.grad_scale %%k)
+                  , ``(certigrad.T.grad_neg %%k)
+                  , ``(certigrad.T.grad_add₁ %%k)
+                  , ``(certigrad.T.grad_add₂ %%k)
+                  , ``(certigrad.T.grad_sub₁ %%k)
+                  , ``(certigrad.T.grad_sub₂ %%k)
+                  , ``(certigrad.T.grad_mul₁ %%k)
+                  , ``(certigrad.T.grad_mul₂ %%k)
+                  , ``(certigrad.T.grad_div₁ %%k)
+                  , ``(certigrad.T.grad_div₂ %%k)
+                  , ``(@certigrad.T.grad_dot₁)
+                  , ``(@certigrad.T.grad_dot₂)
+                  , ``(certigrad.T.grad_square %%k)
+                  , ``(certigrad.T.grad_softplus %%k)
+                  , ``(certigrad.T.grad_sigmoid %%k)
+                  , ``(certigrad.T.grad_scale_f)
+],
+   s ← simp_lemmas.append simp_lemmas.mk es,
+   -- TODO(dhs): clean this up with combinators
+   gemm₁ ← try_core $ to_expr ``(certigrad.T.gemm₁ %%k),
+   gemm₂ ← try_core $ to_expr ``(certigrad.T.gemm₂ %%k),
+   sum ← try_core $ to_expr ``(certigrad.T.grad_sum %%k),
+   s ← match gemm₁ with
+       | none := return s
+       | (some e) := simp_lemmas.add s e
+       end,
+   s ← match gemm₂ with
+       | none := return s
+       | (some e) := simp_lemmas.add s e
+       end,
+   s ← match sum with
+       | none := return s
+       | (some e) := simp_lemmas.add s e
+       end,
+   return s
 
-meta def simplify_grad : tactic unit := repeat $ (target >>= find_grad >>= simplify_grad_core) <|> any_goals assumption
+
+meta def prove_preconditions : tactic unit :=
+repeat $ first (map applyc [`sqrt_pos, `square_pos_of_pos, `exp_pos, `sigmoid_pos, `sigmoid_lt1, `lt1_alt, `one_plus_pos,
+                            `plus_one_pos, `one_pos, `neg_of_pos, `const_pos_of_pos, `mul_pos_of_pos_pos, `pi_pos,
+                            `inv_pos, `div_pos_pos, `two_pos, `two_pi_pos] ++ [assumption])
+
+meta def simplify_grad_core : conv unit :=
+λ r e, do guard $ r = `eq,
+          grad ← check_grad e,
+          k ← compute_k grad,
+          s ← build_simplify_grad_simp_lemmas k,
+          conv.apply_lemmas_core s prove_preconditions r e
+
+meta def simplify_grad : tactic unit :=
+at_target (λ e, do (a, new_e, pf) ← ext_simplify_core () {zeta := ff, beta := ff, eta := ff, proj := ff} simp_lemmas.mk
+                                                      (λ u, failed)
+                                                      (λ a s r p e, failed)
+                                                      (λ a s r p e, do ⟨u, new_e, pr⟩ ← simplify_grad_core r e,
+                                                                       return ((), new_e, pr, tt))
+                                                      `eq e,
+                return (new_e, pf))
+
+example : ∇ (λ x : ℝ, 5 + x) 2 = 1 :=
+begin
+simplify_grad,
+reflexivity
+end
 
 meta def find_is_cdifferentiable : expr → tactic expr := λ e, head_eta_expand e
 
@@ -388,7 +426,7 @@ meta def prove_differentiable : tactic unit := repeat $ (target >>= find_is_cdif
 end simplify_grad
 
 -- Random
---set_option trace.simplify.rewrite true
+
 lemma mvn_iso_grad_logpdf_μ_correct {shape : S} (μ σ x : T shape) (H_σ : σ > 0) :
   ∇ (λ θ, mvn_iso_logpdf θ σ x) μ = mvn_iso_grad_logpdf_μ μ σ x :=
 begin

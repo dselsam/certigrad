@@ -388,7 +388,8 @@ at_target (λ e, do (a, new_e, pf) ← ext_simplify_core () {zeta := ff, beta :=
                                                       `eq e,
                 return (new_e, pf))
 
-meta def find_is_cdifferentiable : expr → tactic expr := λ e, head_eta_expand e
+meta def check_is_cdifferentiable (e : expr) : tactic expr :=
+if is_napp_of e `certigrad.T.is_cdifferentiable 3 then head_eta_expand e else tactic.fail "not is_cdifferentiable"
 
 meta def prove_differentiable_core (grad : expr) : tactic unit :=
 do k ← compute_k grad,
@@ -423,7 +424,7 @@ do k ← compute_k grad,
         , to_expr ``(T.is_cdifferentiable_gemm₂ %%k) >>= apply
 ]
 
-meta def prove_differentiable : tactic unit := repeat $ (target >>= find_is_cdifferentiable  >>= prove_differentiable_core) <|> prove_preconditions_core
+meta def prove_differentiable : tactic unit := repeat ((target >>= check_is_cdifferentiable >>= prove_differentiable_core) <|> prove_preconditions_core)
 
 meta def simplify_grad : tactic unit := simplify_grad_core (prove_preconditions <|> prove_differentiable)
 end simplify_grad

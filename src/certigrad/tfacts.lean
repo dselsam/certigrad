@@ -96,7 +96,7 @@ axiom square_pos_of_neg {shape : S} : ∀ {x : T shape}, x < 0 → square x > 0
 axiom exp_pos {shape : S} : ∀ {x : T shape}, exp x > 0
 axiom sigmoid_pos {shape : S} : ∀ {x : T shape}, sigmoid x > 0
 axiom sigmoid_lt1 {shape : S} : ∀ {x : T shape}, sigmoid x < 1
-axiom lt1_alt {shape : S} : ∀ {x : T shape}, x < 1 → 1 - x > 0
+axiom lt1_alt {shape : S} : ∀ {x : T shape}, x < 1 → 0 < 1 - x
 axiom one_plus_pos {shape : S} : ∀ {x : T shape}, x > 0 → 1 + x > 0
 axiom plus_one_pos {shape : S} : ∀ {x : T shape}, x > 0 → x + 1 > 0
 axiom one_pos {shape : S} : (1 : T shape) > 0
@@ -108,6 +108,7 @@ axiom inv_pos {shape : S} {x : T shape} : x > 0 → x⁻¹ > 0
 axiom div_pos_pos {shape : S} {x y : T shape} : x > 0 → y > 0 → x / y > 0
 lemma two_pos {shape : S} : (2 : T shape) > 0 := one_plus_pos one_pos
 lemma two_pi_pos {shape : S} : 2 * pi shape > 0 := mul_pos_of_pos_pos two_pos pi_pos
+lemma msigmoid_pos {shape : S} {x : T shape} : 0 < 1 - sigmoid x := lt1_alt sigmoid_lt1
 
 -- div
 axiom div_mul_cancel {shape : S} : ∀ {x y : T shape}, y > 0 → (x / y) * y = x

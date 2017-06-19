@@ -8,43 +8,35 @@ Tactics to prove specific models satisfy the preconditions of backprop_correct.
 TODO(dhs): we are in the process of refactoring this tactic to use the simplifier
 more aggressively and this file is currently in an inconsistent state.
 -/
-import .tfacts .graph .predicates .expected_value .reparam .kl .tactics .program .pre .mvn .tactics
+import data.list.set .tfacts .graph .predicates .expected_value .reparam .kl .tactics .program .pre .mvn .tactics
 
 namespace certigrad
-open T
+open T tactic
 
+def pextp {P : Prop} : P → (P = true) := λ Hp, propext (iff_true_intro Hp)
 
---@[cgsimp] lemma pair_eq_of_eq {α β : Type*} (a₁ a₂ : α) (b₁ b₂ : β) : ((a₁, b₁) = (a₂, b₂)) = (a₁ = a₂ ∧ b₁ = b₂) := sorry
-/-
-@[cgsimp] lemma id_str_eq_of_eq (x y : label) : (ID.str x = ID.str y) = (x = y) := sorry
+@[cgsimp] lemma true_of_not_false : (¬ false) = true :=
+begin apply propext, split, intro H, exact trivial, intros Ht Hf, exact Hf end
 
--- TODO(dhs): tag the relevant existing simp lemmas as [cgsimp] instead of redefining them here.
+@[cgsimp] lemma label_of (x y : label) : (ID.str x = ID.str y) = (x = y) :=
+begin apply propext, split, intro H, injection H, intro H, rw H end
 
-@[cgsimp] lemma str_eq_of_char_eq (s₁ s₂ : string) : (s₁ = s₂) = (s₁^.to_list = s₂^.to_list) := sorry
+@[cgsimp] lemma eq_of_self_eq {α : Type*} (x : α) : (x = x) = true := propext (eq_self_iff_true _)
 
-attribute [cgsimp] ne string.to_list
+@[cgsimp] lemma and_true_left {P : Prop} : (true ∧ P) = P := propext (true_and _)
+@[cgsimp] lemma and_true_right {P : Prop} : (P ∧ true) = P := propext (and_true _)
+@[cgsimp] lemma true_of_imp_true {α : Sort*} : (α → true) = true := propext (iff.intro (λ H, trivial) (λ H x, trivial))
 
-example (s₁ s₂ : S) : (ID.str "ho", s₁) ≠ (ID.str "he", s₂) :=
+@[cgsimp] lemma simp_nodup_nil {α : Type*} : @list.nodup α [] = true := pextp list.nodup_nil
+
+@[cgsimp] lemma simp_nodup_singleton {α : Type*} (a : α) : list.nodup [a] = true := pextp (list.nodup_singleton _)
+@[cgsimp] lemma simp_nodup_cons {α : Type*} {a : α} {l : list α} (H : a ∉ l) : list.nodup (a::l) = list.nodup l :=
+begin apply propext, split, intro H', cases H' with H1 H2 H3 H4, exact H4, apply list.nodup_cons, exact H end
+
+@[cgsimp] lemma false_imp {P : Prop} : (false → P) = true :=
 begin
-simp only with cgsimp,
-
+apply propext, split, intro H, exact trivial, intros Ht Hf, exfalso, exact Hf
 end
--/
-@[cgsimp] lemma true_of_not_false : (¬ false) = true := sorry
-@[cgsimp] lemma label_of (x y : label) : (ID.str x = ID.str y) = (x = y) := sorry
-
-@[cgsimp] lemma eq_of_self_eq {α : Type*} (x : α) : (x = x) = true := sorry
---@[cgsimp] lemma prove_neq {α : Type*} (x y : α) : x ≠ y → x ≠ y := sorry
-
-@[cgsimp] lemma and_true_left {P : Prop} : (true ∧ P) = P := sorry
-@[cgsimp] lemma and_true_right {P : Prop} : (P ∧ true) = P := sorry
-@[cgsimp] lemma true_of_imp_true {α : Sort*} : (α → true) = true := sorry
-
-@[cgsimp] lemma simp_nodup_nil {α : Type*} : @list.nodup α [] = true := sorry
-@[cgsimp] lemma simp_nodup_singleton {α : Type*} (a : α) : list.nodup [a] = true := sorry
-@[cgsimp] lemma simp_nodup_cons {α : Type*} {a : α} {l : list α} : a ∉ l → list.nodup (a::l) = list.nodup l := sorry
-
-@[cgsimp] lemma false_imp {P : Prop} : (false → P) = true := sorry
 @[cgsimp] lemma true_imp {P : Prop} : (true → P) = P := sorry
 
 @[cgsimp] lemma simp_mem_nil {α : Type*} (x : α) : (x ∈ @list.nil α) = false := sorry

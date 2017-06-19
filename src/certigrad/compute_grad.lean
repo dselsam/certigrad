@@ -87,6 +87,9 @@ def backprop_core (costs : list ID) (nodes : list node) (dict : env) (tgts : lis
 backprop_core_helper costs (compute_init_dict costs nodes tgts) nodes dict tgts
 
 def backprop (costs : list ID) (nodes : list node) (inputs : env) (tgts : list reference) : dvec T tgts^.p2 :=
-  let dict := backprop_core costs nodes inputs tgts in tvec.from_env tgts dict
+let dict := backprop_core costs nodes inputs tgts in tvec.from_env tgts dict
+
+def bprop (costs : list ID) (init_dict : env) (nodes : list node) (inputs : env) (tgts : list reference) : dvec T tgts^.p2 :=
+let dict := backprop_core_helper costs init_dict nodes inputs tgts in tvec.from_env tgts dict
 
 end certigrad

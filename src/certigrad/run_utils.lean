@@ -57,7 +57,7 @@ def compute_cost_epoch (g : graph) (batch_size : ℕ) (θ : dvec T g^.targets^.p
 -- Assumes that "bstart" is an argument to the graph
 def optimize_step (g : graph) (inputs : env) (astate : adam.state g^.targets^.p2) (θ : dvec T g^.targets^.p2) (init_dict : env) (batch_size : ℕ)
   : state RNG (dvec T g^.targets^.p2 × adam.state g^.targets^.p2) := do
-    grads ← (graph.to_dist (λ env, backprop g^.costs init_dict g^.nodes env g^.targets) inputs g^.nodes)^.to_rngprog,
+    grads ← (graph.to_dist (λ env, bprop g^.costs init_dict g^.nodes env g^.targets) inputs g^.nodes)^.to_rngprog,
     return $ adam.step θ ((1 / T.of_nat batch_size) ⬝ grads) astate
 
 def optimize_epoch_core (g : graph) (batch_size : ℕ)

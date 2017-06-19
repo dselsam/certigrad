@@ -41,10 +41,11 @@ lemma g_final_grads_exist_at_hem : grads_exist_at g^.nodes fdict (ID.str label.W
 
 #print "grads_exist_at_hels₂..."
 lemma g_final_grads_exist_at_hels₂ : grads_exist_at g^.nodes fdict (ID.str label.W_encode_logσ₂, [a^.nz, a^.ne]) := by cgsimp
+-/
 
 #print "grads_exist_at_hd..."
 lemma g_final_grads_exist_at_hd : grads_exist_at g^.nodes fdict (ID.str label.W_decode, [a^.nd, a^.nz]) := by cgsimp
-
+/-
 #print "grads_exist_at_hdp..."
 lemma g_final_grads_exist_at_hdp : grads_exist_at g^.nodes fdict (ID.str label.W_decode_p, [a^.n_in, a^.nd]) := by cgsimp
 
@@ -62,12 +63,12 @@ lemma g_final_is_gintegrable_hem :
 lemma g_final_is_gintegrable_hels₂ :
   is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_encode_logσ₂, [a^.nz, a^.ne])⟧)
                  fdict g^.nodes dvec.head := by cgsimp >> prove_is_mvn_integrable
-
+-/
 #print "gintegrable_hd..."
 lemma g_final_is_gintegrable_hd :
   is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_decode, [a^.nd, a^.nz])⟧)
                  fdict g^.nodes dvec.head := by cgsimp >> prove_is_mvn_integrable
-
+/-
 #print "gintegrable_hdp..."
 lemma g_final_is_gintegrable_hdp :
   is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_decode_p, [a^.n_in, a^.nd])⟧)
@@ -87,17 +88,17 @@ by cgsimp >> prove_is_mvn_uintegrable
 lemma g_final_diff_under_int_hels₂ :
   can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_encode_logσ₂, [a^.nz, a^.ne]) :=
 by cgsimp >> prove_is_mvn_uintegrable
-
+-/
 #print "can_diff_hd..."
 lemma g_final_diff_under_int_hd :
   can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_decode, [a^.nd, a^.nz]) :=
 by cgsimp >> prove_is_mvn_uintegrable
-
+/-
 #print "can_diff_hdp..."
 lemma g_final_diff_under_int_hdp :
   can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_decode_p, [a^.n_in, a^.nd]) :=
 by cgsimp >> prove_is_mvn_uintegrable
--/
+
 lemma aevb_backprop_correct :
 ∀ (tgt : reference) (idx : ℕ), at_idx g^.targets idx tgt →
 let init_dict : env := compute_init_dict g^.costs g^.nodes g^.targets in
@@ -120,6 +121,6 @@ end
 
 end proofs
 
-
+-/
 end aevb
 end certigrad

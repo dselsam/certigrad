@@ -17,20 +17,20 @@ namespace aevb
 
 open graph list tactic certigrad.tactic
 
-private meta def prove_indep_hyps : tactic unit :=
-do to_expr ```(g^.targets ⊆ env.keys fdict) >>= assert `H_tgts_ss_inputs,
-     solve1 (dsimp >> cgsimp),
-   to_expr ```(pdfs_exist_at g^.nodes fdict) >>= assert `H_pdfs_exist,
-     solve1 (dsimp >> cgsimp)
+private meta def prove_indep_hyps (g fdict : expr) : tactic unit :=
+do to_expr ```((%%g)^.targets ⊆ env.keys %%fdict) >>= assert `H_tgts_ss_inputs,
+     solve1 cgsimp,
+   to_expr ```(pdfs_exist_at (%%g)^.nodes %%fdict) >>= assert `H_pdfs_exist,
+     solve1 cgsimp
 
-private meta def prove_dep_hyps (tgt : expr) : tactic unit :=
-do to_expr ```(well_formed_at g^.costs g^.nodes fdict %%tgt) >>= assert `H_wf,
+private meta def prove_dep_hyps (g fdict tgt : expr) : tactic unit :=
+do to_expr ```(well_formed_at (%%g)^.costs (%%g)^.nodes %%fdict %%tgt) >>= assert `H_wf,
      solve1 (dsimp >> constructor >> all_goals cgsimp),
-   to_expr ```(grads_exist_at g^.nodes fdict %%tgt) >>= assert `H_gs_exist,
+   to_expr ```(grads_exist_at (%%g)^.nodes %%fdict %%tgt) >>= assert `H_gs_exist,
      solve1 (dsimp >> cgsimp),
-   to_expr ```(is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m %%tgt⟧) fdict g^.nodes dvec.head) >>= assert `H_gint,
+   to_expr ```(is_gintegrable (λ m, ⟦compute_grad_slow (%%g)^.costs (%%g)^.nodes m %%tgt⟧) %%fdict (%%g)^.nodes dvec.head) >>= assert `H_gint,
      solve1 (dsimp >> cgsimp >> prove_is_mvn_integrable),
-   to_expr ```(can_differentiate_under_integrals g^.costs g^.nodes fdict %%tgt) >>= assert `H_can_diff,
+   to_expr ```(can_differentiate_under_integrals (%%g)^.costs (%%g)^.nodes %%fdict %%tgt) >>= assert `H_can_diff,
      solve1 (dsimp >> cgsimp >> prove_is_mvn_uintegrable)
 
 private meta def forall_idxs (tac_base tac_step : tactic unit) : expr → tactic unit
@@ -54,9 +54,16 @@ do H_at_idx ← get_local `H_at_idx,
    prove_dep_hyps new_tgt,
    to_expr ```(backprop_correct fdict g^.targets H_tgts_ss_inputs H_at_idx H_wf H_gs_exist H_gint H_can_diff input_dict rfl) >>= exact
 
-meta def prove_aevb_ok (tgt : expr) : tactic unit :=
-do prove_indep_hyps,
-   prove_dep_hyps tgt,
+meta def prove_aevb_ok : tactic unit :=
+do -- introduce hypotheses
+   [g, fdict, init_dict, tgt, idx, H_at_idx] ← intron 6,
+   -- create recreate useful let-bindings
+   g ← to_expr ```(reparam (integrate_kl $ graph_naive a x_data)),
+   fdict ← to_expr ```(mk_input_dict ws %%g),
+   input_dict ← to_expr ```(compute_init_dict (%%g)^.costs (%%g)^.nodes (%%g)^.targets),
+   prove_indep_hyps g fdict,
+   forall_idxs prove_aevb_base prove_aevb_step idx
+   prove_dep_hyps g fdict tgt,
    H_at_idx ← get_local `H_at_idx,
    H ← mk_app `and.right [H_at_idx],
    rewrite_core reducible tt tt occurrences.all ff H,

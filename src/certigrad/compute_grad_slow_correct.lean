@@ -9,7 +9,6 @@ is correct.
 import .graph .estimators .predicates .compute_grad .lemmas .tgrads .tactics .is_gdifferentiable
 
 namespace certigrad
-namespace theorems
 open list
 
 lemma compute_grad_slow_correct {costs : list ID} :
@@ -433,5 +432,4 @@ apply congr_arg,
 -- 6. Apply map_filter_congr
 exact map_filter_expand_helper _ _ _ _ _ _ H_wf H_gs_exist _
 end
-end theorems
 end certigrad

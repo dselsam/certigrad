@@ -8,7 +8,10 @@ Main functional correctness theorem for stochastic backpropagation.
 import library_dev_extras.util .graph .compute_grad .predicates .estimators .env .dvec .compute_grad_slow_correct .memoize_correct .is_gdifferentiable .lemmas_extra
 
 namespace certigrad
-open tactic list theorems
+open tactic list
+
+set_option trace.simplify true
+set_option trace.simp_lemmas true
 
 theorem backprop_correct {costs : list ID} :
   ∀ {nodes : list node} (inputs : env) (tgts : list reference),
@@ -20,11 +23,9 @@ theorem backprop_correct {costs : list ID} :
   is_gintegrable (λ m, ⟦compute_grad_slow costs nodes m tgt⟧) inputs nodes dvec.head →
   can_differentiate_under_integrals costs nodes inputs tgt →
 
-  ∀ (init_dict : env), init_dict = compute_init_dict costs nodes tgts →
-
   ∇ (λ θ₀, E (graph.to_dist (λ m, ⟦sum_costs m costs⟧) (env.insert tgt θ₀ inputs) nodes) dvec.head) (env.get tgt inputs)
   =
-  E (graph.to_dist (λ m, backprop costs init_dict nodes m tgts) inputs nodes) (λ dict, dvec.get tgt.2 dict idx) :=
+  E (graph.to_dist (λ m, backprop costs nodes m tgts) inputs nodes) (λ dict, dvec.get tgt.2 dict idx) :=
 
 assume (nodes : list node) (inputs : env) (tgts : list reference)
        (H_tgts_in_inputs : tgts ⊆ env.keys inputs)
@@ -33,8 +34,7 @@ assume (nodes : list node) (inputs : env) (tgts : list reference)
        (H_gs_exist : grads_exist_at nodes inputs tgt)
        (H_pdfs_exist : pdfs_exist_at nodes inputs)
        (H_grad_gint : is_gintegrable (λ m, ⟦compute_grad_slow costs nodes m tgt⟧) inputs nodes dvec.head)
-       (H_diff_under_int : can_differentiate_under_integrals costs nodes inputs tgt)
-       (init_dict : env) (H_init_dict : init_dict = compute_init_dict costs nodes tgts),
+       (H_diff_under_int : can_differentiate_under_integrals costs nodes inputs tgt),
 
 have H_gdiff : is_gdifferentiable (λ m, ⟦sum_costs m costs⟧) tgt inputs nodes dvec.head, from
   is_gdifferentiable_of_pre _ _ _ H_wf H_gs_exist H_pdfs_exist H_diff_under_int,
@@ -47,8 +47,7 @@ begin
 rw (compute_grad_slow_correct H_wf H_gs_exist H_pdfs_exist H_gdiff H_nabla_gint H_grad_gint H_diff_under_int),
 rw (E.E_move_fn_to_continuation _ _ _ (λ dict, dvec.get tgt.2 dict idx)),
 dunfold backprop, dsimp,
-simp [λ m, tvec.get_from_env H_at_idx m],
-simp [λ m, memoize_correct m H_at_idx H_init_dict H_nodup_tgts]
+simp only [(λ m, tvec.get_from_env H_at_idx m), (λ m, memoize_correct costs nodes m H_at_idx H_nodup_tgts)]
 end
 
 

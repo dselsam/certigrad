@@ -55,6 +55,10 @@ assume (m : env) H_next_envs_agree,
     begin rw env.get_insert_diff _ _ H_ref'_neq_ref at H_next_agree, exact H_next_agree end,
   H_k_eq _ H_envs_agree
 
+
+lemma to_dist_k_congr {fshapes : list S} (k₁ k₂ : env → dvec T fshapes) (inputs : env) (nodes : list node) :
+  k₁ = k₂ →  graph.to_dist k₁ inputs nodes = graph.to_dist k₂ inputs nodes := by { intro H, rw H }
+
 lemma to_dist_congr {fshapes : list S} (k₁ k₂ : env → dvec T fshapes) : Π (inputs : env) (nodes : list node),
       nodup (env.keys inputs ++ map node.ref nodes) →
       (∀ (m : env), (∀ (ref : reference), env.has_key ref inputs → env.get ref m = env.get ref inputs) → k₁ m = k₂ m) →

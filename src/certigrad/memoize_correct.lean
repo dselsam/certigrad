@@ -8,7 +8,6 @@ Proof that the memoization part of stochastic backpropagation is correct.
 import .graph .estimators .predicates .compute_grad
 
 namespace certigrad
-namespace theorems
 open list
 
 lemma step_congr (costs : list ID) (callback₁ callback₂ : list node → Π (tgt : reference), T tgt.2)
@@ -106,42 +105,38 @@ rw env.get_insert_diff _ _ H_neq,
 exact (strip_foldr_step H_at_idx_next (nodup_of_nodup_cons H_nodup)),
 end
 
-lemma memoize_correct {costs : list ID} :
-  ∀ {nodes : list node} (m : env) {tgts : list reference},
+lemma memoize_correct (costs : list ID) :
+  ∀ (nodes : list node) (m : env) {tgts : list reference},
   ∀ {tgt₀ : reference} {idx : ℕ}, at_idx tgts idx tgt₀ →
-  ∀ {init_dict : env}, init_dict = compute_init_dict costs nodes tgts →
   nodup (tgts ++ map node.ref nodes) →
-  env.get tgt₀ (backprop_core costs init_dict nodes m tgts)
+  env.get tgt₀ (backprop_core costs nodes m tgts)
   =
   compute_grad_slow costs nodes m tgt₀
 
-| _ _ [] _ _ H_at_idx _ _ _ := false.rec _ (nat.not_lt_zero _ H_at_idx^.left)
+| _ _ [] _ _ H_at_idx _ := false.rec _ (nat.not_lt_zero _ H_at_idx^.left)
 
-| [] m (tgt::tgts) tgt₀ idx H_at_idx idict H_idict H_nodup :=
+| [] m (tgt::tgts) tgt₀ idx H_at_idx H_nodup :=
 have H_nodup_tgts : nodup (tgt::tgts), from nodup_of_nodup_append_left H_nodup,
 begin
-rw H_idict,
-dunfold backprop_core compute_init_dict,
+dunfold backprop_core backprop_core_helper compute_init_dict,
 rw (strip_foldr_base H_at_idx H_nodup_tgts),
 dunfold compute_grad_step,
 rw sumr_sumr₁,
 reflexivity,
 end
 
-| (n::nodes) m (tgt::tgts) tgt₀ idx H_at_idx idict H_idict H_nodup :=
+| (n::nodes) m (tgt::tgts) tgt₀ idx H_at_idx H_nodup :=
 have H_nodup_tgts : nodup (tgt::tgts), from nodup_of_nodup_append_left H_nodup,
 have H_nodup_n : nodup ((n^.ref :: tgt :: tgts) ++ map node.ref nodes), from nodup_append_swap H_nodup,
 have H_at_idx_tgt₀ : at_idx (n^.ref :: tgt :: tgts) (idx+1) tgt₀, from at_idx_cons H_at_idx,
 have H_at_idx_n : at_idx (n^.ref :: tgt :: tgts) 0 n^.ref, from at_idx_0,
 begin
-rw H_idict,
-dunfold backprop_core compute_init_dict,
+dunfold backprop_core backprop_core_helper compute_init_dict,
 rw (strip_foldr_step H_at_idx H_nodup_tgts),
 dunfold compute_grad_step compute_grad_slow,
 apply step_correct,
-apply (memoize_correct _ H_at_idx_tgt₀ rfl H_nodup_n),
-apply (memoize_correct _ H_at_idx_n rfl H_nodup_n)
+apply (memoize_correct _ _ H_at_idx_tgt₀ H_nodup_n),
+apply (memoize_correct _ _ H_at_idx_n H_nodup_n)
 end
 
-end theorems
 end certigrad

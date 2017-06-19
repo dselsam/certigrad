@@ -69,12 +69,12 @@ foldr (λ (tgt : reference) (dict : env),
 
 | (n :: nodes) tgts := compute_init_dict nodes (n^.ref :: tgts)
 
-def backprop_core (costs : list ID) (init_dict : env) : Π (nodes : list node) (dict : env) (tgts : list reference), env
+def backprop_core_helper (costs : list ID) (init_dict : env) : Π (nodes : list node) (dict : env) (tgts : list reference), env
 | [] m tgts  := init_dict
 
 | (n :: nodes) m tgts :=
 
-let old_dict := backprop_core nodes m (n^.ref :: tgts) in
+let old_dict := backprop_core_helper nodes m (n^.ref :: tgts) in
 foldr (λ (tgt : reference) (dict : env),
           env.insert tgt
                       (compute_grad_step costs (λ (nodes' : list node) (tgt' : reference), env.get tgt' old_dict)
@@ -83,7 +83,10 @@ foldr (λ (tgt : reference) (dict : env),
       env.mk
       tgts
 
-def backprop (costs : list ID) (init_dict : env) (nodes : list node) (inputs : env) (tgts : list reference) : dvec T tgts^.p2 :=
-  let dict := backprop_core costs init_dict nodes inputs tgts in tvec.from_env tgts dict
+def backprop_core (costs : list ID) (nodes : list node) (dict : env) (tgts : list reference) : env :=
+backprop_core_helper costs (compute_init_dict costs nodes tgts) nodes dict tgts
+
+def backprop (costs : list ID) (nodes : list node) (inputs : env) (tgts : list reference) : dvec T tgts^.p2 :=
+  let dict := backprop_core costs nodes inputs tgts in tvec.from_env tgts dict
 
 end certigrad

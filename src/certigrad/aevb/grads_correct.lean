@@ -15,112 +15,69 @@ set_option max_memory 4096
 namespace certigrad
 namespace aevb
 
-section proofs
 open graph list tactic certigrad.tactic
 
-parameters (a : arch) (ws : weights a) (x_data : T [a^.n_in, a^.n_x])
-def g : graph := reparam (integrate_kl $ graph_naive a x_data)
-def fdict : env := mk_input_dict ws g
+private meta def prove_indep_hyps : tactic unit :=
+do to_expr ```(g^.targets ⊆ env.keys fdict) >>= assert `H_tgts_ss_inputs,
+     solve1 (dsimp >> cgsimp),
+   to_expr ```(pdfs_exist_at g^.nodes fdict) >>= assert `H_pdfs_exist,
+     solve1 (dsimp >> cgsimp)
 
-attribute [cgsimp] g fdict
-/-
-#print "wf..."
-lemma g_final_tgt_wf_at_he : well_formed_at g^.costs g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) := begin constructor, all_goals { cgsimp } end
+private meta def prove_dep_hyps (tgt : expr) : tactic unit :=
+do to_expr ```(well_formed_at g^.costs g^.nodes fdict %%tgt) >>= assert `H_wf,
+     solve1 (dsimp >> constructor >> all_goals cgsimp),
+   to_expr ```(grads_exist_at g^.nodes fdict %%tgt) >>= assert `H_gs_exist,
+     solve1 (dsimp >> cgsimp),
+   to_expr ```(is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m %%tgt⟧) fdict g^.nodes dvec.head) >>= assert `H_gint,
+     solve1 (dsimp >> cgsimp >> prove_is_mvn_integrable),
+   to_expr ```(can_differentiate_under_integrals g^.costs g^.nodes fdict %%tgt) >>= assert `H_can_diff,
+     solve1 (dsimp >> cgsimp >> prove_is_mvn_uintegrable)
 
-#print "tgts_in_inputs..."
-lemma g_final_tgts_in_inputs : g^.targets ⊆ env.keys fdict := by cgsimp
+private meta def forall_idxs (tac_base tac_step : tactic unit) : expr → tactic unit
+| idx :=
+tac_base <|>
+(do cases idx [`_idx],
+    solve1 tac_step,
+    get_local `_idx >>= forall_idxs)
 
-#print "pdfs_exist_at..."
-lemma g_final_pdfs_exist_at : pdfs_exist_at g^.nodes fdict := by cgsimp
+private meta def prove_aevb_base : tactic unit :=
+do exfalso,
+   H_at_idx ← get_local `H_at_idx,
+   to_expr ```(list.at_idx_over H_at_idx dec_trivial) >>= exact
 
-#print "grads_exist_at_he..."
-lemma g_final_grads_exist_at_he : grads_exist_at g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) := by cgsimp
+private meta def prove_aevb_step : tactic unit :=
+do H_at_idx ← get_local `H_at_idx,
+   H ← mk_app `and.right [H_at_idx],
+   rewrite_core reducible tt tt occurrences.all ff H,
+   H_type ← infer_type H,
+   (tgt, new_tgt) ← match_eq H_type,
+   prove_dep_hyps new_tgt,
+   to_expr ```(backprop_correct fdict g^.targets H_tgts_ss_inputs H_at_idx H_wf H_gs_exist H_gint H_can_diff input_dict rfl) >>= exact
 
-#print "grads_exist_at_hem..."
-lemma g_final_grads_exist_at_hem : grads_exist_at g^.nodes fdict (ID.str label.W_encode_μ, [a^.nz, a^.ne]) := by cgsimp
+meta def prove_aevb_ok (tgt : expr) : tactic unit :=
+do prove_indep_hyps,
+   prove_dep_hyps tgt,
+   H_at_idx ← get_local `H_at_idx,
+   H ← mk_app `and.right [H_at_idx],
+   rewrite_core reducible tt tt occurrences.all ff H,
+   to_expr ```(backprop_correct fdict g^.targets H_tgts_ss_inputs H_at_idx H_wf H_gs_exist H_gint H_can_diff input_dict rfl) >>= exact
 
-#print "grads_exist_at_hels₂..."
-lemma g_final_grads_exist_at_hels₂ : grads_exist_at g^.nodes fdict (ID.str label.W_encode_logσ₂, [a^.nz, a^.ne]) := by cgsimp
--/
-
-#print "grads_exist_at_hd..."
-lemma g_final_grads_exist_at_hd : grads_exist_at g^.nodes fdict (ID.str label.W_decode, [a^.nd, a^.nz]) := by cgsimp
-/-
-#print "grads_exist_at_hdp..."
-lemma g_final_grads_exist_at_hdp : grads_exist_at g^.nodes fdict (ID.str label.W_decode_p, [a^.n_in, a^.nd]) := by cgsimp
-
-#print "gintegrable_he..."
-lemma g_final_is_gintegrable_he :
-  is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_encode, [a^.ne, a^.n_in])⟧)
-                 fdict g^.nodes dvec.head := by cgsimp >> prove_is_mvn_integrable
-
-#print "gintegrable_hem..."
-lemma g_final_is_gintegrable_hem :
-  is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_encode_μ, [a^.nz, a^.ne])⟧)
-                 fdict g^.nodes dvec.head := by cgsimp >> prove_is_mvn_integrable
-
-#print "gintegrable_hels₂..."
-lemma g_final_is_gintegrable_hels₂ :
-  is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_encode_logσ₂, [a^.nz, a^.ne])⟧)
-                 fdict g^.nodes dvec.head := by cgsimp >> prove_is_mvn_integrable
--/
-#print "gintegrable_hd..."
-lemma g_final_is_gintegrable_hd :
-  is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_decode, [a^.nd, a^.nz])⟧)
-                 fdict g^.nodes dvec.head := by cgsimp >> prove_is_mvn_integrable
-/-
-#print "gintegrable_hdp..."
-lemma g_final_is_gintegrable_hdp :
-  is_gintegrable (λ m, ⟦compute_grad_slow g^.costs g^.nodes m (ID.str label.W_decode_p, [a^.n_in, a^.nd])⟧)
-                 fdict g^.nodes dvec.head := by cgsimp >> prove_is_mvn_integrable
-
-#print "can_diff_he..."
-lemma g_final_diff_under_int_he :
-  can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_encode, [a^.ne, a^.n_in]) :=
-by cgsimp >> prove_is_mvn_uintegrable
-
-#print "can_diff_hem..."
-lemma g_final_diff_under_int_hem :
-  can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_encode_μ, [a^.nz, a^.ne]) :=
-by cgsimp >> prove_is_mvn_uintegrable
-
-#print "can_diff_hels₂..."
-lemma g_final_diff_under_int_hels₂ :
-  can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_encode_logσ₂, [a^.nz, a^.ne]) :=
-by cgsimp >> prove_is_mvn_uintegrable
--/
-#print "can_diff_hd..."
-lemma g_final_diff_under_int_hd :
-  can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_decode, [a^.nd, a^.nz]) :=
-by cgsimp >> prove_is_mvn_uintegrable
-/-
-#print "can_diff_hdp..."
-lemma g_final_diff_under_int_hdp :
-  can_differentiate_under_integrals g^.costs g^.nodes fdict (ID.str label.W_decode_p, [a^.n_in, a^.nd]) :=
-by cgsimp >> prove_is_mvn_uintegrable
-
-lemma aevb_backprop_correct :
-∀ (tgt : reference) (idx : ℕ), at_idx g^.targets idx tgt →
+lemma aevb_backprop_correct (a : arch) (ws : weights a) (x_data : T [a^.n_in, a^.n_x]) :
+let g : graph := reparam (integrate_kl $ graph_naive a x_data) in
+let fdict : env := mk_input_dict ws g in
 let init_dict : env := compute_init_dict g^.costs g^.nodes g^.targets in
+∀ (tgt : reference) (idx : ℕ) (H_at_idx : at_idx g^.targets idx tgt),
 ∇ (λ θ₀, E (graph.to_dist (λ m, ⟦sum_costs m g^.costs⟧) (env.insert tgt θ₀ fdict) g^.nodes) dvec.head) (env.get tgt fdict)
 =
 E (graph.to_dist (λ m, backprop g^.costs init_dict g^.nodes m g^.targets) fdict g^.nodes) (λ dict, dvec.get tgt.2 dict idx)
-| tgt 0     H_at_idx :=
-begin
-intros init_dict, rw (and.right H_at_idx),
-apply backprop_correct,
--- TODO(dhs): make this one tactic
-end
-
-| tgt 1     H_at_idx := sorry
-| tgt 2     H_at_idx := sorry
-| tgt 3     H_at_idx := sorry
-| tgt 4     H_at_idx := sorry
+| tgt 0     H_at_idx := begin prove_aevb_ok (dnth g^.targets 0) end
+| tgt 1     H_at_idx := begin prove_aevb_ok (dnth g^.targets 1) end
+| tgt 2     H_at_idx := begin prove_aevb_ok (dnth g^.targets 2) end
+| tgt 3     H_at_idx := begin prove_aevb_ok (dnth g^.targets 3) end
+| tgt 4     H_at_idx := begin prove_aevb_ok (dnth g^.targets 4) end
 | tgt (n+5) H_at_idx := false.rec _ (at_idx_over H_at_idx (by dec_triv))
 
+#exit
 
-end proofs
-
--/
 end aevb
 end certigrad

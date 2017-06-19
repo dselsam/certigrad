@@ -13,7 +13,16 @@ import data.list.set .tfacts .graph .predicates .expected_value .reparam .kl .ta
 namespace certigrad
 open T tactic
 
-def pextp {P : Prop} : P → (P = true) := λ Hp, propext (iff_true_intro Hp)
+def pextt {P : Prop} : P → (P = true) := λ Hp, propext (iff_true_intro Hp)
+def pextf {P : Prop} : ¬ P → (P = false) := λ Hnp, propext (iff.intro (λ Hp, Hnp Hp) (λ Hf, false.rec _ Hf))
+
+lemma mem_of_ne_mem_cons {α : Type*} {xs : list α} {x y : α} : x ∈ y :: xs → x ≠ y → x ∈ xs :=
+begin
+intros H_in H_neq,
+dunfold has_mem.mem list.mem at H_in,
+cases H_in with H_eq H_in,
+exfalso, exact H_neq H_eq, exact H_in
+end
 
 @[cgsimp] lemma true_of_not_false : (¬ false) = true :=
 begin apply propext, split, intro H, exact trivial, intros Ht Hf, exact Hf end
@@ -27,63 +36,113 @@ begin apply propext, split, intro H, injection H, intro H, rw H end
 @[cgsimp] lemma and_true_right {P : Prop} : (P ∧ true) = P := propext (and_true _)
 @[cgsimp] lemma true_of_imp_true {α : Sort*} : (α → true) = true := propext (iff.intro (λ H, trivial) (λ H x, trivial))
 
-@[cgsimp] lemma simp_nodup_nil {α : Type*} : @list.nodup α [] = true := pextp list.nodup_nil
+@[cgsimp] lemma simp_nodup_nil {α : Type*} : @list.nodup α [] = true := pextt list.nodup_nil
 
-@[cgsimp] lemma simp_nodup_singleton {α : Type*} (a : α) : list.nodup [a] = true := pextp (list.nodup_singleton _)
+@[cgsimp] lemma simp_nodup_singleton {α : Type*} (a : α) : list.nodup [a] = true := pextt (list.nodup_singleton _)
 @[cgsimp] lemma simp_nodup_cons {α : Type*} {a : α} {l : list α} (H : a ∉ l) : list.nodup (a::l) = list.nodup l :=
 begin apply propext, split, intro H', cases H' with H1 H2 H3 H4, exact H4, apply list.nodup_cons, exact H end
 
 @[cgsimp] lemma false_imp {P : Prop} : (false → P) = true :=
-begin
-apply propext, split, intro H, exact trivial, intros Ht Hf, exfalso, exact Hf
+begin apply propext, split, intro H, exact trivial, intros Ht Hf, exfalso, exact Hf end
+@[cgsimp] lemma true_imp {P : Prop} : (true → P) = P :=
+begin apply propext, split, intro H, exact H trivial, intros H Ht, exact H end
+
+@[cgsimp] lemma simp_mem_nil {α : Type*} (x : α) : (x ∈ @list.nil α) = false :=
+begin apply pextf, apply list.not_mem_nil end
+
+@[cgsimp] lemma simp_mem_cons_neq {α : Type*} (x y : α) (xs : list α) : x ≠ y → (x ∈ y :: xs) = (x ∈ xs) :=
+begin intro H_neq, apply propext, split, intro H_in, exact mem_of_ne_mem_cons H_in H_neq, intro H_in, exact or.inr H_in end
+
+@[cgsimp] lemma simp_mem_cons_eq {α : Type*} (x y : α) (xs : list α) : x = y → (x ∈ y :: xs) = true :=
+begin intro H_eq, apply pextt, dunfold has_mem.mem list.mem, left, exact H_eq end
+
+@[cgsimp] lemma simp_nmem_nil {α : Type*} (x : α) : (x ∉ @list.nil α) = true :=
+begin apply pextt, apply list.not_mem_nil end
+
+@[cgsimp] lemma simp_nmem_cons_eq {α : Type*} (x y : α) (xs : list α) : x ≠ y → (x ∉ y :: xs) = (x ∉ xs) :=
+begin intro H_neq, apply propext, split, intros H_nin H_in, exact H_nin (or.inr H_in),
+intros H_nin H_in, exact H_nin (mem_of_ne_mem_cons H_in H_neq)
 end
-@[cgsimp] lemma true_imp {P : Prop} : (true → P) = P := sorry
 
-@[cgsimp] lemma simp_mem_nil {α : Type*} (x : α) : (x ∈ @list.nil α) = false := sorry
-@[cgsimp] lemma simp_mem_cons_neq {α : Type*} (x y : α) (xs : list α) : x ≠ y → (x ∈ y :: xs) = (x ∈ xs) := sorry
-@[cgsimp] lemma simp_mem_cons_eq {α : Type*} (x y : α) (xs : list α) : x = y → (x ∈ y :: xs) = true := sorry
+@[cgsimp] lemma simp_nmem_cons_neq {α : Type*} (x y : α) (xs : list α) : x = y → (x ∉ y :: xs) = false :=
+begin intro H_eq, apply pextf, intro H, exact H (or.inl H_eq) end
 
-@[cgsimp] lemma simp_nmem_nil {α : Type*} (x : α) : (x ∉ @list.nil α) = true := sorry
-@[cgsimp] lemma simp_nmem_cons_eq {α : Type*} (x y : α) (xs : list α) : x ≠ y → (x ∉ y :: xs) = (x ∉ xs) := sorry
-@[cgsimp] lemma simp_nmem_cons_neq {α : Type*} (x y : α) (xs : list α) : x = y → (x ∉ y :: xs) = false := sorry
+@[cgsimp] lemma false_of_cons_eq_nil {α : Type*} {x : α} {xs : list α} : (list.cons x xs = list.nil) = false :=
+begin apply pextf, intro H, injection H end
 
-@[cgsimp] lemma false_of_cons_eq_nil {α : Type*} {x : α} {xs : list α} : (list.cons x xs = list.nil) = false := sorry
+@[cgsimp] lemma simp_at_idx_nil {α : Type*} [inhabited α] (x : α) (idx : ℕ) : list.at_idx list.nil idx x = false :=
+begin
+apply pextf,
+intro H,
+dunfold list.at_idx at H,
+cases H with H1 H2,
+exact (nat.not_lt_zero idx) H1
+end
 
-@[cgsimp] lemma simp_nil_append {α : Type*} (s : list α) : [] ++ s = s := sorry
-@[cgsimp] lemma simp_cons_append {α : Type*} (x : α) (s t : list α) : (x::s) ++ t = x::(s ++ t) := sorry
-@[cgsimp] lemma simp_append_nil {α : Type*} (t : list α) : t ++ [] = t := sorry
+@[cgsimp] lemma of_in_list_forall_cons {α : Type*} (ys : list α) (P : α → Prop) (y : α) : (∀ x, x ∈ list.cons y ys → P x) = (P y ∧ (∀ x, x ∈ ys → P x)) :=
+begin
+apply propext,
+split,
+intro H,
+{ split, exact H y list.mem_of_cons_same, intros x H_in, exact H x (or.inr H_in) },
+{
+intro H, cases H with HPy H, intros x H_in,
+cases classical.em (x = y) with H_eq H_neq,
+rw H_eq, exact HPy,
+exact H x (mem_of_ne_mem_cons H_in H_neq)
+}
+end
 
-@[cgsimp] lemma simp_at_idx_nil {α : Type*} [inhabited α] (x : α) (idx : ℕ) : list.at_idx list.nil idx x = false := sorry
+@[cgsimp] lemma of_in_list_forall_nil {α : Type*} (P : α → Prop) (y : α) : (∀ (x : α), x ∈  @list.nil α → P x) = true :=
+begin
+apply pextt,
+intros x H_in_nil,
+exfalso,
+exact (list.not_mem_nil _) H_in_nil
+end
 
-@[cgsimp] lemma of_in_list_forall_cons {α : Type*} (ys : list α) (P : α → Prop) (y : α) : (∀ x, x ∈ list.cons y ys → P x) = (P y ∧ (∀ x, x ∈ ys → P x)) := sorry
-@[cgsimp] lemma of_in_list_forall_nil {α : Type*} (P : α → Prop) (y : α) : (∀ (x : α), x ∈  @list.nil α → P x) = true := sorry
+@[cgsimp] lemma of_in_list_cons_neq {α : Type*} {P : Prop} (ys : list α) (x y : α) : x ≠ y → (x ∈ list.cons y ys → P) = (x ∈ ys → P) :=
+begin
+intro H_neq,
+apply propext,
+split,
+intro H,
+intro H_in,
+apply H,
+exact or.inr H_in,
+intro H,
+intro H_in,
+apply H,
+exact mem_of_ne_mem_cons H_in H_neq
+end
 
--- @[cgsimp] lemma of_in_list_forall {α : Type*} (ys : list α) (P : α → Prop) (y : α) : (∀ x, x ∈ list.cons y ys → P x) = (P y ∧ (∀ x, x ∈ ys → P x)) := sorry
+@[cgsimp] lemma of_in_list_cons_eq {α : Type*} {P : Prop} (ys : list α) (x y : α) : x = y → (x ∈ list.cons y ys → P) = P :=
+begin
+intro H_eq,
+apply propext,
+split,
+intro H_in,
+exact H_in (or.inl H_eq),
+intros HP H_in,
+exact HP
+end
 
-@[cgsimp] lemma of_in_list_cons_neq {α : Type*} {P : Prop} (ys : list α) (x y : α) : x ≠ y → (x ∈ list.cons y ys → P) = (x ∈ ys → P) := sorry
+@[cgsimp] lemma simp_subset_cons {α : Type*} (xs : list α) (x : α) : (xs ⊆ x :: xs) = true :=
+begin
+apply pextt,
+apply list.subset_cons
+end
 
-@[cgsimp] lemma of_in_list_cons_eq {α : Type*} {P : Prop} (ys : list α) (x y : α) : x = y → (x ∈ list.cons y ys → P) = P := sorry
+@[cgsimp] lemma simp_sqrt_pos {shape : S} {x : T shape}: (0 < sqrt x) = (0 < x) :=
+begin apply propext, split, apply pos_of_sqrt_pos, apply sqrt_pos end
 
-@[cgsimp] lemma simp_subset_cons {α : Type*} (xs : list α) (x : α) : (xs ⊆ x :: xs) = true := sorry
+@[cgsimp] lemma simp_exp_pos {shape : S} {x : T shape} : (0 < exp x) = true :=
+begin apply pextt, apply exp_pos end
 
-@[cgsimp] lemma simp_sqrt_pos {shape : S} : ∀ {x : T shape}, (0 < sqrt x) = (0 < x) := sorry
-@[cgsimp] lemma simp_exp_pos {shape : S} : ∀ {x : T shape}, (0 < exp x) = true := sorry
-
---@[cgsimp] lemma simp_integrable_pdf_add : Π {shape₁ shape₂ : S} (pdf : T shape₁ → ℝ) (f g : T shape₁ → T shape₂),
---(is_integrable (λ (x : T shape₁), pdf x ⬝ (f x + g x))) = (is_integrable (λ (x : T shape₁), pdf x ⬝ f x) ∧ is_integrable (λ (x : T shape₁), pdf x ⬝ g x)) := sorry
-
--- TODO(dhs): prove continuous stuff with the simplifier
---@[cgsimp] lemma simp_mvn_iso_bernoulli_neglogpdf_int {shape₁ shape₂ : S} (μ σ : T shape₁) (H_σ : 0 < σ) (p : T shape₁ → T shape₂)
---                                                   /- (H_p_cont : ∀ x, is_continuous p x) -/ (H_p : ∀ x, 0 < p x ∧ p x < 1) (z : T shape₂) :
---  is_integrable (λ (x : T shape₁), T.mvn_iso_pdf μ σ x ⬝ bernoulli_neglogpdf (p x) z) = true := sorry
-
---@[cgsimp] lemma simp_mvn_iso_mvn_iso_empirical_kl_int {shape : S} (μ σ : T shape) (H_σ : 0 < σ) (μ' σ' : T shape) :
---  is_integrable (λ (x : T shape), T.mvn_iso_pdf μ σ x ⬝ mvn_iso_empirical_kl μ' σ' x) = true := sorry
-
---@[cgsimp] lemma simp_mvn_iso_mvn_iso_kl_int {shape : S} (μ σ : T shape) (H_σ : 0 < σ) (μ' σ' : T shape) :
---  is_integrable (λ (x : T shape), T.mvn_iso_pdf μ σ x ⬝ mvn_iso_kl μ' σ') = true := sorry
-
-@[cgsimp] lemma simp_smul_zero (shape : S) (α : ℝ) : α ⬝ (0 : T shape) = (0 : T shape) := sorry
+@[cgsimp] lemma simp_smul_zero (shape : S) (α : ℝ) : α ⬝ (0 : T shape) = (0 : T shape) :=
+begin
+rw smul_zero
+end
 @[cgsimp] lemma simp_one_smul (shape : S) (x : T shape) : (1 : ℝ) ⬝ x = x := sorry
 @[cgsimp] lemma simp_integrable_zero (shape₁ shape₂ : S) (y : T shape₂) : is_integrable (λ (x : T shape₁), y) = true := sorry
 
@@ -107,7 +166,7 @@ attribute [cgsimp] mvn_iso_mvn_iso_empirical_kl_int mvn_iso_bernoulli_neglogpdf_
 attribute [cgsimp] force_ok
 
 attribute [cgsimp] list.sumr list.map list.concat list.head list.tail list.riota list.filter list.length list.dnth
-                   list.subset.refl list.nil_subset list.subset_cons
+                   list.subset.refl list.nil_subset list.subset_cons list.cons_append list.append_nil list.nil_append
 
 attribute [cgsimp] zero_add add_zero
 

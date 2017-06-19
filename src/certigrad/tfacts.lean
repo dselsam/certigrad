@@ -86,6 +86,7 @@ axiom nz_of_pos {shape : S} : ∀ {x : T shape}, x > 0 → x ≠ 0
 axiom nz_of_div {shape : S} : ∀ {x y : T  shape}, x ≠ 0 → y ≠ 0 → x / y ≠ 0
 axiom nneg_of_pos {shape : S} : ∀ {x : T shape}, x > 0 → x ≥ 0
 axiom sqrt_pos {shape : S} : ∀ {x : T shape}, x > 0 → sqrt x > 0
+axiom pos_of_sqrt_pos {shape : S} : ∀ {x : T shape}, sqrt x > 0 → x > 0
 axiom square_nneg {shape : S} : ∀ {x : T shape}, square x ≥ 0
 axiom square_pos_of_pos {shape : S} : ∀ {x : T shape}, x > 0 → square x > 0
 axiom square_pos_of_neg {shape : S} : ∀ {x : T shape}, x < 0 → square x > 0

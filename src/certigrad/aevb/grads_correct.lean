@@ -45,45 +45,45 @@ do exfalso,
    H_at_idx ← get_local `H_at_idx,
    to_expr ```(list.at_idx_over H_at_idx dec_trivial) >>= exact
 
-private meta def prove_aevb_step : tactic unit :=
+private meta def prove_aevb_step (g fdict : expr) : tactic unit :=
 do H_at_idx ← get_local `H_at_idx,
    H ← mk_app `and.right [H_at_idx],
    rewrite_core reducible tt tt occurrences.all ff H,
    H_type ← infer_type H,
    (tgt, new_tgt) ← match_eq H_type,
-   prove_dep_hyps new_tgt,
-   to_expr ```(backprop_correct fdict g^.targets H_tgts_ss_inputs H_at_idx H_wf H_gs_exist H_gint H_can_diff input_dict rfl) >>= exact
+   prove_dep_hyps g fdict new_tgt,
+   to_expr ```(backprop_correct %%fdict (%%g)^.targets H_tgts_ss_inputs H_at_idx H_wf H_gs_exist H_gint H_can_diff) >>= exact
 
 meta def prove_aevb_ok : tactic unit :=
 do -- introduce hypotheses
-   [g, fdict, init_dict, tgt, idx, H_at_idx] ← intron 6,
+   [g, fdict, tgt, idx, H_at_idx] ← intron 5 | failed,
    -- create recreate useful let-bindings
    g ← to_expr ```(reparam (integrate_kl $ graph_naive a x_data)),
    fdict ← to_expr ```(mk_input_dict ws %%g),
-   input_dict ← to_expr ```(compute_init_dict (%%g)^.costs (%%g)^.nodes (%%g)^.targets),
+   -- prove independent hyps once and for all
    prove_indep_hyps g fdict,
-   forall_idxs prove_aevb_base prove_aevb_step idx
-   prove_dep_hyps g fdict tgt,
-   H_at_idx ← get_local `H_at_idx,
-   H ← mk_app `and.right [H_at_idx],
-   rewrite_core reducible tt tt occurrences.all ff H,
-   to_expr ```(backprop_correct fdict g^.targets H_tgts_ss_inputs H_at_idx H_wf H_gs_exist H_gint H_can_diff input_dict rfl) >>= exact
+   -- repeated case-analysis on idx
+   forall_idxs prove_aevb_base (prove_aevb_step g fdict) idx
 
 lemma aevb_backprop_correct (a : arch) (ws : weights a) (x_data : T [a^.n_in, a^.n_x]) :
 let g : graph := reparam (integrate_kl $ graph_naive a x_data) in
 let fdict : env := mk_input_dict ws g in
-let init_dict : env := compute_init_dict g^.costs g^.nodes g^.targets in
 ∀ (tgt : reference) (idx : ℕ) (H_at_idx : at_idx g^.targets idx tgt),
 ∇ (λ θ₀, E (graph.to_dist (λ m, ⟦sum_costs m g^.costs⟧) (env.insert tgt θ₀ fdict) g^.nodes) dvec.head) (env.get tgt fdict)
 =
-E (graph.to_dist (λ m, backprop g^.costs init_dict g^.nodes m g^.targets) fdict g^.nodes) (λ dict, dvec.get tgt.2 dict idx)
+E (graph.to_dist (λ m, backprop g^.costs g^.nodes m g^.targets) fdict g^.nodes) (λ dict, dvec.get tgt.2 dict idx)
+:=
+begin
+prove_aevb_ok
+end
+/-
 | tgt 0     H_at_idx := begin prove_aevb_ok (dnth g^.targets 0) end
 | tgt 1     H_at_idx := begin prove_aevb_ok (dnth g^.targets 1) end
 | tgt 2     H_at_idx := begin prove_aevb_ok (dnth g^.targets 2) end
 | tgt 3     H_at_idx := begin prove_aevb_ok (dnth g^.targets 3) end
 | tgt 4     H_at_idx := begin prove_aevb_ok (dnth g^.targets 4) end
 | tgt (n+5) H_at_idx := false.rec _ (at_idx_over H_at_idx (by dec_triv))
-
+-/
 #exit
 
 end aevb

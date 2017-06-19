@@ -8,6 +8,7 @@ Proof that the memoization part of stochastic backpropagation is correct.
 import .graph .estimators .predicates .compute_grad
 
 namespace certigrad
+namespace theorems
 open list
 
 lemma step_congr (costs : list ID) (callback₁ callback₂ : list node → Π (tgt : reference), T tgt.2)
@@ -138,5 +139,5 @@ apply step_correct,
 apply (memoize_correct _ _ H_at_idx_tgt₀ H_nodup_n),
 apply (memoize_correct _ _ H_at_idx_n H_nodup_n)
 end
-
+end theorems
 end certigrad

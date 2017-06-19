@@ -8,10 +8,7 @@ Main functional correctness theorem for stochastic backpropagation.
 import library_dev_extras.util .graph .compute_grad .predicates .estimators .env .dvec .compute_grad_slow_correct .memoize_correct .is_gdifferentiable .lemmas_extra
 
 namespace certigrad
-open tactic list
-
-set_option trace.simplify true
-set_option trace.simp_lemmas true
+open tactic list theorems
 
 theorem backprop_correct {costs : list ID} :
   ∀ {nodes : list node} (inputs : env) (tgts : list reference),

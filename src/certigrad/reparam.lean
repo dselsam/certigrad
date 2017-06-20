@@ -70,17 +70,17 @@ def reparameterize (fname : ID) : list node → list node
 theorem reparameterize_correct (costs : list ID) :
 ∀ (nodes : list node) (inputs : env) (fref : reference),
   reparameterize_pre fref.2 nodes inputs →
-  nodup (env.keys inputs ++ map node.ref nodes) →
+  uniq_ids nodes inputs →
   all_parents_in_env inputs nodes →
-  (fref ∉ env.keys inputs ++ map node.ref nodes) →
+  (¬ env.has_key fref inputs) →  fref ∉ map node.ref nodes →
   (fref.1 ∉ costs) →
 E (graph.to_dist (λ env₀, ⟦sum_costs env₀ costs⟧) inputs (reparameterize fref.1 nodes)) dvec.head
 =
 E (graph.to_dist (λ env₀, ⟦sum_costs env₀ costs⟧) inputs nodes) dvec.head
 
-| [] _ _ _ _ _ _ _ := rfl
+| [] _ _ _ _ _ _ _ _ := rfl
 
-| (⟨⟨ident, shape⟩, [⟨μ, .(shape)⟩, ⟨σ, .(shape)⟩], operator.rand (rand.op.mvn_iso .(shape))⟩::nodes) inputs fref H_pre H_nodup H_ps_in_env H_fresh H_not_cost :=
+| (⟨⟨ident, shape⟩, [⟨μ, .(shape)⟩, ⟨σ, .(shape)⟩], operator.rand (rand.op.mvn_iso .(shape))⟩::nodes) inputs fref H_pre H_uids H_ps_in_env H_fresh₁ H_fresh₂ H_not_cost :=
 begin
 dunfold reparameterize,
 assertv H_eshape : fref.2 = shape := H_pre^.left,
@@ -98,22 +98,22 @@ dunfold dvec.head,
 dsimp,
 apply congr_arg, apply funext, intro x,
 
-note H_nodup₀ := H_nodup,
-note H_fresh₀ := H_fresh,
+--note H_nodup₀ := H_nodup,
+--note H_fresh₀ := H_fresh,
 
-assertv H_μ_mem : (μ, shape) ∈ env.keys inputs := env.has_key_mem_keys (H_ps_in_env^.left (μ, shape) (mem_cons_self _ _)),
-assertv H_σ_mem : (σ, shape) ∈ env.keys inputs := env.has_key_mem_keys (H_ps_in_env^.left (σ, shape) (mem_cons_of_mem _ (mem_cons_self _ _))),
-assertv H_ident_mem : (ident, shape) ∈ (ident, shape) :: map node.ref nodes:= mem_of_cons_same,
+assertv H_μ_in : env.has_key (μ, shape) inputs := H_ps_in_env^.left (μ, shape) (mem_cons_self _ _),
+assertv H_σ_in : env.has_key (σ, shape) inputs := H_ps_in_env^.left (σ, shape) (mem_cons_of_mem _ (mem_cons_self _ _)),
+assertv H_ident_nin : ¬ env.has_key (ident, shape) inputs := H_uids^.left,
 
-assertv H_μ_neq_ident : (μ, shape) ≠ (ident, shape) := nodup_append_neq H_μ_mem H_ident_mem H_nodup,
-assertv H_σ_neq_ident : (σ, shape) ≠ (ident, shape) := nodup_append_neq H_σ_mem H_ident_mem H_nodup,
+assertv H_μ_neq_ident : (μ, shape) ≠ (ident, shape) := env_in_nin_ne H_μ_in H_ident_nin,
+assertv H_σ_neq_ident : (σ, shape) ≠ (ident, shape) := env_in_nin_ne H_σ_in H_ident_nin,
 
-assertv H_fref_notmem₁ : (fref.1, shape) ∉ env.keys inputs := eq.rec_on H_fref (not_mem_of_not_mem_append_left H_fresh),
-assertv H_fref_notmem₂ : (fref.1, shape) ∉ (ident, shape) :: map node.ref nodes := eq.rec_on H_fref (not_mem_of_not_mem_append_right H_fresh),
+--assertv H_fref_notmem₁ : (fref.1, shape) ∉ env.keys inputs := eq.rec_on H_fref (not_mem_of_not_mem_append_left H_fresh),
+--assertv H_fref_notmem₂ : (fref.1, shape) ∉ (ident, shape) :: map node.ref nodes := eq.rec_on H_fref (not_mem_of_not_mem_append_right H_fresh),
 
-assertv H_μ_neq_fref : (μ, shape) ≠ (fref.1, shape) := mem_not_mem_neq H_μ_mem H_fref_notmem₁,
-assertv H_σ__neq_fref : (σ, shape) ≠ (fref.1, shape) := mem_not_mem_neq H_σ_mem H_fref_notmem₁,
-assertv H_ident_neq_fref : (ident, shape) ≠ (fref.1, shape) := mem_not_mem_neq H_ident_mem H_fref_notmem₂,
+assertv H_μ_neq_fref : (μ, shape) ≠ (fref.1, shape) := eq.rec_on H_fref (env_in_nin_ne H_μ_in H_fresh₁),
+assertv H_σ_neq_fref : (σ, shape) ≠ (fref.1, shape) := eq.rec_on H_fref (env_in_nin_ne H_σ_in H_fresh₁),
+assertv H_ident_neq_fref : (ident, shape) ≠ (fref.1, shape) := eq.rec_on H_fref (mem_not_mem_neq mem_of_cons_same H_fresh₂),
 
 dunfold env.get_ks,
 tactic.dget_dinsert,
@@ -128,8 +128,12 @@ definev fval_inputs : env := env.insert (ident, shape)
                                          inputs,
 
 assertv H_ps_in_env_next : all_parents_in_env fval_inputs nodes := H_ps_in_env^. right _,
-assertv H_fresh_next : (fref.1, shape) ∉ env.keys fval_inputs ++ map node.ref nodes := eq.rec_on H_fref (env.not_mem_of_insert H_fresh₀),
-erw (@to_dist_congr_insert costs nodes fval_inputs (fref.1, shape) fval H_ps_in_env_next H_fresh_next H_not_cost),
+assertv H_fresh₁_next : ¬ env.has_key (fref.1, shape) fval_inputs :=
+eq.rec_on H_fref (env_not_has_key_insert (eq.rec_on (eq.symm H_fref) $ ne.symm H_ident_neq_fref) H_fresh₁),
+
+assertv H_fresh₂_next : (fref.1, shape) ∉ map node.ref nodes := eq.rec_on H_fref (not_mem_of_not_mem_cons H_fresh₂),
+
+erw (@to_dist_congr_insert costs nodes fval_inputs (fref.1, shape) fval H_ps_in_env_next H_fresh₁_next H_fresh₂_next H_not_cost),
 dsimp,
 dunfold det.op.f,
 rw [add_comm, mul_comm],

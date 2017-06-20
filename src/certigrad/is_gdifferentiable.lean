@@ -45,7 +45,7 @@ apply T.is_cdifferentiable_binary (λ θ₁ θ₂, E (graph.to_dist (λ (m : env
 { -- case 1, simple recursive case
 dsimp,
 simp only [λ (x : T ref.2) (θ : T tgt.2), env.insert_insert_flip x θ inputs (ne.symm H_tgt_neq_ref)],
-simp only [env.insert_get_same],
+simp only [env.insert_get_same H_wf^.m_contains_tgt],
 simp only [H_can_insert] at H_pdiff_tgt,
 exact H_pdiff_tgt
 }, -- end case 1, simple recursive case
@@ -57,7 +57,7 @@ simp only [λ (x : T ref.2) (θ : T tgt.2), env.insert_insert_flip x θ inputs (
 apply T.is_cdifferentiable_multiple_args _ _ _ op^.f _ (λ (x' : T ref.snd),
        E
          (graph.to_dist
-            (λ (m : dmap (ID × list ℕ) (λ (ref : ID × list ℕ), T (ref.snd))), ⟦sum_costs m costs⟧)
+            (λ (m : env), ⟦sum_costs m costs⟧)
             (env.insert tgt (env.get tgt inputs) (env.insert ref x' inputs))
             nodes)
          dvec.head),
@@ -73,7 +73,7 @@ assertv H_gs_exist_ref : grads_exist_at nodes next_inputs ref := (H_gs_exist^.ri
 assertv H_diff_under_int_ref : can_differentiate_under_integrals costs nodes next_inputs ref := H_diff_under_int^.right H_tgt_in_parents,
 
 note H_pdiff_ref := pd_is_cdifferentiable ref next_inputs nodes H_wfs^.right H_gs_exist_ref H_pdfs_exist_next H_diff_under_int_ref,
-simp only [env.insert_get_same],
+simp only [env.insert_get_same H_wf^.m_contains_tgt],
 
 note H_odiff := op^.is_odiff (env.get_ks parents inputs) (H_gs_exist^.right H_tgt_in_parents)^.left idx tgt.2 H_tshape_at_idx
                    (λ x', E (graph.to_dist (λ (m : env), ⟦sum_costs m costs⟧)
@@ -87,7 +87,7 @@ apply H_odiff,
 dsimp at H_pdiff_ref,
 simp only [env.get_insert_same] at H_pdiff_ref,
 
-simp only [λ (x : T ref.2) (θ : T tgt.2), env.insert_insert_flip θ x inputs H_tgt_neq_ref, env.insert_get_same],
+simp only [λ (x : T ref.2) (θ : T tgt.2), env.insert_insert_flip θ x inputs H_tgt_neq_ref, env.insert_get_same H_wf^.m_contains_tgt],
 simp only [env.insert_insert_same] at H_pdiff_ref,
 exact H_pdiff_ref
 end
@@ -102,7 +102,7 @@ let next_inputs := λ (y : T ref.2), env.insert ref y inputs in
 have H_ref_in_refs : ref ∈ ref :: map node.ref nodes, from mem_of_cons_same,
 have H_ref_notin_parents : ref ∉ parents, from ref_notin_parents H_wf^.ps_in_env H_wf^.uids,
 have H_tgt_neq_ref : tgt ≠ ref, from ref_ne_tgt H_wf^.m_contains_tgt H_wf^.uids,
-have H_insert_θ : env.insert tgt θ inputs = inputs, by rw env.insert_get_same,
+have H_insert_θ : env.insert tgt θ inputs = inputs, by rw env.insert_get_same H_wf^.m_contains_tgt,
 
 have H_parents_match : ∀ y, env.get_ks parents (next_inputs y) = env.get_ks parents inputs,
   begin intro y, dsimp, rw (env.get_ks_insert_diff H_ref_notin_parents), end,
@@ -132,7 +132,7 @@ have H_g_uint : T.is_uniformly_integrable_around
     (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)),
        rand.op.pdf op (env.get_ks parents (env.insert tgt θ₀ inputs)) x ⬝ E
          (graph.to_dist
-            (λ (m : dmap (ID × list ℕ) (λ (ref : ID × list ℕ), T (ref.snd))), ⟦sum_costs m costs⟧)
+            (λ (m : env), ⟦sum_costs m costs⟧)
             (env.insert ref x (env.insert tgt θ₀ inputs))
             nodes)
          dvec.head)
@@ -145,7 +145,7 @@ have H_g_grad_uint : T.is_uniformly_integrable_around
             (λ (x : T (ref.snd)) (θ₀ : T (tgt.snd)),
                rand.op.pdf op (env.get_ks parents (env.insert tgt θ₀ inputs)) x ⬝ E
                  (graph.to_dist
-                    (λ (m : dmap (ID × list ℕ) (λ (ref : ID × list ℕ), T (ref.snd))), ⟦sum_costs m costs⟧)
+                    (λ (m : env), ⟦sum_costs m costs⟧)
                     (env.insert ref x (env.insert tgt θ₀ inputs))
                     nodes)
                  dvec.head)
@@ -178,7 +178,7 @@ dsimp,
 
 note H_pdf_cdiff := @rand.op.pdf_cdiff _ _ op (env.get_ks parents inputs) y idx tgt.2 H_tshape_at_idx H_pdfs_exist^.left,
 dsimp [rand.pdf_cdiff] at H_pdf_cdiff,
-simp only [env.insert_get_same],
+simp only [env.insert_get_same H_wf^.m_contains_tgt],
 simp only [λ m, env.dvec_get_get_ks m H_tgt_at_idx] at H_pdf_cdiff,
 exact H_pdf_cdiff,
 end, -- end PDF differentiable
@@ -236,7 +236,7 @@ split, tactic.rotate 1, split, tactic.rotate 1, split, tactic.rotate 2,
 
 ----------------------------------- start 1/4
 begin
-simp only [env.insert_get_same, env.get_insert_same],
+simp only [env.insert_get_same H_wf^.m_contains_tgt, env.get_insert_same],
 note H_pdiff := pd_is_cdifferentiable costs tgt next_inputs nodes H_wfs^.left H_gs_exist_tgt H_pdfs_exist_next H_diff_under_int^.left,
 dsimp at H_pdiff,
 simp only [H_can_insert] at H_pdiff,
@@ -257,7 +257,7 @@ assertv H_gs_exist_ref : grads_exist_at nodes next_inputs ref := (H_gs_exist^.ri
 
 note H_pdiff := pd_is_cdifferentiable costs ref next_inputs nodes H_wfs^.right H_gs_exist_ref H_pdfs_exist_next (H_diff_under_int^.right H_tgt_in_parents),
 dsimp at H_pdiff,
-simp only [env.insert_get_same],
+simp only [env.insert_get_same H_wf^.m_contains_tgt],
 simp only [env.get_insert_same, env.insert_insert_same] at H_pdiff,
 
 note H_odiff := op^.is_odiff (env.get_ks parents inputs) (H_gs_exist^.right H_tgt_in_parents)^.left idx tgt.2 H_tshape_at_idx
@@ -267,7 +267,7 @@ note H_odiff := op^.is_odiff (env.get_ks parents inputs) (H_gs_exist^.right H_tg
                              dvec.head),
 
 simp only [λ m, env.dvec_get_get_ks m H_tgt_at_idx] at H_odiff,
-simp only [λ (x : T ref.2) (θ : T tgt.2), env.insert_insert_flip θ x inputs H_tgt_neq_ref, env.insert_get_same] at H_odiff,
+simp only [λ (x : T ref.2) (θ : T tgt.2), env.insert_insert_flip θ x inputs H_tgt_neq_ref, env.insert_get_same H_wf^.m_contains_tgt] at H_odiff,
 apply H_odiff,
 exact H_pdiff
 end,
@@ -302,7 +302,7 @@ let next_inputs := λ (y : T ref.2), env.insert ref y inputs in
 have H_ref_in_refs : ref ∈ ref :: map node.ref nodes, from mem_of_cons_same,
 have H_ref_notin_parents : ref ∉ parents, from ref_notin_parents H_wf^.ps_in_env H_wf^.uids,
 have H_tgt_neq_ref : tgt ≠ ref, from ref_ne_tgt H_wf^.m_contains_tgt H_wf^.uids,
-have H_insert_θ : env.insert tgt θ inputs = inputs, by rw env.insert_get_same,
+have H_insert_θ : env.insert tgt θ inputs = inputs, by rw env.insert_get_same H_wf^.m_contains_tgt,
 
 have H_parents_match : ∀ y, env.get_ks parents (next_inputs y) = env.get_ks parents inputs,
   begin intro y, dsimp, rw (env.get_ks_insert_diff H_ref_notin_parents), end,
@@ -340,7 +340,7 @@ apply iff.mp (T.is_cdifferentiable_scale_f _ _ _),
 note H_pdiff := pd_is_cdifferentiable costs tgt (next_inputs y) nodes (H_wfs y)^.left (H_gs_exist^.right y) (H_pdfs_exist^.right y) (H_diff_under_int^.right y),
 dsimp [dvec.head], dsimp at H_pdiff,
 simp only [H_can_insert_y] at H_pdiff,
-simp only [λ (x : T ref.2) (θ : T tgt.2), env.insert_insert_flip θ x inputs H_tgt_neq_ref, env.insert_get_same] at H_pdiff,
+simp only [λ (x : T ref.2) (θ : T tgt.2), env.insert_insert_flip θ x inputs H_tgt_neq_ref, env.insert_get_same H_wf^.m_contains_tgt] at H_pdiff,
 exact H_pdiff
 end,
 ----------------------------------- end 1/3
@@ -368,7 +368,7 @@ apply iff.mp (T.is_cdifferentiable_fscale _ _ _),
 
 note H_pdf_cdiff := @rand.op.pdf_cdiff _ _ op (env.get_ks parents inputs) y idx tgt.2 H_tshape_at_idx H_pdfs_exist^.left,
 dsimp [rand.pdf_cdiff] at H_pdf_cdiff,
-simp only [env.insert_get_same],
+simp only [env.insert_get_same H_wf^.m_contains_tgt],
 simp only [λ m, env.dvec_get_get_ks m H_tgt_at_idx] at H_pdf_cdiff,
 exact H_pdf_cdiff,
 end,

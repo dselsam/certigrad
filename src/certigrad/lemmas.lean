@@ -431,7 +431,7 @@ map
     (λ (idx : ℕ),
        E
          (graph.to_dist
-            (λ (m : dmap (ID × list ℕ) (λ (ref : ID × list ℕ), T (ref.snd))), ⟦sum_costs m costs⟧)
+            (λ (m : env), ⟦sum_costs m costs⟧)
             (env.insert ref y inputs)
             nodes)
          dvec.head ⬝ ∇

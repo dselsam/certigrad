@@ -254,10 +254,10 @@ exact iff.mp (is_gintegrable_k_add _ _) (and.intro (H^.left^.right x) (H^.right^
 },
 {
 intro H,
-assert H_kint₁ : ∀ (x : T (ref.snd)), is_gintegrable (λ (m : dmap (ID × list ℕ) (λ (ref : ID × list ℕ), T (ref.snd))), ⟦k₁ m⟧) (env.insert ref x m) nodes dvec.head,
+assert H_kint₁ : ∀ (x : T (ref.snd)), is_gintegrable (λ (m : env), ⟦k₁ m⟧) (env.insert ref x m) nodes dvec.head,
 { intro x, apply (iff.mpr (is_gintegrable_k_add _ _) (H^.right x))^.left },
 
-assert H_kint₂ : ∀ (x : T (ref.snd)), is_gintegrable (λ (m : dmap (ID × list ℕ) (λ (ref : ID × list ℕ), T (ref.snd))), ⟦k₂ m⟧) (env.insert ref x m) nodes dvec.head,
+assert H_kint₂ : ∀ (x : T (ref.snd)), is_gintegrable (λ (m : env), ⟦k₂ m⟧) (env.insert ref x m) nodes dvec.head,
 { intro x, apply (iff.mpr (is_gintegrable_k_add _ _) (H^.right x))^.right },
 
 split,

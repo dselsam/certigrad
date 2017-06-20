@@ -265,20 +265,20 @@ pose lhs_f₁ := λ x, E (graph.to_dist (λ (m : env), ⟦k₁ m⟧) (m_lhs_k_ad
 pose lhs_f₂ := λ x, E (graph.to_dist (λ (m : env), ⟦k₂ m⟧) (m_lhs_k_add x) nodes) dvec.head,
 
 assert H_E_kl_add :
-∀ x, E (graph.to_dist (λ (m : dmap (ID × list ℕ) (λ (ref : ID × list ℕ), T (ref.snd))),
+∀ x, E (graph.to_dist (λ (m : env),
                          ⟦env.get (eloss, @nil ℕ) m + sumr (map (λ (cost : ID), (env.get (cost, @nil ℕ) m : ℝ)) costs)⟧)
             (env.insert (z, shape) x
                         (env.insert (eloss, @nil ℕ) (T.mvn_iso_kl (env.get (μ, shape) inputs : T shape) (env.get (σ, shape) inputs : T shape)) inputs))
             nodes)
        dvec.head
 =
-E (graph.to_dist (λ (m : dmap (ID × list ℕ) (λ (ref : ID × list ℕ), T (ref.snd))), ⟦k₁ m⟧)
+E (graph.to_dist (λ (m : env), ⟦k₁ m⟧)
             (env.insert (z, shape) x
                         (env.insert (eloss, @nil ℕ) (T.mvn_iso_kl (env.get (μ, shape) inputs : T shape) (env.get (σ, shape) inputs : T shape)) inputs))
             nodes)
        dvec.head
 +
-E (graph.to_dist (λ (m : dmap (ID × list ℕ) (λ (ref : ID × list ℕ), T (ref.snd))), ⟦k₂ m⟧)
+E (graph.to_dist (λ (m : env), ⟦k₂ m⟧)
             (env.insert (z, shape) x
                         (env.insert (eloss, @nil ℕ) (T.mvn_iso_kl (env.get (μ, shape) inputs : T shape) (env.get (σ, shape) inputs : T shape)) inputs))
             nodes)
@@ -322,7 +322,7 @@ tactic.dget_dinsert_at `H_gint,
 assert H_E_add : ∀ x,
 E
          (graph.to_dist
-            (λ (m : dmap (ID × list ℕ) (λ (ref : ID × list ℕ), T (ref.snd))), ⟦(env.get (eloss, @nil ℕ) m : ℝ) + sumr (map (λ (cost : ID), (env.get (cost, @nil ℕ) m : ℝ)) costs)⟧)
+            (λ (m : env), ⟦(env.get (eloss, @nil ℕ) m : ℝ) + sumr (map (λ (cost : ID), (env.get (cost, @nil ℕ) m : ℝ)) costs)⟧)
             (env.insert (eloss, @nil ℕ)
                (T.mvn_iso_empirical_kl (env.get (μ, shape) inputs : T shape) (env.get (σ, shape) inputs : T shape) x)
                (env.insert (z, shape) x inputs))
@@ -331,7 +331,7 @@ E
 =
 E
          (graph.to_dist
-            (λ (m : dmap (ID × list ℕ) (λ (ref : ID × list ℕ), T (ref.snd))), ⟦k₁ m⟧)
+            (λ (m : env), ⟦k₁ m⟧)
             (env.insert (eloss, @nil ℕ)
                (T.mvn_iso_empirical_kl (env.get (μ, shape) inputs : T shape) (env.get (σ, shape) inputs : T shape) x)
                (env.insert (z, shape) x inputs))
@@ -340,7 +340,7 @@ E
 +
 E
          (graph.to_dist
-            (λ (m : dmap (ID × list ℕ) (λ (ref : ID × list ℕ), T (ref.snd))), ⟦k₂ m⟧)
+            (λ (m : env), ⟦k₂ m⟧)
             (env.insert (eloss, @nil ℕ)
                (T.mvn_iso_empirical_kl (env.get (μ, shape) inputs : T shape) (env.get (σ, shape) inputs : T shape) x)
                (env.insert (z, shape) x inputs))

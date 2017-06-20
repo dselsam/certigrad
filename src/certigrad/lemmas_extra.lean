@@ -110,12 +110,12 @@ dsimp [is_gintegrable, compute_grad_slow] at H_gint,
 dsimp [is_nabla_gintegrable],
 
 assert H_cgsc : ∀ x,
-E (graph.to_dist (λ (m : dmap (ID × list ℕ) (λ (ref : ID × list ℕ), T (ref.snd))), ⟦compute_grad_slow costs nodes m tgt⟧)
+E (graph.to_dist (λ (m : env), ⟦compute_grad_slow costs nodes m tgt⟧)
                  (env.insert ref x inputs) nodes)
   dvec.head
 =
 ∇ (λ (θ₀ : T (tgt.snd)),
-     E (graph.to_dist (λ (m : dmap (ID × list ℕ) (λ (ref : ID × list ℕ), T (ref.snd))), ⟦sum_costs m costs⟧)
+     E (graph.to_dist (λ (m : env), ⟦sum_costs m costs⟧)
                       (env.insert ref x (env.insert tgt θ₀ inputs)) nodes)
         dvec.head)
   (env.get tgt inputs),
@@ -151,7 +151,7 @@ map
             (λ (idx : ℕ),
                E
                  (graph.to_dist
-                    (λ (m : dmap (ID × list ℕ) (λ (ref : ID × list ℕ), T (ref.snd))), ⟦sum_costs m costs⟧)
+                    (λ (m : env), ⟦sum_costs m costs⟧)
                     (env.insert ref y inputs)
                     nodes)
                  dvec.head ⬝ ∇

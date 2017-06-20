@@ -123,7 +123,7 @@ rw (T.multiple_args_general parents tgt inputs g θ H_diff₁ H_diff₂),
 dsimp,
 
 -- 2. Make the first terms equal, recursively
-simp [env.insert_get_same],
+simp [env.insert_get_same H_wf^.m_contains_tgt],
 
 pose H_almost_tgt := (eq.symm (compute_grad_slow_correct H_wfs^.left H_gs_exist_tgt H_pdfs_exist_next H_gdiff^.right^.right^.left H_nabla_gint_tgt H_grad_gint_tgt H_diff_under_int^.left)),
 rw (env.get_insert_diff _ _ H_tgt_neq_ref) at H_almost_tgt,
@@ -262,7 +262,7 @@ let next_inputs := λ (y : T ref.2), env.insert ref y inputs in
 have H_ref_in_refs : ref ∈ ref :: map node.ref nodes, from mem_of_cons_same,
 have H_ref_notin_parents : ref ∉ parents, from ref_notin_parents H_wf^.ps_in_env H_wf^.uids,
 have H_tgt_neq_ref : tgt ≠ ref, from ref_ne_tgt H_wf^.m_contains_tgt H_wf^.uids,
-have H_insert_θ : env.insert tgt θ inputs = inputs, by rw env.insert_get_same,
+have H_insert_θ : env.insert tgt θ inputs = inputs, by rw env.insert_get_same H_wf^.m_contains_tgt,
 
 have H_parents_match : ∀ y, env.get_ks parents (next_inputs y) = env.get_ks parents inputs,
   begin intro y, dsimp, rw (env.get_ks_insert_diff H_ref_notin_parents), end,
@@ -307,7 +307,7 @@ assert H_diff₂ : T.is_cdifferentiable (λ (θ₀ : T (tgt.snd)), sumr (map (λ
 assert H_eint₁ : E.is_eintegrable (sprog.prim op (env.get_ks parents (env.insert tgt θ inputs))) (λ (x : dvec T [ref.snd]), ∇ (g x^.head) θ),
 begin
 dsimp [E.is_eintegrable, dvec.head],
-simp only [env.insert_get_same],
+simp only [env.insert_get_same H_wf^.m_contains_tgt],
 exact H_nabla_gint^.left
 end,
 
@@ -325,7 +325,7 @@ assert H_eint₂ : E.is_eintegrable (sprog.prim op (env.get_ks parents (env.inse
             (filter (λ (idx : ℕ), tgt = dnth parents idx) (riota (length parents))))),
 begin
 dsimp [E.is_eintegrable, dvec.head],
-simp only [env.insert_get_same],
+simp only [env.insert_get_same H_wf^.m_contains_tgt],
 exact H_nabla_gint^.right^.left,
 end,
 
@@ -365,13 +365,13 @@ assertv H_d'_grad_uint : ∀ (idx : ℕ),  at_idx parents idx tgt →
 H_diff_under_int^.left^.right^.right^.right,
 
 dsimp,
-rw (estimators.hybrid_general inputs H_wf^.m_contains_inputs op H_op_pre g θ rfl
+rw (estimators.hybrid_general inputs H_wf^.m_contains_tgt op H_op_pre g θ rfl
                               H_g_diff H_g_uint H_g_grad_uint
                               H_d'_pdf_cdiff H_d'_uint H_d'_grad_uint H_diff₁ H_diff₂ H_eint₁ H_eint₂),
 
 -- 2. Cancel first stochastic choice
 dsimp,
-simp [env.insert_get_same],
+simp [env.insert_get_same H_wf^.m_contains_tgt],
 apply congr_arg,
 apply funext,
 intro y,

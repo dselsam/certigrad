@@ -56,12 +56,11 @@ let x := op^.f (env.get_ks parents inputs) in
 let next_inputs := env.insert ref x inputs in
 
 -- 0. Collect useful helpers
-have H_tgt_in_keys : tgt ∈ env.keys inputs, from env.has_key_mem_keys H_wf^.m_contains_tgt,
 have H_ref_in_refs : ref ∈ ref :: map node.ref nodes, from mem_of_cons_same,
 
-have H_ref_notin_parents : ref ∉ parents, from ref_notin_parents H_wf^.ps_in_env H_wf^.nodup,
+have H_ref_notin_parents : ref ∉ parents, from ref_notin_parents H_wf^.ps_in_env H_wf^.uids,
 
-have H_tgt_neq_ref : tgt ≠ ref, from nodup_append_neq H_tgt_in_keys H_ref_in_refs H_wf^.nodup,
+have H_tgt_neq_ref : tgt ≠ ref, from ref_ne_tgt H_wf^.m_contains_tgt H_wf^.uids,
 
 have H_get_ks_next_inputs : env.get_ks parents next_inputs = env.get_ks parents inputs,
   begin dsimp, rw (env.get_ks_insert_diff H_ref_notin_parents) end,

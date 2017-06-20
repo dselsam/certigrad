@@ -40,7 +40,7 @@ def all_costs_scalars (costs : list ID) : Π (nodes : list node), Prop
 
 -- We group the decidable properties
 structure well_formed_at (costs : list ID) (nodes : list node) (inputs : env) (tgt : reference) : Prop :=
-  (nodup : nodup (env.keys inputs ++ map node.ref nodes))
+  (uids : uniq_ids nodes inputs)
   (ps_in_env : all_parents_in_env inputs nodes)
   (costs_scalars : all_costs_scalars costs nodes)
   (m_contains_tgt : env.has_key tgt inputs)

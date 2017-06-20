@@ -11,10 +11,25 @@ namespace certigrad
 open list
 
 lemma ref_notin_parents {n : node} {nodes : list node} {m : env} :
-  all_parents_in_env m (n::nodes) → nodup (env.keys m ++ map node.ref (n::nodes)) → n^.ref ∉ n^.parents :=
-node.cases_on n (λ ref parents op,
-                   assume H_ps_in_env H_nodup H_ref_in_parents,
-                   nodup_append_neq (env.has_key_mem_keys (H_ps_in_env^.left _ H_ref_in_parents)) mem_of_cons_same H_nodup rfl)
+  all_parents_in_env m (n::nodes) → uniq_ids (n::nodes) m → n^.ref ∉ n^.parents :=
+begin
+cases n with ref parents op,
+intros H_ps_in_env H_uids H_ref_in_parents,
+dsimp [uniq_ids] at H_uids,
+dsimp at H_ref_in_parents,
+dsimp [all_parents_in_env] at H_ps_in_env,
+exact H_uids^.left (H_ps_in_env^.left ref H_ref_in_parents)
+end
+
+lemma ref_ne_tgt {n : node} {nodes : list node} {m : env} {tgt : reference} :
+env.has_key tgt m → uniq_ids (n::nodes) m → tgt ≠ n^.ref :=
+begin
+cases n with ref parents op,
+intros H_tgt H_uids H_eq,
+dsimp [uniq_ids] at H_uids,
+subst H_eq,
+exact H_uids^.left H_tgt
+end
 
 lemma wf_at_next {costs : list ID} {n : node} {nodes : list node} {x : T n^.ref.2} {inputs : env} {tgt : reference} :
   let next_inputs : env := env.insert n^.ref x inputs in
@@ -22,7 +37,7 @@ lemma wf_at_next {costs : list ID} {n : node} {nodes : list node} {x : T n^.ref.
 begin
 intros next_inputs H_wf,
 cases n with ref parents op,
-assertv H_nodup_next : nodup (env.keys next_inputs ++ map node.ref nodes) := env.nodup_insert H_wf^.nodup,
+assertv H_uids_next : uniq_ids nodes next_inputs := H_wf^.uids^.right x,
 assertv H_ps_in_env_next : all_parents_in_env next_inputs nodes := H_wf^.ps_in_env^.right x,
 assertv H_costs_scalars_next : all_costs_scalars costs nodes := H_wf^.costs_scalars^.right,
 assert H_m_contains_tgt : env.has_key tgt next_inputs,
@@ -32,9 +47,9 @@ assert H_m_contains_ref : env.has_key ref next_inputs,
 assertv H_cost_scalar_tgt : tgt.1 ∈ costs → tgt.2 = [] := H_wf^.tgt_cost_scalar,
 assertv H_cost_scalar_ref : ref.1 ∈ costs → ref.2 = [] := H_wf^.costs_scalars^.left,
 assertv H_wf_tgt : well_formed_at costs nodes next_inputs tgt :=
-  ⟨H_nodup_next, H_ps_in_env_next, H_costs_scalars_next, H_m_contains_tgt, H_cost_scalar_tgt⟩,
+  ⟨H_uids_next, H_ps_in_env_next, H_costs_scalars_next, H_m_contains_tgt, H_cost_scalar_tgt⟩,
 assertv H_wf_ref : well_formed_at costs nodes next_inputs ref :=
-  ⟨H_nodup_next, H_ps_in_env_next, H_costs_scalars_next, H_m_contains_ref, H_cost_scalar_ref⟩,
+  ⟨H_uids_next, H_ps_in_env_next, H_costs_scalars_next, H_m_contains_ref, H_cost_scalar_ref⟩,
 exact ⟨H_wf_tgt, H_wf_ref⟩
 end
 
@@ -147,12 +162,9 @@ let x := op^.f (env.get_ks parents inputs) in
 let next_inputs := env.insert ref x inputs in
 
 -- 0. Collect useful helpers
-have H_tgt_in_keys : tgt ∈ env.keys inputs, from env.has_key_mem_keys H_wf^.m_contains_tgt,
 have H_ref_in_refs : ref ∈ ref :: map node.ref nodes, from mem_of_cons_same,
-
-have H_ref_notin_parents : ref ∉ parents, from ref_notin_parents H_wf^.ps_in_env H_wf^.nodup,
-
-have H_tgt_neq_ref : tgt ≠ ref, from nodup_append_neq H_tgt_in_keys H_ref_in_refs H_wf^.nodup,
+have H_ref_notin_parents : ref ∉ parents, from ref_notin_parents H_wf^.ps_in_env H_wf^.uids,
+have H_tgt_neq_ref : tgt ≠ ref, from ref_ne_tgt H_wf^.m_contains_tgt H_wf^.uids,
 
 have H_get_ks_next_inputs : env.get_ks parents next_inputs = env.get_ks parents inputs,
   begin dsimp, rw (env.get_ks_insert_diff H_ref_notin_parents) end,
@@ -241,10 +253,9 @@ end
 let θ := env.get tgt inputs in
 let next_inputs := λ (y : T ref.2), env.insert ref y inputs in
 
-have H_tgt_in_keys : tgt ∈ env.keys inputs, from env.has_key_mem_keys H_wf^.m_contains_tgt,
 have H_ref_in_refs : ref ∈ ref :: map node.ref nodes, from mem_of_cons_same,
-have H_ref_notin_parents : ref ∉ parents, from ref_notin_parents H_wf^.ps_in_env H_wf^.nodup,
-have H_tgt_neq_ref : tgt ≠ ref, from nodup_append_neq H_tgt_in_keys H_ref_in_refs H_wf^.nodup,
+have H_ref_notin_parents : ref ∉ parents, from ref_notin_parents H_wf^.ps_in_env H_wf^.uids,
+have H_tgt_neq_ref : tgt ≠ ref, from ref_ne_tgt H_wf^.m_contains_tgt H_wf^.uids,
 have H_insert_θ : env.insert tgt θ inputs = inputs, by rw env.insert_get_same,
 
 have H_parents_match : ∀ y, env.get_ks parents (next_inputs y) = env.get_ks parents inputs,
@@ -429,9 +440,8 @@ assume H_wf H_gs_exist y,
 let θ := env.get tgt inputs in
 let next_inputs := λ (y : T ref.2), env.insert ref y inputs in
 
-have H_tgt_in_keys : tgt ∈ env.keys inputs, from env.has_key_mem_keys H_wf^.m_contains_tgt,
 have H_ref_in_refs : ref ∈ ref :: map node.ref nodes, from mem_of_cons_same,
-have H_ref_notin_parents : ref ∉ parents, from ref_notin_parents H_wf^.ps_in_env H_wf^.nodup,
+have H_ref_notin_parents : ref ∉ parents, from ref_notin_parents H_wf^.ps_in_env H_wf^.uids,
 
 have H_get_ks_next_inputs : env.get_ks parents (next_inputs y) = env.get_ks parents inputs,
   begin dsimp, rw (env.get_ks_insert_diff H_ref_notin_parents) end,

@@ -24,6 +24,11 @@ end operator
 structure node : Type := (ref : reference) (parents : list (ID × S)) (op : operator parents^.p2 ref.2)
 structure graph : Type := (nodes : list node) (costs : list ID) (targets inputs : list reference)
 
+def uniq_ids : Π (nodes : list node) (inputs : env), Prop
+| [] inputs := true
+| (⟨ref, op, parents⟩ :: nodes) inputs :=
+¬ env.has_key ref inputs ∧ ∀ (x : T ref.2), uniq_ids nodes (env.insert ref x inputs)
+
 namespace graph
 
 open sprog
@@ -36,36 +41,36 @@ def to_dist {fshapes : list S} (k : env → dvec T fshapes) : env → list node 
 open list
 
 lemma envs_match_helper {fshapes : list S} (k₁ k₂ : env → dvec T fshapes) : Π (inputs : env) (nodes : list node),
-    ∀ (ref : reference) (x : T ref.2),
-      nodup (env.keys inputs ++ (ref :: map node.ref nodes)) →
+    ∀ (n : node) (x : T n^.ref.2),
+      uniq_ids (n :: nodes) inputs →
       (∀ (m : env), (∀ (ref : reference), env.has_key ref inputs → env.get ref m = env.get ref inputs) → k₁ m = k₂ m) →
       ∀  (m : env),
-         (∀ (r : reference), env.has_key r (env.insert ref x inputs) → env.get r m = env.get r (env.insert ref x inputs)) → k₁ m = k₂ m :=
-assume inputs nodes ref x H_nodup H_k_eq,
+         (∀ (r : reference), env.has_key r (env.insert n^.ref x inputs) → env.get r m = env.get r (env.insert n^.ref x inputs)) → k₁ m = k₂ m :=
+assume inputs nodes n x H_uids H_k_eq,
 assume (m : env) H_next_envs_agree,
   have H_envs_agree : ∀ (ref' : reference), env.has_key ref' inputs → env.get ref' m = env.get ref' inputs, from
     assume (ref' : reference) (H_inputs_contains_ref' : env.has_key ref' inputs),
     show env.get ref' m = env.get ref' inputs, from
-    have H_next_contains_name : env.has_key ref' (env.insert ref x inputs), from env.has_key_insert H_inputs_contains_ref',
-    have H_next_agree : env.get ref' m = env.get ref' (env.insert ref x inputs), from H_next_envs_agree _ H_next_contains_name,
-    have H_ref'_neq_ref : ref' ≠ ref, from
-      have H_ref'_in_keys : ref' ∈ env.keys inputs, from env.has_key_mem_keys H_inputs_contains_ref',
-      have H_ref_in_rest : ref ∈ ref :: map node.ref nodes, from mem_of_cons_same,
-      nodup_append_neq H_ref'_in_keys H_ref_in_rest H_nodup,
+    have H_next_contains_name : env.has_key ref' (env.insert n^.ref x inputs), from env.has_key_insert H_inputs_contains_ref',
+    have H_next_agree : env.get ref' m = env.get ref' (env.insert n^.ref x inputs), from H_next_envs_agree _ H_next_contains_name,
+    have H_ref'_neq_ref : ref' ≠ n^.ref,
+      begin
+      cases n with ref parents op, dsimp [uniq_ids] at H_uids,
+      dsimp, intro H_eq, subst H_eq, exact H_uids^.left H_inputs_contains_ref'
+      end,
     begin rw env.get_insert_diff _ _ H_ref'_neq_ref at H_next_agree, exact H_next_agree end,
   H_k_eq _ H_envs_agree
-
 
 lemma to_dist_k_congr {fshapes : list S} (k₁ k₂ : env → dvec T fshapes) (inputs : env) (nodes : list node) :
   k₁ = k₂ →  graph.to_dist k₁ inputs nodes = graph.to_dist k₂ inputs nodes := by { intro H, rw H }
 
 lemma to_dist_congr {fshapes : list S} (k₁ k₂ : env → dvec T fshapes) : Π (inputs : env) (nodes : list node),
-      nodup (env.keys inputs ++ map node.ref nodes) →
+      uniq_ids nodes inputs →
       (∀ (m : env), (∀ (ref : reference), env.has_key ref inputs → env.get ref m = env.get ref inputs) → k₁ m = k₂ m) →
       to_dist k₁ inputs nodes = to_dist k₂ inputs nodes
 
 -- Case 1
-| inputs [] H_nodup H_k_eq :=
+| inputs [] H_uids H_k_eq :=
 show to_dist k₁ inputs [] = to_dist k₂ inputs [], from
 show sprog.ret (k₁ inputs) = sprog.ret (k₂ inputs), from
 have H_inputs_eq : ∀ (ref : reference), env.has_key ref inputs → env.get ref inputs = env.get ref inputs, from
@@ -73,7 +78,7 @@ have H_inputs_eq : ∀ (ref : reference), env.has_key ref inputs → env.get ref
 by rw (H_k_eq _ H_inputs_eq)
 
 -- Case 2
-| inputs (⟨ref, parents, op⟩::nodes) H_nodup H_k_eq :=
+| inputs (⟨ref, parents, op⟩::nodes) H_uids H_k_eq :=
 show to_dist k₁ inputs (⟨ref, parents, op⟩ :: nodes) = to_dist k₂ inputs (⟨ref, parents, op⟩ :: nodes), from
 show bind (operator.to_dist inputs op) (λ (x : dvec T [ref.2]), to_dist k₁ (env.insert ref x^.head inputs) nodes)
      =
@@ -82,9 +87,7 @@ suffices ∀ (x : dvec T [ref.2]), to_dist k₁ (env.insert ref x^.head inputs) 
   congr_arg _ (funext this),
 assume (x : dvec T [ref.2]),
 show to_dist k₁ (env.insert ref x^.head inputs) nodes = to_dist k₂ (env.insert ref x^.head inputs) nodes, from
-have H_next_nodup : nodup (env.keys (env.insert ref x^.head inputs) ++ map node.ref nodes), from
-  env.nodup_insert H_nodup,
-to_dist_congr _ _ H_next_nodup (envs_match_helper k₁ k₂ _ _ _ _ H_nodup H_k_eq)
+to_dist_congr _ _ (H_uids^.right _) (envs_match_helper k₁ k₂ _ _ _ _ H_uids H_k_eq)
 
 lemma graph_to_dist_inputs_congr {fshapes : list S} (k : env → dvec T fshapes) (inputs₁ inputs₂ : env) (nodes : list node) :
   inputs₁ = inputs₂ → graph.to_dist k inputs₁ nodes = graph.to_dist k inputs₂ nodes := assume H, by rw H
@@ -130,20 +133,20 @@ T.is_cdifferentiable (λ (θ₀ : T (tgt.snd)), E (sprog.prim op (env.get_ks par
 ∧ ∀ (y : T ref.2), is_gdifferentiable tgt (env.insert ref y m) nodes f
 
 lemma is_gintegrable_k_congr {fshapes : list S} {fshape : S} (k₁ k₂ : env → dvec T fshapes) : Π (inputs : env) (nodes : list node) (f : dvec T fshapes → T fshape),
-  nodup (env.keys inputs ++ map node.ref nodes) →
+  uniq_ids nodes inputs →
   (∀ (m : env), (∀ (ref : reference), env.has_key ref inputs → env.get ref m = env.get ref inputs) → k₁ m = k₂ m) →
   is_gintegrable k₁ inputs nodes f → is_gintegrable k₂ inputs nodes f
 
-| inputs [] f H_nodup H_k_eq H_gint₁ := trivial
+| inputs [] f H_uids H_k_eq H_gint₁ := trivial
 
-| inputs (⟨ref, parents, operator.det op⟩ :: nodes) f H_nodup H_k_eq H_gint₁ :=
+| inputs (⟨ref, parents, operator.det op⟩ :: nodes) f H_uids H_k_eq H_gint₁ :=
 begin
 dsimp [is_gintegrable] at H_gint₁,
 dsimp [is_gintegrable],
-apply is_gintegrable_k_congr _ _ _ (env.nodup_insert H_nodup) (graph.envs_match_helper k₁ k₂ _ _ _ _ H_nodup H_k_eq) H_gint₁
+apply is_gintegrable_k_congr _ _ _ (H_uids^.right _) (graph.envs_match_helper k₁ k₂ _ _ _ _ H_uids H_k_eq) H_gint₁
 end
 
-| inputs (⟨ref, parents, operator.rand op⟩ :: nodes) f H_nodup H_k_eq H_gint₁ :=
+| inputs (⟨ref, parents, operator.rand op⟩ :: nodes) f H_uids H_k_eq H_gint₁ :=
 begin
 dsimp [is_gintegrable] at H_gint₁,
 dsimp [is_gintegrable],
@@ -151,14 +154,14 @@ split,
 {
 assertv H_dist_congr : ∀ x, graph.to_dist k₁ (env.insert ref x inputs) nodes = graph.to_dist k₂ (env.insert ref x inputs) nodes :=
 assume x,
-graph.to_dist_congr k₁ k₂ _ _ (env.nodup_insert H_nodup) (graph.envs_match_helper k₁ k₂ _ _ _ _ H_nodup H_k_eq),
+graph.to_dist_congr k₁ k₂ _ _ (H_uids^.right _) (graph.envs_match_helper k₁ k₂ _ _ _ _ H_uids H_k_eq),
 simp only [H_dist_congr] at H_gint₁,
 exact H_gint₁^.left
 },
 
 {
 intro x,
-apply is_gintegrable_k_congr _ _ _ (env.nodup_insert H_nodup) (graph.envs_match_helper k₁ k₂ _ _ _ _ H_nodup H_k_eq) (H_gint₁^.right x)
+apply is_gintegrable_k_congr _ _ _ (H_uids^.right _) (graph.envs_match_helper k₁ k₂ _ _ _ _ H_uids H_k_eq) (H_gint₁^.right x)
 }
 
 end

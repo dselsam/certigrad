@@ -168,7 +168,7 @@ graph.to_dist (λ (m : env),
                  nodes),
 begin
   apply graph.to_dist_congr,
-  exact H_wfs^.right^.nodup,
+  exact H_wfs^.right^.uids,
   dsimp,
   intros m H_envs_match,
   apply dvec.singleton_congr,
@@ -212,7 +212,7 @@ assertv H_op_called : is_gintegrable (λ m, ⟦det.op.pb op (env.get_ks parents 
 assert H_op_called_swap : is_gintegrable (λ m, ⟦det.op.pb op (env.get_ks parents next_inputs) x (compute_grad_slow costs nodes m ref) idx (tgt.snd)⟧)
                                          next_inputs nodes dvec.head,
 {
-apply is_gintegrable_k_congr _ _ _ _ _ H_wfs^.right^.nodup _ H_op_called,
+apply is_gintegrable_k_congr _ _ _ _ _ H_wfs^.right^.uids _ H_op_called,
 intros m H_envs_match,
 -- TODO(dhs): this is copy-pasted from above
 assert H_parents_match : env.get_ks parents m = env.get_ks parents next_inputs,
@@ -259,10 +259,9 @@ let θ := env.get tgt inputs in
 let next_inputs := λ (y : T ref.2), env.insert ref y inputs in
 
 -- 0. Collect useful helpers
-have H_tgt_in_keys : tgt ∈ env.keys inputs, from env.has_key_mem_keys H_wf^.m_contains_tgt,
 have H_ref_in_refs : ref ∈ ref :: map node.ref nodes, from mem_of_cons_same,
-have H_ref_notin_parents : ref ∉ parents, from ref_notin_parents H_wf^.ps_in_env H_wf^.nodup,
-have H_tgt_neq_ref : tgt ≠ ref, from nodup_append_neq H_tgt_in_keys H_ref_in_refs H_wf^.nodup,
+have H_ref_notin_parents : ref ∉ parents, from ref_notin_parents H_wf^.ps_in_env H_wf^.uids,
+have H_tgt_neq_ref : tgt ≠ ref, from ref_ne_tgt H_wf^.m_contains_tgt H_wf^.uids,
 have H_insert_θ : env.insert tgt θ inputs = inputs, by rw env.insert_get_same,
 
 have H_parents_match : ∀ y, env.get_ks parents (next_inputs y) = env.get_ks parents inputs,

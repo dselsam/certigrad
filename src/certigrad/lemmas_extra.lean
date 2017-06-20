@@ -24,7 +24,7 @@ lemma is_nabla_gintegrable_of_gintegrable {costs : list ID} :
 | m (⟨ref, parents, operator.det op⟩ :: nodes) tgt H_wf H_gs_exist H_pdfs_exist H_gdiff H_diff_under_int H_gint :=
 let x : T ref.2 := op^.f (env.get_ks parents m),
     next_inputs : env := env.insert ref x m in
-have H_ref_notin_parents : ref ∉ parents, from ref_notin_parents H_wf^.ps_in_env H_wf^.nodup,
+have H_ref_notin_parents : ref ∉ parents, from ref_notin_parents H_wf^.ps_in_env H_wf^.uids,
 have H_get_ks_next_inputs : env.get_ks parents next_inputs = env.get_ks parents m,
   begin dsimp, rw (env.get_ks_insert_diff H_ref_notin_parents) end,
 have H_wfs : well_formed_at costs nodes next_inputs tgt ∧ well_formed_at costs nodes next_inputs ref, from wf_at_next H_wf,
@@ -63,7 +63,7 @@ assertv H_op_called : is_gintegrable (λ m, ⟦det.op.pb op (env.get_ks parents 
 assert H_op_called_swap : is_gintegrable (λ m, ⟦det.op.pb op (env.get_ks parents next_inputs) x (compute_grad_slow costs nodes m ref) idx (tgt.snd)⟧)
                                          next_inputs nodes dvec.head,
 begin
-apply is_gintegrable_k_congr _ _ _ _ _ H_wfs^.right^.nodup _ H_op_called,
+apply is_gintegrable_k_congr _ _ _ _ _ H_wfs^.right^.uids _ H_op_called,
 intros m H_envs_match,
 -- TODO(dhs): this is copy-pasted from above (nested comment!)
 assert H_parents_match : env.get_ks parents m = env.get_ks parents next_inputs,
@@ -98,10 +98,9 @@ end
 | inputs (⟨ref, parents, operator.rand op⟩ :: nodes) tgt H_wf H_gs_exist H_pdfs_exist H_gdiff H_diff_under_int H_gint :=
 let θ := env.get tgt inputs in
 let next_inputs := λ (y : T ref.2), env.insert ref y inputs in
-have H_tgt_in_keys : tgt ∈ env.keys inputs, from env.has_key_mem_keys H_wf^.m_contains_tgt,
 have H_ref_in_refs : ref ∈ ref :: map node.ref nodes, from mem_of_cons_same,
-have H_ref_notin_parents : ref ∉ parents, from ref_notin_parents H_wf^.ps_in_env H_wf^.nodup,
-have H_tgt_neq_ref : tgt ≠ ref, from nodup_append_neq H_tgt_in_keys H_ref_in_refs H_wf^.nodup,
+have H_ref_notin_parents : ref ∉ parents, from ref_notin_parents H_wf^.ps_in_env H_wf^.uids,
+have H_tgt_neq_ref : tgt ≠ ref, from ref_ne_tgt H_wf^.m_contains_tgt H_wf^.uids,
 
 have H_wfs : ∀ y, well_formed_at costs nodes (next_inputs y) tgt ∧ well_formed_at costs nodes (next_inputs y) ref,
   from assume y, wf_at_next H_wf,

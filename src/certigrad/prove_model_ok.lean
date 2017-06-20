@@ -127,10 +127,10 @@ intros HP H_in,
 exact HP
 end
 
-@[cgsimp] lemma simp_subset_cons {α : Type*} (xs : list α) (x : α) : (xs ⊆ x :: xs) = true :=
+@[cgsimp] lemma simp_subset_cons {α : Type*} (xs : list α) (x : α) : (xs <+ x :: xs) = true :=
 begin
 apply pextt,
-apply list.subset_cons
+apply list.sublist_cons
 end
 
 @[cgsimp] lemma simp_sqrt_pos {shape : S} {x : T shape}: (0 < sqrt x) = (0 < x) :=
@@ -262,66 +262,6 @@ meta def cgsimpn : ℕ → tactic unit
 | (n+1) := cgsimpt (cgsimpn n)
 
 meta def cgsimp : tactic unit := cgsimpn 50
-
-private meta def prove_indep_hyps (g fdict : expr) : tactic unit :=
-do trace "targets subset inputs...",
-   to_expr ```((%%g)^.targets ⊆ env.keys %%fdict) >>= assert `H_tgts_ss_inputs,
-     solve1 cgsimp,
-   trace "pdfs_exist_at...",
-   to_expr ```(pdfs_exist_at (%%g)^.nodes %%fdict) >>= assert `H_pdfs_exist,
-     solve1 cgsimp
-
-private meta def prove_dep_hyps (g fdict tgt : expr) : tactic unit :=
-do trace "well_formed_at...",
-   to_expr ```(well_formed_at (%%g)^.costs (%%g)^.nodes %%fdict %%tgt) >>= assert `H_wf,
-     focus1 (constructor >> all_goals cgsimp), rotate 1,
-   trace "grads_exist_at...",
-   to_expr ```(grads_exist_at (%%g)^.nodes %%fdict %%tgt) >>= assert `H_gs_exist,
-     solve1 (cgsimp),
-   trace "is_gintegrable...",
-   to_expr ```(is_gintegrable (λ m, ⟦compute_grad_slow (%%g)^.costs (%%g)^.nodes m %%tgt⟧) %%fdict (%%g)^.nodes dvec.head) >>= assert `H_gint,
-     solve1 (cgsimp >> prove_is_mvn_integrable),
-   trace "can_diff_under_ints...",
-   to_expr ```(can_differentiate_under_integrals (%%g)^.costs (%%g)^.nodes %%fdict %%tgt) >>= assert `H_can_diff,
-     solve1 (cgsimp >> prove_is_mvn_uintegrable)
-
-private meta def forall_idxs (tac_base tac_step : tactic unit) : expr → tactic unit
-| idx :=
-tac_base <|>
-(do cases idx [`_idx],
-    trace "next idx...",
-    solve1 tac_step,
-    get_local `_idx >>= forall_idxs)
-
-private meta def prove_model_base : tactic unit :=
-do exfalso,
-   H_at_idx ← get_local `H_at_idx,
-   to_expr ```(list.at_idx_over %%H_at_idx dec_trivial) >>= exact
-
-private meta def prove_model_step (g fdict : expr) : tactic unit :=
-do H_at_idx ← get_local `H_at_idx,
-   mk_app `and.right [H_at_idx] >>= note `H_tgt_eq,
-   H_tgt_eq_type ← get_local `H_tgt_eq >>= infer_type,
-   s ← join_user_simp_lemmas true [`cgsimp],
-   (H_tgt_eq_new_type, pr) ← simplify s H_tgt_eq_type {},
-   get_local `H_tgt_eq >>= λ H_tgt_eq, replace_hyp H_tgt_eq H_tgt_eq_new_type pr,
-   get_local `H_tgt_eq >>= subst,
-   (tgt, new_tgt) ← match_eq H_tgt_eq_new_type,
-   prove_dep_hyps g fdict new_tgt,
-   to_expr ```(backprop_correct %%fdict (%%g)^.targets H_tgts_ss_inputs H_at_idx H_wf H_gs_exist H_pdfs_exist H_gint H_can_diff) >>= exact
-
-meta def prove_model_ok (g fdict : expr) : tactic unit :=
-do trace "prove_model_ok...",
-   trace "g: ", trace g,
-   trace "fdict: ", trace fdict,
-   -- introduce hypotheses
-   [tgt, idx, H_at_idx] ← intros | fail "can't intro hyps",
-   -- prove independent hyps once and for all
-   prove_indep_hyps g fdict,
-   -- repeated case-analysis on idx
-   forall_idxs prove_model_base (prove_model_step g fdict) idx,
-   -- notify when the tactic finishes
-   trace "prove_model_ok finished"
 
 end tactic
 end certigrad

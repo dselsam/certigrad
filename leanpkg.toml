@@ -4,4 +4,4 @@ version = "0.1"
 path = "src"
 
 [dependencies]
-library_dev_extras = {git = "https://github.com/dselsam/library_dev_extras.git", rev = "c45ab0eb22211bc46d0d959c62185d93ea07d980"}
+library_dev_extras = {git = "https://github.com/dselsam/library_dev_extras.git", rev = "302d631dfc40c6d69f921fd7bacf017e11e6e56c"}

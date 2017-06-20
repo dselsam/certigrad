@@ -12,7 +12,7 @@ open tactic list theorems
 
 theorem backprop_correct {costs : list ID} :
   ∀ {nodes : list node} (inputs : env) (tgts : list reference),
-  tgts ⊆ env.keys inputs →
+  tgts <+ env.keys inputs →
   ∀ {tgt : reference} {idx : ℕ}, at_idx tgts idx tgt →
   well_formed_at costs nodes inputs tgt →
   grads_exist_at nodes inputs tgt →
@@ -25,7 +25,7 @@ theorem backprop_correct {costs : list ID} :
   E (graph.to_dist (λ m, backprop costs nodes m tgts) inputs nodes) (λ dict, dvec.get tgt.2 dict idx) :=
 
 assume (nodes : list node) (inputs : env) (tgts : list reference)
-       (H_tgts_in_inputs : tgts ⊆ env.keys inputs)
+       (H_tgts_in_inputs : tgts <+ env.keys inputs)
        (tgt : reference) (idx : ℕ) (H_at_idx : at_idx tgts idx tgt)
        (H_wf : well_formed_at costs nodes inputs tgt)
        (H_gs_exist : grads_exist_at nodes inputs tgt)

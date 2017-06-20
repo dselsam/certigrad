@@ -179,12 +179,6 @@ gsimp,
 exact dec_trivial
 end
 
-example : [(ID.str "he", @nil ℕ)] ⊆ [(ID.str "he", @nil ℕ), (ID.str "hg", ([5] : S))] :=
-begin
-dunfold has_subset.subset list.subset,
-exact dec_trivial
-end
-
 instance {xs ys : list reference} : decidable (xs ⊆ ys) :=
 begin
 dunfold has_subset.subset list.subset,

@@ -66,7 +66,7 @@ end
 
 | (tgt::tgts) tgt₀ (idx+1) H_at_idx H_nodup :=
 have H_neq : tgt₀ ≠ tgt, from nodup_at_idx_neq H_nodup H_at_idx,
-have H_at_idx_next : at_idx tgts idx tgt₀, from nodup_at_idx H_nodup H_at_idx,
+have H_at_idx_next : at_idx tgts idx tgt₀, from at_idx_of_cons H_at_idx,
 begin
 dunfold foldr,
 rw (env.get_insert_diff _ _ H_neq),

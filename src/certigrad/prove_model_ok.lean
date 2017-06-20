@@ -220,7 +220,7 @@ attribute [cgsimp] rand.op.pdf rand.pdf.mvn_iso rand.pdf.mvn_iso_std
 
 attribute [cgsimp] env.get_ks env.insert_all env.get_insert_same env.get_insert_diff
                    env.simp_has_key_insert_same env.simp_has_key_insert_diff env.simp_has_key_empty
-                   env.simp_keys_nil env.simp_keys_cons
+
 
 attribute [cgsimp] list.insertion_sort list.ordered_insert
 

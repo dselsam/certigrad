@@ -17,8 +17,8 @@ set_option profiler true
 open graph list tactic certigrad.tactic
 
 meta def prove_for_tgt : tactic unit :=
-mk_sorry >>= exact -- just for perf reasons
-/-
+--mk_sorry >>= exact -- just for perf reasons
+
 do trace "prove_for_tgt start...",
    whnf_target,
 
@@ -47,7 +47,7 @@ do trace "prove_for_tgt start...",
    trace "can_diff_under_ints...",
      solve1 (cgsimp >> prove_is_mvn_uintegrable),
    trace "prove_for_tgt done"
--/
+
 section params
 
 parameters (a : arch) (ws : weights a) (x_data : T [a^.n_in, a^.n_x])
@@ -62,7 +62,7 @@ let tgt := (ID.str label.W_encode, [a^.ne, a^.n_in]) in
 ∇ (λ θ₀, E (graph.to_dist (λ m, ⟦sum_costs m g^.costs⟧) (env.insert tgt θ₀ fdict) g^.nodes) dvec.head) (env.get tgt fdict)
 =
 E (graph.to_dist (λ m, backprop g^.costs g^.nodes m g^.targets) fdict g^.nodes) (λ dict, dvec.get tgt.2 dict idx) :=
-by prove_for_tgt
+sorry -- by prove_for_tgt
 
 lemma aevb_backprop_correct_W_encode_μ :
 let idx := 1 in
@@ -70,7 +70,7 @@ let tgt := (ID.str label.W_encode_μ, [a^.nz, a^.ne]) in
 ∇ (λ θ₀, E (graph.to_dist (λ m, ⟦sum_costs m g^.costs⟧) (env.insert tgt θ₀ fdict) g^.nodes) dvec.head) (env.get tgt fdict)
 =
 E (graph.to_dist (λ m, backprop g^.costs g^.nodes m g^.targets) fdict g^.nodes) (λ dict, dvec.get tgt.2 dict idx) :=
-by prove_for_tgt
+sorry -- by prove_for_tgt
 
 lemma aevb_backprop_correct_W_encode_logσ₂ :
 let idx := 2 in
@@ -78,7 +78,7 @@ let tgt := (ID.str label.W_encode_logσ₂, [a^.nz, a^.ne]) in
 ∇ (λ θ₀, E (graph.to_dist (λ m, ⟦sum_costs m g^.costs⟧) (env.insert tgt θ₀ fdict) g^.nodes) dvec.head) (env.get tgt fdict)
 =
 E (graph.to_dist (λ m, backprop g^.costs g^.nodes m g^.targets) fdict g^.nodes) (λ dict, dvec.get tgt.2 dict idx) :=
-by prove_for_tgt
+sorry -- by prove_for_tgt
 
 lemma aevb_backprop_correct_W_decode :
 let idx := 3 in
@@ -94,7 +94,7 @@ let tgt := (ID.str label.W_decode_p, [a^.n_in, a^.nd]) in
 ∇ (λ θ₀, E (graph.to_dist (λ m, ⟦sum_costs m g^.costs⟧) (env.insert tgt θ₀ fdict) g^.nodes) dvec.head) (env.get tgt fdict)
 =
 E (graph.to_dist (λ m, backprop g^.costs g^.nodes m g^.targets) fdict g^.nodes) (λ dict, dvec.get tgt.2 dict idx) :=
-by prove_for_tgt
+sorry -- by prove_for_tgt
 
 theorem aevb_backprop_correct :
 ∀ (tgt : reference) (idx : ℕ) (H_at_idx : at_idx g^.targets idx tgt),

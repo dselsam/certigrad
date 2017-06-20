@@ -11,6 +11,14 @@ namespace certigrad
 
 @[reducible] def reference := ID × S
 
+namespace reference
+
+-- TODO(dhs): (much) better hash function
+def hash : reference → ℕ
+| ref := 0
+
+end reference
+
 section tactics
 open tactic
 

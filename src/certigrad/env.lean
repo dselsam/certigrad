@@ -5,7 +5,7 @@ Author: Daniel Selsam
 
 Environments.
 -/
-import data.hash_map library_dev.data.list.sort .tensor .id library_dev_extras.util library_dev_extras.dmap .reference
+import data.hash_map library_dev.data.list.sort .tensor .id library_dev_extras.util .reference
 
 namespace certigrad
 
@@ -81,6 +81,15 @@ has_key ref (quotient.mk m) = m^.contains ref := rfl
 
 @[simp] lemma bool_lift_t (b : bool) : (lift_t b : Prop) = (b = tt) := rfl
 
+-- TODO(dhs): PR to standard library
+lemma not_has_key_empty (ref : reference) : ¬ env.has_key ref env.mk :=
+begin
+simp [mk],
+rw hash_map.contains_iff,
+simp [hash_map.keys, hash_map.entries, mk_hash_map, bucket_array.as_list,
+      mk_array, array.foldl, array.iterate, array.iterate_aux, list.map, array.read],
+end
+
 lemma has_key_insert {ref₁ ref₂ : reference} {x₂ : T ref₂.2} {m : env} :
   has_key ref₁ m → has_key ref₁ (insert ref₂ x₂ m) :=
 begin
@@ -116,15 +125,24 @@ dsimp [option.is_some],
 reflexivity
 end
 
+lemma has_key_insert_diff (ref₁ ref₂ : reference) {x : T ref₂.2} (m : env) :
+  ref₁ ≠ ref₂ → has_key ref₁ (insert ref₂ x m) → has_key ref₁ m :=
+begin
+apply @quotient.induction_on _ _ (λ m, ref₁ ≠ ref₂ → has_key ref₁ (insert ref₂ x m) → has_key ref₁ m),
+clear m,
+simp [hash_map.contains],
+intros m H_neq,
+rw hash_map.find_insert_ne,
+intro H, exact H,
+exact ne.symm H_neq
+end
+
 lemma get_insert_same (ref : reference) (x : T ref.2) (m : env) : get ref (insert ref x m) = x :=
 begin
 apply quotient.induction_on m, clear m, intro m,
 simp,
 rw hash_map.find_insert_eq,
 end
-
---set_option trace.simplify true
---#check @option.cases_on
 
 lemma get_insert_diff {ref₁ ref₂ : reference} (x₂ : T ref₂.2) (m : env) : ref₁ ≠ ref₂ → get ref₁ (insert ref₂ x₂ m) = get ref₁ m :=
 begin
@@ -182,6 +200,66 @@ cases decidable.em (ref₂ = ref) with H_eq₂ H_neq₂,
 { simp [H_neq₁, H_neq₂, dif_ctx_simp_congr, dif_neg], }
 end
 
+lemma insert_insert_same (ref : reference) (x₁ x₂ : T ref.2) (m : env) :
+  insert ref x₁ (insert ref x₂ m) = insert ref x₁ m :=
+begin
+apply quotient.induction_on m,
+clear m,
+simp,
+intros m,
+apply quot.sound,
+intro ref',
+cases decidable.em (ref' = ref) with H_eq H_neq,
+{ subst H_eq, simp [hash_map.find_insert_eq] },
+-- TODO(dhs): simp fails for annoying reasons
+rw hash_map.find_insert_ne _ _ _ _ (ne.symm H_neq),
+rw hash_map.find_insert_ne _ _ _ _ (ne.symm H_neq),
+rw hash_map.find_insert_ne _ _ _ _ (ne.symm H_neq)
+end
+
+lemma get_ks_env_eq (m₁ m₂ : env) :
+  ∀ (refs : list reference), (∀ (ref : reference), ref ∈ refs → get ref m₁ = get ref m₂) → get_ks refs m₁ = get_ks refs m₂
+| [] H := rfl
+| (ref::refs) H :=
+show get ref m₁ ::: get_ks refs m₁ = get ref m₂ ::: get_ks refs m₂, from
+have H_get : get ref m₁ = get ref m₂, from H ref list.mem_of_cons_same,
+have H_pre : ∀ (ref : reference), ref ∈ refs → get ref m₁ = get ref m₂, from
+  assume r H_r_mem,
+  H r (list.mem_cons_of_mem _ H_r_mem),
+by rw [H_get, get_ks_env_eq _ H_pre]
+
+lemma get_ks_insert_diff :
+  ∀ {refs : list reference} {ref : reference} {x : T ref.2} {m : env}, ref ∉ refs → get_ks refs (insert ref x m) = get_ks refs m
+| [] _ _ _ _ := rfl
+| (ref::refs) ref₀ x m H_ref₀_notin :=
+show get ref (insert ref₀ x m) ::: get_ks refs (insert ref₀ x m) = get ref m ::: get_ks refs m, from
+have H_ne : ref ≠ ref₀, from ne.symm (list.ne_of_not_mem_cons H_ref₀_notin),
+begin
+rw (env.get_insert_diff _ _ H_ne),
+rw get_ks_insert_diff (list.not_mem_of_not_mem_cons H_ref₀_notin),
+end
+
+lemma dvec_update_at_env {refs : list reference} {idx : ℕ} {ref : reference} (m : env) :
+      list.at_idx refs idx ref →
+      dvec.update_at (get ref m) (get_ks refs m) idx = get_ks refs m :=
+begin
+intro H_at_idx,
+assert H_elem_at_idx : list.elem_at_idx refs idx ref, { exact list.elem_at_idx_of_at_idx H_at_idx },
+induction H_elem_at_idx with xs x xs idx' x y H_elem_at_idx IH,
+{ dsimp [get_ks], erw dvec.update_at.equations._eqn_2, simp [dif_ctx_simp_congr, dif_pos] },
+{ dsimp [get_ks], erw dvec.update_at.equations._eqn_3, erw IH (list.at_idx_of_cons H_at_idx) }
+end
+
+lemma dvec_get_get_ks {refs : list reference} {idx : ℕ} {ref : reference} (m : env) :
+      list.at_idx refs idx ref →
+      dvec.get ref.2 (get_ks refs m) idx = get ref m :=
+begin
+intro H_at_idx,
+assert H_elem_at_idx : list.elem_at_idx refs idx ref, { exact list.elem_at_idx_of_at_idx H_at_idx },
+induction H_elem_at_idx with xs x xs idx' x y H_elem_at_idx IH,
+{ dunfold get_ks, erw dvec.get.equations._eqn_2, simp [dif_ctx_simp_congr, dif_pos] },
+{ dunfold get_ks, erw dvec.get.equations._eqn_3, exact IH (list.at_idx_of_cons H_at_idx) }
+end
 
 end env
 end certigrad
@@ -206,8 +284,6 @@ show decidable (dmap.has_key ref m), by tactic.apply_instance
 
 
 
-lemma insert_insert_same (ref : reference) (x₁ x₂ : T ref.2) (m : env) :
-  insert ref x₁ (insert ref x₂ m) = insert ref x₁ m := dmap.insert_insert_same ref x₁ x₂ m
 
 
 
@@ -215,61 +291,10 @@ lemma insert_insert_same (ref : reference) (x₁ x₂ : T ref.2) (m : env) :
 section proofs
 open list
 
-lemma get_ks_env_eq (m₁ m₂ : env) :
-  ∀ (refs : list reference), (∀ (ref : reference), ref ∈ refs → get ref m₁ = get ref m₂) → get_ks refs m₁ = get_ks refs m₂
-| [] H := rfl
-| (ref::refs) H :=
-show get ref m₁ ::: get_ks refs m₁ = get ref m₂ ::: get_ks refs m₂, from
-have H_get : get ref m₁ = get ref m₂, from H ref mem_of_cons_same,
-have H_pre : ∀ (ref : reference), ref ∈ refs → get ref m₁ = get ref m₂, from
-  assume r H_r_mem,
-  H r (mem_cons_of_mem _ H_r_mem),
-by rw [H_get, get_ks_env_eq _ H_pre]
-
-lemma get_ks_insert_diff :
-  ∀ {refs : list reference} {ref : reference} {x : T ref.2} {m : env}, ref ∉ refs → get_ks refs (insert ref x m) = get_ks refs m
-| [] _ _ _ _ := rfl
-| (ref::refs) ref₀ x m H_ref₀_notin :=
-show get ref (insert ref₀ x m) ::: get_ks refs (insert ref₀ x m) = get ref m ::: get_ks refs m, from
-have H_ne : ref ≠ ref₀, from ne.symm (ne_of_not_mem_cons H_ref₀_notin),
-begin
-rw (env.get_insert_diff _ _ H_ne),
-rw get_ks_insert_diff (not_mem_of_not_mem_cons H_ref₀_notin),
-end
-
-lemma dvec_update_at_env {refs : list reference} {idx : ℕ} {ref : reference} (m : env) :
-      at_idx refs idx ref →
-      dvec.update_at (get ref m) (get_ks refs m) idx = get_ks refs m :=
-begin
-intro H_at_idx,
-assert H_elem_at_idx : elem_at_idx refs idx ref, { exact elem_at_idx_of_at_idx H_at_idx },
-induction H_elem_at_idx with xs x xs idx' x y H_elem_at_idx IH,
-{ dsimp [get_ks], erw dvec.update_at.equations._eqn_2, simp [dif_ctx_simp_congr, dif_pos] },
-{ dsimp [get_ks], erw dvec.update_at.equations._eqn_3, erw IH (at_idx_of_cons H_at_idx) }
-end
-
-lemma dvec_get_get_ks {refs : list reference} {idx : ℕ} {ref : reference} (m : env) :
-      at_idx refs idx ref →
-      dvec.get ref.2 (get_ks refs m) idx = get ref m :=
-begin
-intro H_at_idx,
-assert H_elem_at_idx : elem_at_idx refs idx ref, { exact elem_at_idx_of_at_idx H_at_idx },
-induction H_elem_at_idx with xs x xs idx' x y H_elem_at_idx IH,
-{ dunfold get_ks, erw dvec.get.equations._eqn_2, simp [dif_ctx_simp_congr, dif_pos] },
-{ dunfold get_ks, erw dvec.get.equations._eqn_3, exact IH (at_idx_of_cons H_at_idx) }
-end
 
 end proofs
 
 section simp_lemmas
-
-lemma simp_has_key_insert_same (ref : reference) {x : T ref.2} (m : env) :
-  has_key ref (insert ref x m) = true := sorry
-
-lemma simp_has_key_insert_diff (ref₁ ref₂ : reference) {x : T ref₂.2} (m : env) :
-  ref₁ ≠ ref₂ → has_key ref₁ (insert ref₂ x m) = has_key ref₁ m := sorry
-
-lemma simp_has_key_empty (ref : reference) : has_key ref env.mk = false := sorry
 
 
 

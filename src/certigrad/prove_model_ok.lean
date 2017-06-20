@@ -164,6 +164,23 @@ exact H,
 exact iff.mpr one_plus_pos_iff H
 end
 
+@[cgsimp] lemma simp_has_key_insert_same (ref : reference) {x : T ref.2} (m : env) :
+  env.has_key ref (env.insert ref x m) = true := pextt (by apply env.has_key_insert_same)
+
+@[cgsimp] lemma simp_has_key_insert_diff (ref₁ ref₂ : reference) {x : T ref₂.2} (m : env) :
+  ref₁ ≠ ref₂ → env.has_key ref₁ (env.insert ref₂ x m) = env.has_key ref₁ m :=
+begin
+intro H_neq,
+apply propext,
+split,
+apply env.has_key_insert_diff,
+exact H_neq,
+apply env.has_key_insert
+end
+
+@[cgsimp] lemma simp_has_key_empty (ref : reference) : env.has_key ref env.mk = false :=
+begin apply pextf, apply env.not_has_key_empty end
+
 attribute [cgsimp] T.smul_zero T.one_smul
 
 attribute [cgsimp] if_pos if_neg if_true if_false

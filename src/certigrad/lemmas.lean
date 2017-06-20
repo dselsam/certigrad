@@ -10,6 +10,13 @@ import .predicates .tcont .expected_value
 namespace certigrad
 open list
 
+lemma env_not_has_key_insert {m : env} {ref₁ ref₂ : reference} {x : T ref₂.2} :
+  ref₁ ≠ ref₂ → (¬ env.has_key ref₁ m) → (¬ env.has_key ref₁ (env.insert ref₂ x m)) :=
+begin
+intros H_neq H_nin H_in,
+exact H_nin (env.has_key_insert_diff H_neq H_in)
+end
+
 lemma env_in_nin_ne {m : env} {ref₁ ref₂ : reference} : env.has_key ref₁ m → (¬ env.has_key ref₂ m) → ref₁ ≠ ref₂ :=
 begin
 intros H_in H_nin H_eq,

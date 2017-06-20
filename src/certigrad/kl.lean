@@ -382,7 +382,7 @@ T.mvn_iso_kl (env.get (μ, shape) inputs : T shape) (env.get (σ, shape) inputs 
 { intro x, apply (E.E_of_lookup H_eloss_nin_nodes),
 dsimp [pdfs_exist_at] at H_pdfs_exist_at,
 dsimp [all_parents_in_env] at H_ps_in_env,
-exact (pdfs_exist_at_ignore (H_pre^.right^.right^.right^.right _) H_eloss_nin (H_pdfs_exist_at^.right _))
+exact (pdfs_exist_at_ignore (H_pre^.right^.right^.right^.right _) (env_not_has_key_insert H_eloss_neq_z H_eloss_nin) H_eloss_nin_nodes (H_pdfs_exist_at^.right _))
 },
 
 assert H_term₁_rhs :
@@ -398,7 +398,7 @@ T.mvn_iso_empirical_kl (env.get (μ, shape) inputs : T shape) (env.get (σ, shap
 { intro x, apply (E.E_of_lookup H_eloss_nin_nodes),
 dsimp [pdfs_exist_at] at H_pdfs_exist_at,
 dsimp [all_parents_in_env] at H_ps_in_env,
-exact (pdfs_exist_at_ignore (H_pre^.right^.right^.right^.right _) H_eloss_nin (H_pdfs_exist_at^.right _))
+exact (pdfs_exist_at_ignore (H_pre^.right^.right^.right^.right _) (env_not_has_key_insert H_eloss_neq_z H_eloss_nin) H_eloss_nin_nodes (H_pdfs_exist_at^.right _))
  },
 
 assert H_term₁ :
@@ -425,8 +425,9 @@ dunfold E T.dintegral dvec.head rand.op.pdf dvec.head2 dvec.head3,
 dsimp,
 dunfold dvec.head,
 erw T.integral_fscale,
-erw (@T.mvn_iso_kl_identity shape (env.get (μ, shape) inputs) (env.get (σ, shape) inputs) H_pre^.right^.right^.left),
-assertv H_pdf_1 : ∫ (λ (x : T shape), T.mvn_iso_pdf (env.get (μ, shape) inputs : T shape) (env.get (σ, shape) inputs : T shape) x) = 1 := T.mvn_iso_pdf_int1 _ _ H_pre^.right^.right^.left,
+erw (@T.mvn_iso_kl_identity shape (env.get (μ, shape) inputs) (env.get (σ, shape) inputs) H_pre^.right^.right^.right^.left),
+assertv H_pdf_1 : ∫ (λ (x : T shape), T.mvn_iso_pdf (env.get (μ, shape) inputs : T shape) (env.get (σ, shape) inputs : T shape) x) = 1 :=
+  T.mvn_iso_pdf_int1 _ _ H_pre^.right^.right^.right^.left,
 delta rand.pdf.mvn_iso,
 dsimp,
 rw H_pdf_1,
@@ -435,10 +436,10 @@ rw T.one_smul
 
 erw H_term₁, clear H_term₁, apply congr_arg,
 apply congr_arg, apply funext, intro x,
-assertv H_ps_in_env : all_parents_in_env (env.insert (z, shape) x^.head inputs) nodes := by apply H_pre^.right^.right^.right,
+assertv H_ps_in_env : all_parents_in_env (env.insert (z, shape) x^.head inputs) nodes := by apply H_pre^.right^.right^.right^.right,
 dsimp,
-erw (to_dist_congr_insert H_ps_in_env H_eloss_nin_nodes H_eloss_not_cost),
-erw (to_dist_congr_insert H_ps_in_env H_eloss_nin_nodes H_eloss_not_cost)
+erw (to_dist_congr_insert H_ps_in_env (env_not_has_key_insert H_eloss_neq_z H_eloss_nin) H_eloss_nin_nodes H_eloss_not_cost),
+erw (to_dist_congr_insert H_ps_in_env (env_not_has_key_insert H_eloss_neq_z H_eloss_nin) H_eloss_nin_nodes H_eloss_not_cost)
 end
 
 -- EQ11
@@ -469,9 +470,8 @@ definev next_inputs : env := env.insert (rname₂, shape₂) (op^.f (env.get_ks 
 definev next_nodes : list node := nodes,
 
 assertv H_pre_next : integrate_mvn_iso_kl_pre eloss next_nodes next_inputs := H_pre,
-assertv H_uids_next : nodup (env.keys next_inputs ++ map node.ref next_nodes) := env.nodup_insert H_uids,
 assertv H_ps_in_env_next : all_parents_in_env next_inputs next_nodes := H_ps_in_env^.right _,
-exact (integrate_mvn_iso_kl_correct _ _ H_eloss_not_cost H_pre_next H_uids_next H_ps_in_env_next H_pdfs_exist_at H_kl_gint H_gint)
+exact (integrate_mvn_iso_kl_correct _ _ H_eloss_not_cost H_pre_next (H_uids^.right _) H_ps_in_env_next H_pdfs_exist_at H_kl_gint H_gint)
 end
 
 -- EQ14 (b)

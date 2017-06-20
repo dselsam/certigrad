@@ -236,8 +236,6 @@ attribute [cgsimp] rand.op.pdf rand.pdf.mvn_iso rand.pdf.mvn_iso_std
                    rand.op.pre rand.op.mvn_iso rand.op.mvn_iso_std rand.pre.mvn_iso rand.pre.mvn_iso_std
 
 attribute [cgsimp] env.get_ks env.insert_all env.get_insert_same env.get_insert_diff
-                   env.simp_has_key_insert_same env.simp_has_key_insert_diff env.simp_has_key_empty
-
 
 attribute [cgsimp] list.insertion_sort list.ordered_insert
 

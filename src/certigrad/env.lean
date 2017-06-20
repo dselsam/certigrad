@@ -125,7 +125,7 @@ dsimp [option.is_some],
 reflexivity
 end
 
-lemma has_key_insert_diff (ref₁ ref₂ : reference) {x : T ref₂.2} (m : env) :
+lemma has_key_insert_diff {ref₁ ref₂ : reference} {x : T ref₂.2} {m : env} :
   ref₁ ≠ ref₂ → has_key ref₁ (insert ref₂ x m) → has_key ref₁ m :=
 begin
 apply @quotient.induction_on _ _ (λ m, ref₁ ≠ ref₂ → has_key ref₁ (insert ref₂ x m) → has_key ref₁ m),
@@ -158,7 +158,7 @@ rw H_dif,
 end
 
 -- TODO(dhs): propagate precondition
-lemma insert_get_same (ref : reference) (m : env) : has_key ref m → insert ref (get ref m) m = m :=
+lemma insert_get_same {ref : reference} {m : env} : has_key ref m → insert ref (get ref m) m = m :=
 begin
 apply @quotient.induction_on _ _ (λ m, has_key ref m → insert ref (get ref m) m = m),
 clear m,

@@ -112,16 +112,17 @@ end
 lemma pdf_continuous {ref : reference} {parents : list reference} {op : rand.op parents^.p2 ref.2}
                      {nodes : list node} {inputs : env} {tgt : reference} :
   ∀ {idx : ℕ}, at_idx parents idx tgt →
+  env.has_key tgt inputs →
   grads_exist_at (⟨ref, parents, operator.rand op⟩ :: nodes) inputs tgt →
   ∀ (y : T ref.2),
     T.is_continuous (λ (x : T tgt.2),
                       (op^.pdf (dvec.update_at x (env.get_ks parents (env.insert tgt (env.get tgt inputs) inputs)) idx) y))
                       (env.get tgt inputs) :=
 begin
-  intros idx H_at_idx H_gs_exist y,
+  intros idx H_at_idx H_tgt_in_inputs H_gs_exist y,
   assertv H_tgt_in_parents : tgt ∈ parents := mem_of_at_idx H_at_idx,
   assertv H_pre_satisfied : op^.pre (env.get_ks parents inputs) := H_gs_exist^.left H_tgt_in_parents,
-  simp [env.insert_get_same],
+  simp [env.insert_get_same H_tgt_in_inputs],
   dsimp,
   simp [eq.symm (env.dvec_get_get_ks inputs H_at_idx)],
   exact (op^.cont (at_idx_p2 H_at_idx) H_pre_satisfied)
@@ -218,7 +219,7 @@ begin
 dsimp,
 apply T.continuous_multiple_args,
 intros idx H_at_idx,
-simp [env.insert_get_same],
+simp [env.insert_get_same H_wf^.m_contains_tgt],
 rw -(env.dvec_get_get_ks _ H_at_idx),
 apply (op^.cont (env.get_ks parents inputs) (at_idx_p2 H_at_idx) (H_gs_exist^.right $ mem_of_at_idx H_at_idx)^.left),
 end,
@@ -226,7 +227,7 @@ end,
 assert H_chain₂_θ : T.is_continuous (λ (x₀ : T tgt.2), chain₂ x₀ (chain₁ (env.get tgt inputs))) (env.get tgt inputs),
 begin
 dsimp,
-simp [env.insert_get_same],
+simp [env.insert_get_same H_wf^.m_contains_tgt],
 simp [λ (v₁ : T ref.2) (v₂ : T tgt.2) m, env.insert_insert_flip v₁ v₂ m (ne.symm H_tgt_neq_ref)],
 rw -H_can_insert,
 exact (continuous_of_grads_exist H_wfs^.left H_gs_exist_tgt)
@@ -237,7 +238,7 @@ begin
 assertv H_gs_exist_ref : grads_exist_at nodes next_inputs ref := (H_gs_exist^.right H_tgt_in_parents)^.right,
 dsimp,
 
-simp [env.insert_get_same],
+simp [env.insert_get_same H_wf^.m_contains_tgt],
 rw -H_get_ref_next,
 simp [H_insert_next],
 
@@ -266,7 +267,7 @@ let next_inputs := λ (y : T ref.2), env.insert ref y inputs in
 have H_ref_in_refs : ref ∈ ref :: map node.ref nodes, from mem_of_cons_same,
 have H_ref_notin_parents : ref ∉ parents, from ref_notin_parents H_wf^.ps_in_env H_wf^.uids,
 have H_tgt_neq_ref : tgt ≠ ref, from ref_ne_tgt H_wf^.m_contains_tgt H_wf^.uids,
-have H_insert_θ : env.insert tgt θ inputs = inputs, by rw env.insert_get_same,
+have H_insert_θ : env.insert tgt θ inputs = inputs, by rw env.insert_get_same H_wf^.m_contains_tgt,
 
 have H_parents_match : ∀ y, env.get_ks parents (next_inputs y) = env.get_ks parents inputs,
   begin intro y, dsimp, rw (env.get_ks_insert_diff H_ref_notin_parents), end,
@@ -283,7 +284,7 @@ begin
 apply (T.continuous_multiple_args parents [] tgt inputs (λ xs, op^.pdf xs y) (env.get tgt inputs)),
 intros idx H_at_idx,
 dsimp,
-apply (pdf_continuous H_at_idx H_gs_exist)
+apply (pdf_continuous H_at_idx H_wf^.m_contains_tgt H_gs_exist)
 end,
 
 have H_rest_continuous : ∀ (x : dvec T [ref.2]),

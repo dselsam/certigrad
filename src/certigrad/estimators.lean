@@ -73,6 +73,7 @@ assume (x : T oshape),
 by apply T.grad_scale_f
 
 lemma hybrid_general {parents : list reference} {tgt : reference} {oshape : S} (m : env)
+    (H_tgt_in_inputs : env.has_key tgt m)
     (op : rand.op parents^.p2 oshape)
     (H_op_pre : op^.pre (env.get_ks parents m))
     (f : T oshape → T tgt.2 → ℝ)
@@ -186,7 +187,7 @@ sumr (map (λ (x : ℕ),
                f y^.head θ ⬝ ∇ (λ (θ₀ : T tgt.2),
                             T.log (op^.pdf (dvec.update_at θ₀ (env.get_ks parents (env.insert tgt θ m)) x) y^.head)) θ))
          (filter (λ (idx : ℕ), tgt = dnth parents idx) (riota (length parents)))), from
-  begin rw -E.E_pull_out_of_sum _ _ _ _ _ H_int₂, exact H_suffices, rw H_θ, rw env.insert_get_same, exact H_op_pre end,
+  begin rw -E.E_pull_out_of_sum _ _ _ _ _ H_int₂, exact H_suffices, rw H_θ, rw env.insert_get_same H_tgt_in_inputs, exact H_op_pre end,
 
 suffices H_suffices :
 ∀ (idx : ℕ), idx ∈ riota (length parents) → tgt = dnth parents idx →
@@ -227,7 +228,7 @@ have H_tgt_at_idx : at_idx parents idx tgt, from ⟨in_riota_lt H_idx_in_riota, 
 have H_tgt_in_parents : tgt ∈ parents, from mem_of_at_idx H_tgt_at_idx,
 
 have H_op'_pre : op^.pre (mk_args θ),
-  begin dsimp, rw H_θ, rw env.insert_get_same, rw (env.dvec_update_at_env _ H_tgt_at_idx), exact H_op_pre end,
+  begin dsimp, rw H_θ, rw env.insert_get_same H_tgt_in_inputs, rw (env.dvec_update_at_env _ H_tgt_at_idx), exact H_op_pre end,
 
 suffices H_suffices :
 E (sprog.prim op (dvec.update_at θ (env.get_ks parents (env.insert tgt θ m)) idx))
@@ -242,7 +243,7 @@ E (sprog.prim op (env.get_ks parents (env.insert tgt θ m)))
 
 have H_remove_dvec_update : dvec.update_at θ (env.get_ks parents (env.insert tgt θ m)) idx = env.get_ks parents (env.insert tgt θ m),
   begin
-  rw [H_θ, env.insert_get_same],
+  rw [H_θ, env.insert_get_same H_tgt_in_inputs],
   rw (env.dvec_update_at_env m ⟨H_idx_lt_len_parents, H_tgt_eq_dnth_idx⟩)
   end,
 

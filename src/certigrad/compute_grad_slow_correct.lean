@@ -365,7 +365,7 @@ assertv H_d'_grad_uint : ∀ (idx : ℕ),  at_idx parents idx tgt →
 H_diff_under_int^.left^.right^.right^.right,
 
 dsimp,
-rw (estimators.hybrid_general inputs op H_op_pre g θ rfl
+rw (estimators.hybrid_general inputs H_wf^.m_contains_inputs op H_op_pre g θ rfl
                               H_g_diff H_g_uint H_g_grad_uint
                               H_d'_pdf_cdiff H_d'_uint H_d'_grad_uint H_diff₁ H_diff₂ H_eint₁ H_eint₂),
 

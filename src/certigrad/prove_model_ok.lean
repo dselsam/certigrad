@@ -142,14 +142,8 @@ begin apply pextt, apply exp_pos end
 @[cgsimp] lemma simp_integrable_const (shape₁ shape₂ : S) (y : T shape₂) : is_integrable (λ (x : T shape₁), y) = true :=
 begin apply pextt, apply is_integrable_const end
 
-/-
--- TODO(dhs): this lemmas is patently false!
-
-@[cgsimp] lemma simp_nneg_of_pos {shape : S} {x : T shape} : 0 ≠ x = (0 < x ∨ 0 = x) :=
-begin
-apply propext, apply nneg_of_pos
-end
--/
+@[cgsimp] lemma simp_nneg_of_pos {shape : S} {x : T shape} : x ≠ 0 = (0 < x ∨ x < 0) :=
+begin apply propext, apply nz_iff end
 
 @[cgsimp] lemma simp_one_pos {shape : S} : (0 < (1 : T shape)) = true := pextt one_pos
 

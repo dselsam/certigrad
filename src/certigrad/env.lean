@@ -163,6 +163,25 @@ exact ne.symm H_neq
 }
 end
 
+lemma insert_insert_flip {ref₁ ref₂ : reference} (x₁ : T ref₁.2) (x₂ : T ref₂.2) (m : env) :
+  ref₁ ≠ ref₂ → insert ref₁ x₁ (insert ref₂ x₂ m) = insert ref₂ x₂ (insert ref₁ x₁ m) :=
+begin
+apply @quotient.induction_on _ _ (λ m, ref₁ ≠ ref₂ → insert ref₁ x₁ (insert ref₂ x₂ m) = insert ref₂ x₂ (insert ref₁ x₁ m)),
+clear m,
+simp,
+intros m H_neq,
+apply quot.sound,
+intro ref,
+simp [hash_map.find_insert],
+cases decidable.em (ref₁ = ref) with H_eq₁ H_neq₁,
+cases decidable.em (ref₂ = ref) with H_eq₂ H_neq₂,
+{ exfalso, exact H_neq (eq.trans H_eq₁ (eq.symm H_eq₂)) },
+{ subst H_eq₁, simp [H_neq₂, dif_ctx_simp_congr, dif_neg, dif_pos] },
+cases decidable.em (ref₂ = ref) with H_eq₂ H_neq₂,
+{ subst H_eq₂, simp [H_neq₁, dif_ctx_simp_congr, dif_neg, dif_pos] },
+{ simp [H_neq₁, H_neq₂, dif_ctx_simp_congr, dif_neg], }
+end
+
 
 end env
 end certigrad
@@ -186,8 +205,6 @@ show decidable (dmap.has_key ref m), by tactic.apply_instance
 
 
 
-lemma insert_insert_flip {ref₁ ref₂ : reference} (x₁ : T ref₁.2) (x₂ : T ref₂.2) (m : env) :
-  ref₁ ≠ ref₂ → insert ref₁ x₁ (insert ref₂ x₂ m) = insert ref₂ x₂ (insert ref₁ x₁ m) := dmap.insert_insert_flip x₁ x₂ m
 
 lemma insert_insert_same (ref : reference) (x₁ x₂ : T ref.2) (m : env) :
   insert ref x₁ (insert ref x₂ m) = insert ref x₁ m := dmap.insert_insert_same ref x₁ x₂ m

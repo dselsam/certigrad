@@ -64,10 +64,8 @@ have H₂ : T.is_dintegrable (λ (xs : dvec T [oshape]), rand.op.pdf pd args (dv
 
 T.dintegral_add_middle _ _ _ H₁ H₂
 
--- TODO(dhs): need WF
-lemma is_eintegrable_add {oshape : S} : Π {shapes : list S} (d : sprog shapes) (f₁ f₂ : dvec T shapes → T oshape),
-  (is_eintegrable d f₁ ∧ is_eintegrable d f₂) ↔ is_eintegrable d (λ x, f₁ x + f₂ x) := sorry
--- TODO(dhs): commented only because we don't have WF
+lemma is_eintegrable_add₁ {oshape : S} : Π {shapes : list S} (d : sprog shapes) (f₁ f₂ : dvec T shapes → T oshape),
+  (is_eintegrable d f₁ ∧ is_eintegrable d f₂) → is_eintegrable d (λ x, f₁ x + f₂ x) := sorry
 /-
 | shapes (@sprog.ret .(shapes) xs) f₁ f₂ :=
 
@@ -97,6 +95,15 @@ end
 | ([oshape]) (@sprog.prim ishapes .(oshape) pd args) f₁ f₂ :=
 is_eintegrable_add (sprog.prim pd args) f₁ f₂
 -/
+
+lemma is_eintegrable_add₂ {oshape : S} : Π {shapes : list S} (d : sprog shapes) (f₁ f₂ : dvec T shapes → T oshape),
+  is_eintegrable d (λ x, f₁ x + f₂ x) → (is_eintegrable d f₁ ∧ is_eintegrable d f₂) := sorry
+
+lemma is_eintegrable_add {oshape : S} : Π {shapes : list S} (d : sprog shapes) (f₁ f₂ : dvec T shapes → T oshape),
+  (is_eintegrable d f₁ ∧ is_eintegrable d f₂) ↔ is_eintegrable d (λ x, f₁ x + f₂ x) :=
+begin
+intros shapes d f₁ f₂, split, apply is_eintegrable_add₁, apply is_eintegrable_add₂
+end
 
 lemma E_congr {shapes : list S} {oshape : S} (d₁ d₂ : sprog shapes) (f : dvec T shapes → T oshape) (H : d₁ = d₂) :
   E d₁ f = E d₂ f := by rw H

@@ -139,21 +139,38 @@ begin apply propext, split, apply pos_of_sqrt_pos, apply sqrt_pos end
 @[cgsimp] lemma simp_exp_pos {shape : S} {x : T shape} : (0 < exp x) = true :=
 begin apply pextt, apply exp_pos end
 
-@[cgsimp] lemma simp_smul_zero (shape : S) (α : ℝ) : α ⬝ (0 : T shape) = (0 : T shape) :=
+@[cgsimp] lemma simp_integrable_const (shape₁ shape₂ : S) (y : T shape₂) : is_integrable (λ (x : T shape₁), y) = true :=
+begin apply pextt, apply is_integrable_const end
+
+/-
+-- TODO(dhs): this lemmas is patently false!
+
+@[cgsimp] lemma simp_nneg_of_pos {shape : S} {x : T shape} : 0 ≠ x = (0 < x ∨ 0 = x) :=
 begin
-rw smul_zero
+apply propext, apply nneg_of_pos
 end
-@[cgsimp] lemma simp_one_smul (shape : S) (x : T shape) : (1 : ℝ) ⬝ x = x := sorry
-@[cgsimp] lemma simp_integrable_zero (shape₁ shape₂ : S) (y : T shape₂) : is_integrable (λ (x : T shape₁), y) = true := sorry
+-/
 
-@[cgsimp] lemma simp_nneg_of_pos {shape : S} : ∀ {x : T shape}, 0 ≠ x = (0 < x ∨ 0 = x) := sorry
+@[cgsimp] lemma simp_one_pos {shape : S} : (0 < (1 : T shape)) = true := pextt one_pos
 
-@[cgsimp] lemma simp_one_pos {shape : S} : (0 < (1 : T shape)) = true := sorry
-@[cgsimp] lemma simp_sigmoid_pos {shape : S} : ∀ {x : T shape}, (0 < sigmoid x) = true := sorry
-@[cgsimp] lemma simp_sigmoid_lt1 {shape : S} : ∀ {x : T shape}, (sigmoid x < 1) = true := sorry
+@[cgsimp] lemma simp_sigmoid_pos {shape : S} {x : T shape} : (0 < sigmoid x) = true := pextt sigmoid_pos
+@[cgsimp] lemma simp_sigmoid_lt1 {shape : S} {x : T shape} : (sigmoid x < 1) = true := pextt sigmoid_lt1
 
 -- TODO(dhs): weird lemma
-@[cgsimp] lemma simp_one_plus_pos {shape : S} : ∀ {x : T shape}, 0 < 1 + x = (0 < x ∨ - 1 < x) := sorry
+@[cgsimp] lemma simp_one_plus_pos {shape : S} {x : T shape} : 0 < 1 + x = (0 < x ∨ - 1 < x) :=
+begin
+apply propext,
+split,
+intro H,
+right, exact iff.mp one_plus_pos_iff H,
+intro H,
+cases H with H H,
+apply one_plus_pos,
+exact H,
+exact iff.mpr one_plus_pos_iff H
+end
+
+attribute [cgsimp] T.smul_zero T.one_smul
 
 attribute [cgsimp] if_pos if_neg if_true if_false
 
@@ -250,7 +267,7 @@ meta def cgsimpn : ℕ → tactic unit
 | 0 := cgsimpt skip
 | (n+1) := cgsimpt (cgsimpn n)
 
-meta def cgsimp : tactic unit := trace "START CGSIMP" >> cgsimpn 50 >> trace "END CGSIMP"
+meta def cgsimp : tactic unit := cgsimpn 50
 
 end tactic
 end certigrad

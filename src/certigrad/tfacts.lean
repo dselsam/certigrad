@@ -95,6 +95,7 @@ axiom sigmoid_pos {shape : S} : ∀ {x : T shape}, sigmoid x > 0
 axiom sigmoid_lt1 {shape : S} : ∀ {x : T shape}, sigmoid x < 1
 axiom lt1_alt {shape : S} : ∀ {x : T shape}, x < 1 → 0 < 1 - x
 axiom one_plus_pos {shape : S} : ∀ {x : T shape}, x > 0 → 1 + x > 0
+axiom one_plus_pos_iff {shape : S} : ∀ {x : T shape}, 0 < 1 + x ↔ (- 1 < x)
 axiom plus_one_pos {shape : S} : ∀ {x : T shape}, x > 0 → x + 1 > 0
 axiom one_pos {shape : S} : (1 : T shape) > 0
 axiom neg_of_pos {shape : S} {x : T shape} : x > 0 → - x < 0

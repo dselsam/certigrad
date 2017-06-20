@@ -127,7 +127,7 @@ intros HP H_in,
 exact HP
 end
 
-@[cgsimp] lemma simp_subset_cons {α : Type*} (xs : list α) (x : α) : (xs <+ x :: xs) = true :=
+@[cgsimp] lemma simp_sublist_cons {α : Type*} (xs : list α) (x : α) : (xs <+ x :: xs) = true :=
 begin
 apply pextt,
 apply list.sublist_cons
@@ -177,7 +177,7 @@ attribute [cgsimp] mvn_iso_mvn_iso_empirical_kl_int mvn_iso_bernoulli_neglogpdf_
 attribute [cgsimp] force_ok
 
 attribute [cgsimp] list.sumr list.map list.concat list.head list.tail list.riota list.filter list.length list.dnth
-                   list.subset.refl list.nil_subset list.subset_cons list.cons_append list.append_nil list.nil_append
+                   list.sublist.refl list.nil_subset list.sublist_cons list.cons_append list.append_nil list.nil_append
 
 attribute [cgsimp] zero_add add_zero
 

@@ -79,6 +79,8 @@ begin apply quotient.sound, apply pre_env.eqv.refl end
 @[simp] lemma has_key.def (ref : reference) (m : pre_env) :
 has_key ref (quotient.mk m) = m^.contains ref := rfl
 
+@[simp] lemma bool_lift_t (b : bool) : (lift_t b : Prop) = (b = tt) := rfl
+
 lemma has_key_insert {ref₁ ref₂ : reference} {x₂ : T ref₂.2} {m : env} :
   has_key ref₁ m → has_key ref₁ (insert ref₂ x₂ m) :=
 begin
@@ -93,7 +95,7 @@ cases decidable.em (ref₂ = ref₁) with H_eq H_neq,
 {
 subst H_eq,
 simp [dif_ctx_simp_congr, dif_pos],
-dunfold option.is_some has_coe.coe coe_b has_coe_t.coe coe_t lift_t has_lift_t.lift,
+dunfold option.is_some,
 reflexivity,
 },
 {
@@ -102,7 +104,64 @@ exact H_hk
 }
 end
 
+lemma has_key_insert_same (ref : reference) {x : T ref.2} (m : env) : has_key ref (insert ref x m) :=
+begin
+apply quotient.induction_on m,
+clear m,
+intro m,
+simp,
+dunfold hash_map.contains,
+rw hash_map.find_insert_eq,
+dsimp [option.is_some],
+reflexivity
+end
 
+lemma get_insert_same (ref : reference) (x : T ref.2) (m : env) : get ref (insert ref x m) = x :=
+begin
+apply quotient.induction_on m, clear m, intro m,
+simp,
+rw hash_map.find_insert_eq,
+end
+
+--set_option trace.simplify true
+--#check @option.cases_on
+
+lemma get_insert_diff {ref₁ ref₂ : reference} (x₂ : T ref₂.2) (m : env) : ref₁ ≠ ref₂ → get ref₁ (insert ref₂ x₂ m) = get ref₁ m :=
+begin
+apply @quotient.induction_on _ _ (λ m, ref₁ ≠ ref₂ → get ref₁ (insert ref₂ x₂ m) = get ref₁ m),
+clear m,
+intros m H_neq,
+simp,
+rw hash_map.find_insert,
+-- TODO(dhs): annoying that we can't simplify inside the major premise
+assert H_dif : (dite (ref₂ = ref₁) (λ h, some (eq.rec_on h x₂ : T ref₁.2)) (λ h, hash_map.find m ref₁)) = hash_map.find m ref₁,
+simp [dif_ctx_simp_congr, dif_neg, ne.symm H_neq],
+rw H_dif,
+end
+
+-- TODO(dhs): propagate precondition
+lemma insert_get_same (ref : reference) (m : env) : has_key ref m → insert ref (get ref m) m = m :=
+begin
+apply @quotient.induction_on _ _ (λ m, has_key ref m → insert ref (get ref m) m = m),
+clear m,
+simp [hash_map.contains],
+intros m H_has_key,
+apply quotient.sound,
+intro ref',
+cases decidable.em (ref' = ref) with H_eq H_neq,
+{
+subst H_eq,
+rw hash_map.find_insert_eq,
+cases (hash_map.find m ref'),
+{ dsimp [option.is_some] at H_has_key, injection H_has_key },
+dsimp,
+reflexivity
+},
+{
+rw hash_map.find_insert_ne,
+exact ne.symm H_neq
+}
+end
 
 
 end env
@@ -123,17 +182,9 @@ show decidable (dmap.has_key ref m), by tactic.apply_instance
 
 
 
-lemma has_key_insert_same (ref : reference) {x : T ref.2} (m : env) :
-  has_key ref (insert ref x m) := dmap.has_key_insert_same ref m
 
-lemma get_insert_same (ref : reference) (x : T ref.2) (m : env) :
-  get ref (insert ref x m) = x := dmap.get_insert_same ref x m
 
-lemma get_insert_diff {ref₁ ref₂ : reference} (x₂ : T ref₂.2) (m : env) :
-  ref₁ ≠ ref₂ → get ref₁ (insert ref₂ x₂ m) = get ref₁ m := dmap.get_insert_diff x₂ m
 
-lemma insert_get_same (ref : reference) (m : env) :
-  insert ref (get ref m) m = m := dmap.insert_get_same ref m
 
 lemma insert_insert_flip {ref₁ ref₂ : reference} (x₁ : T ref₁.2) (x₂ : T ref₂.2) (m : env) :
   ref₁ ≠ ref₂ → insert ref₁ x₁ (insert ref₂ x₂ m) = insert ref₂ x₂ (insert ref₁ x₁ m) := dmap.insert_insert_flip x₁ x₂ m

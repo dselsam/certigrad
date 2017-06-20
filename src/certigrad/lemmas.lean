@@ -10,6 +10,13 @@ import .predicates .tcont .expected_value
 namespace certigrad
 open list
 
+lemma env_in_nin_ne {m : env} {ref₁ ref₂ : reference} : env.has_key ref₁ m → (¬ env.has_key ref₂ m) → ref₁ ≠ ref₂ :=
+begin
+intros H_in H_nin H_eq,
+subst H_eq,
+exact H_nin H_in
+end
+
 lemma ref_notin_parents {n : node} {nodes : list node} {m : env} :
   all_parents_in_env m (n::nodes) → uniq_ids (n::nodes) m → n^.ref ∉ n^.parents :=
 begin
@@ -25,10 +32,8 @@ lemma ref_ne_tgt {n : node} {nodes : list node} {m : env} {tgt : reference} :
 env.has_key tgt m → uniq_ids (n::nodes) m → tgt ≠ n^.ref :=
 begin
 cases n with ref parents op,
-intros H_tgt H_uids H_eq,
-dsimp [uniq_ids] at H_uids,
-subst H_eq,
-exact H_uids^.left H_tgt
+intros H_tgt H_uids,
+exact env_in_nin_ne H_tgt H_uids^.left
 end
 
 lemma wf_at_next {costs : list ID} {n : node} {nodes : list node} {x : T n^.ref.2} {inputs : env} {tgt : reference} :

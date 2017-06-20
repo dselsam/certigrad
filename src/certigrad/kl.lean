@@ -60,7 +60,7 @@ integrate_mvn_iso_kl_pre nodes (env.insert (rname, rshape) (op^.f (env.get_ks [(
  ::⟨(el, []), [(μ', .(shape')), (σ', .(shape')), (z', .(shape'))], operator.det (det.op.mvn_iso_empirical_kl shape')⟩
  ::nodes) inputs :=
 (μ = μ' ∧ σ = σ' ∧ z = z' ∧ shape = shape' ∧ eloss = el ∧ σ ≠ μ)
-∧ (env.get (σ, shape) inputs > 0 ∧ ∀ (y : T shape), all_parents_in_env (env.insert (z, shape) y inputs) nodes)
+∧ ((¬ env.has_key (eloss, []) inputs) ∧ (eloss, []) ∉ (z, shape) :: map node.ref nodes ∧ env.get (σ, shape) inputs > 0 ∧ ∀ (y : T shape), all_parents_in_env (env.insert (z, shape) y inputs) nodes)
 -- EQ11
 | (⟨(rname, .(shape)), [(pname₁, .(shape)), (pname₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
   ::⟨(rname₂, []), [(pname₃, shape₃), (pname₄, shape₄), (pname₅, shape₅)], operator.rand op⟩::nodes) inputs := false
@@ -175,16 +175,18 @@ dunfold graph.to_dist operator.to_dist dvec.head integrate_mvn_iso_kl,
 simp [E.E_bind, E.E_ret],
 dunfold dvec.head, dsimp,
 
-assertv H_μ_mem : env.has_key (μ, shape) inputs := H_ps_in_env^.left (μ, shape) (mem_cons_self _ _),
-assertv H_σ_mem : env.has_key (σ, shape) inputs := H_ps_in_env^.left (σ, shape) (mem_cons_of_mem _ (mem_cons_self _ _)),
-assertv H_z_mem : (z, shape) ∈ (z,shape) :: (eloss, []) :: map node.ref nodes := mem_of_cons_same,
-assertv H_eloss_mem : (eloss, []) ∈ (z, shape) :: (eloss, []) :: map node.ref nodes := mem_cons_of_mem _ mem_of_cons_same,
+assertv H_μ_in : env.has_key (μ, shape) inputs := H_ps_in_env^.left (μ, shape) (mem_cons_self _ _),
+assertv H_σ_in : env.has_key (σ, shape) inputs := H_ps_in_env^.left (σ, shape) (mem_cons_of_mem _ (mem_cons_self _ _)),
+assertv H_z_nin : ¬ env.has_key (z, shape) inputs := H_uids^.left,
+assertv H_eloss_nin : ¬ env.has_key (eloss, []) inputs := H_pre^.right^.left,
 
-assertv H_μ_neq_z : (μ, shape) ≠ (z, shape) := nodup_append_neq H_μ_mem H_z_mem H_uids,
-assertv H_σ_neq_z : (σ, shape) ≠ (z, shape) := nodup_append_neq H_σ_mem H_z_mem H_uids,
-assertv H_μ_neq_eloss : (μ, shape) ≠ (eloss, []) := nodup_append_neq H_μ_mem H_eloss_mem H_uids,
-assertv H_σ_neq_eloss : (σ, shape) ≠ (eloss, []) := nodup_append_neq H_σ_mem H_eloss_mem H_uids,
-assertv H_eloss_neq_z : (eloss, []) ≠ (z, shape) := ne.symm (nodup_cons_neq mem_of_cons_same (nodup_of_nodup_append_right H_uids)),
+assertv H_μ_neq_z : (μ, shape) ≠ (z, shape) := env_in_nin_ne H_μ_in H_z_nin,
+assertv H_σ_neq_z : (σ, shape) ≠ (z, shape) := env_in_nin_ne H_σ_in H_z_nin,
+assertv H_μ_neq_eloss : (μ, shape) ≠ (eloss, []) := env_in_nin_ne H_μ_in H_eloss_nin,
+assertv H_σ_neq_eloss : (σ, shape) ≠ (eloss, []) := env_in_nin_ne H_σ_in H_eloss_nin,
+
+assertv H_eloss_neq_z : (eloss, []) ≠ (z, shape) := ne_of_not_mem_cons H_pre^.right^.right^.left,
+assertv H_eloss_nin_nodes : (eloss, []) ∉ map node.ref nodes := not_mem_of_not_mem_cons H_pre^.right^.right^.left,
 
 dunfold env.get_ks,
 tactic.dget_dinsert,
@@ -368,24 +370,6 @@ erw E.E_add d_base rhs_f₁ rhs_f₂ H_rhs_eint₁ H_rhs_eint₂,
 
 clear integrate_mvn_iso_kl_correct,
 
-assert H_eloss_not_in_nodes : (eloss, []) ∉ map node.ref nodes,
-{
-intro H_eloss_in_nodes,
-assertv H_uids₂ : ∀ (val : T shape), nodup (env.keys (env.insert (z, shape) val inputs) ++ (eloss, []) :: map node.ref nodes) := assume val, env.nodup_insert H_uids,
-assertv H_uids₃ : nodup ((eloss, []) :: map node.ref nodes) := nodup_of_nodup_append_right (H_uids₂ 1),
-exact not_mem_of_nodup_cons H_uids₃ H_eloss_in_nodes
-},
-
-assert H_eloss_notin : ∀ {x : dvec T [shape]}, (eloss, []) ∉ env.keys (env.insert (z, shape) x^.head inputs) ++ map node.ref nodes,
-{
-intros x H_eloss_in,
-assertv H_uids₂ : ∀ (val : T shape), nodup (env.keys (env.insert (z, shape) val inputs) ++ (eloss, []) :: map node.ref nodes) := assume val, env.nodup_insert H_uids,
-assertv H_eloss_in_either : (eloss, []) ∈ env.keys (env.insert (z, shape) x^.head inputs) ∨ (eloss, []) ∈ map node.ref nodes := mem_or_mem_of_mem_append H_eloss_in,
-cases H_eloss_in_either with H_eloss_in_keys H_eloss_in_nodes,
-  { exact nodup_append_neq H_eloss_in_keys mem_of_cons_same (H_uids₂ x^.head) rfl },
-  { exact H_eloss_not_in_nodes H_eloss_in_nodes }
-},
-
 assert H_term₁_lhs :
 ∀ (x : dvec T [shape]),
 E (graph.to_dist (λ (m : env), ⟦(λ (m : env), env.get (eloss, []) m) m⟧)
@@ -395,10 +379,10 @@ E (graph.to_dist (λ (m : env), ⟦(λ (m : env), env.get (eloss, []) m) m⟧)
    dvec.head
 =
 T.mvn_iso_kl (env.get (μ, shape) inputs : T shape) (env.get (σ, shape) inputs : T shape),
-{ intro x, apply (E.E_of_lookup H_eloss_not_in_nodes),
+{ intro x, apply (E.E_of_lookup H_eloss_nin_nodes),
 dsimp [pdfs_exist_at] at H_pdfs_exist_at,
 dsimp [all_parents_in_env] at H_ps_in_env,
-exact (pdfs_exist_at_ignore (H_pre^.right^.right _) H_eloss_notin (H_pdfs_exist_at^.right _))
+exact (pdfs_exist_at_ignore (H_pre^.right^.right^.right^.right _) H_eloss_nin (H_pdfs_exist_at^.right _))
 },
 
 assert H_term₁_rhs :
@@ -411,10 +395,10 @@ E (graph.to_dist (λ (m : env), ⟦(λ (m : env), env.get (eloss, @nil ℕ) m) m
          dvec.head
 =
 T.mvn_iso_empirical_kl (env.get (μ, shape) inputs : T shape) (env.get (σ, shape) inputs : T shape) (dvec.head x),
-{ intro x, apply (E.E_of_lookup H_eloss_not_in_nodes),
+{ intro x, apply (E.E_of_lookup H_eloss_nin_nodes),
 dsimp [pdfs_exist_at] at H_pdfs_exist_at,
 dsimp [all_parents_in_env] at H_ps_in_env,
-exact (pdfs_exist_at_ignore (H_pre^.right^.right _) H_eloss_notin (H_pdfs_exist_at^.right _))
+exact (pdfs_exist_at_ignore (H_pre^.right^.right^.right^.right _) H_eloss_nin (H_pdfs_exist_at^.right _))
  },
 
 assert H_term₁ :
@@ -441,8 +425,8 @@ dunfold E T.dintegral dvec.head rand.op.pdf dvec.head2 dvec.head3,
 dsimp,
 dunfold dvec.head,
 erw T.integral_fscale,
-erw (@T.mvn_iso_kl_identity shape (env.get (μ, shape) inputs) (env.get (σ, shape) inputs) H_pre^.right^.left),
-assertv H_pdf_1 : ∫ (λ (x : T shape), T.mvn_iso_pdf (env.get (μ, shape) inputs : T shape) (env.get (σ, shape) inputs : T shape) x) = 1 := T.mvn_iso_pdf_int1 _ _ H_pre^.right^.left,
+erw (@T.mvn_iso_kl_identity shape (env.get (μ, shape) inputs) (env.get (σ, shape) inputs) H_pre^.right^.right^.left),
+assertv H_pdf_1 : ∫ (λ (x : T shape), T.mvn_iso_pdf (env.get (μ, shape) inputs : T shape) (env.get (σ, shape) inputs : T shape) x) = 1 := T.mvn_iso_pdf_int1 _ _ H_pre^.right^.right^.left,
 delta rand.pdf.mvn_iso,
 dsimp,
 rw H_pdf_1,
@@ -451,10 +435,10 @@ rw T.one_smul
 
 erw H_term₁, clear H_term₁, apply congr_arg,
 apply congr_arg, apply funext, intro x,
-assertv H_ps_in_env : all_parents_in_env (env.insert (z, shape) x^.head inputs) nodes := by apply H_pre^.right^.right,
+assertv H_ps_in_env : all_parents_in_env (env.insert (z, shape) x^.head inputs) nodes := by apply H_pre^.right^.right^.right,
 dsimp,
-erw (to_dist_congr_insert H_ps_in_env H_eloss_notin H_eloss_not_cost),
-erw (to_dist_congr_insert H_ps_in_env H_eloss_notin H_eloss_not_cost)
+erw (to_dist_congr_insert H_ps_in_env H_eloss_nin_nodes H_eloss_not_cost),
+erw (to_dist_congr_insert H_ps_in_env H_eloss_nin_nodes H_eloss_not_cost)
 end
 
 -- EQ11

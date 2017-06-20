@@ -17,7 +17,6 @@ namespace env
 def mk : env := dmap.mk
 def get (ref : reference) (m : env) : T ref.2 := @dmap.get reference (λ ref, T ref.2) _ _ ref m
 def insert (ref : reference) (x : T ref.2) (m : env) : env := @dmap.insert reference (λ ref, T ref.2) _ ref x m
-def keys (m : env) : list reference := @dmap.keys reference (λ ref, T ref.2) _ _ m
 def has_key (ref : reference) (m : env) : Prop := dmap.has_key ref m
 
 instance decidable_has_key (ref : reference) (m : env) : decidable (has_key ref m) :=
@@ -30,9 +29,6 @@ def get_ks : Π (refs : list reference) (m : env), dvec T refs^.p2
 def insert_all : Π (refs : list reference) (vs : dvec T refs^.p2), env
 | []      ⟦⟧       := env.mk
 | (k::ks) (v:::vs) := env.insert k v (insert_all ks vs)
-
-lemma has_key_mem_keys {ref : reference} {m : env} :
-  has_key ref m → ref ∈ keys m := dmap.has_key_mem_keys
 
 lemma has_key_insert {ref₁ ref₂ : reference} {x₂ : T ref₂.2} {m : env} :
   has_key ref₁ m → has_key ref₁ (insert ref₂ x₂ m) := dmap.has_key_insert
@@ -55,6 +51,7 @@ lemma insert_insert_flip {ref₁ ref₂ : reference} (x₁ : T ref₁.2) (x₂ :
 lemma insert_insert_same (ref : reference) (x₁ x₂ : T ref.2) (m : env) :
   insert ref x₁ (insert ref x₂ m) = insert ref x₁ m := dmap.insert_insert_same ref x₁ x₂ m
 
+/-
 lemma nodup_insert {ref : reference} {x : T ref.2} {refs : list reference} {m : env} :
   list.nodup (keys m ++ (ref :: refs)) → list.nodup (keys (insert ref x m) ++ refs) := dmap.nodup_insert
 
@@ -63,7 +60,7 @@ lemma not_mem_of_insert {ref₀ ref : reference} {x : T ref.2} {refs : list refe
 
 lemma not_mem_of_insert_symm {ref₀ ref : reference} {x : T ref.2} {refs : list reference} {m : env} :
   ref₀ ∉ (dmap.keys (dmap.insert ref x m) ++ refs) → ref₀ ∉ (keys m ++ (ref :: refs)) := dmap.not_mem_of_insert_symm
-
+-/
 section proofs
 open list
 
@@ -123,11 +120,11 @@ lemma simp_has_key_insert_diff (ref₁ ref₂ : reference) {x : T ref₂.2} (m :
 
 lemma simp_has_key_empty (ref : reference) : has_key ref env.mk = false := sorry
 
-lemma simp_keys_nil : env.keys env.mk = [] := rfl
+--lemma simp_keys_nil : env.keys env.mk = [] := rfl
 
 -- TODO(dhs): when I switch to hash-maps, this will be a little different
-lemma simp_keys_cons (ref : reference) (x : T ref.2) (m : env) : env.keys (env.insert ref x m) =
-list.insertion_sort has_lt.lt (ref :: env.keys m) := sorry
+--lemma simp_keys_cons (ref : reference) (x : T ref.2) (m : env) : env.keys (env.insert ref x m) =
+--list.insertion_sort has_lt.lt (ref :: env.keys m) := sorry
 
 
 

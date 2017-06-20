@@ -475,7 +475,7 @@ assert H_swap_m_for_inputs :
        nodes),
 begin
   apply graph.to_dist_congr,
-  exact (H_wfs y)^.left^.nodup,
+  exact (H_wfs y)^.left^.uids,
   dsimp,
   intros m H_envs_match,
   apply dvec.singleton_congr,

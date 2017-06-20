@@ -69,13 +69,37 @@ def insert_all : Π (refs : list reference) (vs : dvec T refs^.p2), env
 | (k::ks) (v:::vs) := env.insert k v (insert_all ks vs)
 
 -- Facts
+@[simp] lemma get.def (ref : reference) (m : pre_env) :
+get ref (quotient.mk m) = match m^.find ref with | none := default _ | some x := x end := rfl
+
+@[simp] lemma insert.def {ref : reference} {x : T ref.2} (m : pre_env) :
+insert ref x (quotient.mk m) = quotient.mk (m^.insert ref x) :=
+begin apply quotient.sound, apply pre_env.eqv.refl end
+
+@[simp] lemma has_key.def (ref : reference) (m : pre_env) :
+has_key ref (quotient.mk m) = m^.contains ref := rfl
+
 lemma has_key_insert {ref₁ ref₂ : reference} {x₂ : T ref₂.2} {m : env} :
   has_key ref₁ m → has_key ref₁ (insert ref₂ x₂ m) :=
-assume H_contains_ref₁,
 begin
-induction m,
-dunfold has_key insert,
-
+apply @quotient.induction_on _ _ (λ m, has_key ref₁ m → has_key ref₁ (insert ref₂ x₂ m)),
+clear m,
+intro m,
+intro H_hk,
+simp at *,
+dsimp [hash_map.contains] at *,
+rw hash_map.find_insert,
+cases decidable.em (ref₂ = ref₁) with H_eq H_neq,
+{
+subst H_eq,
+simp [dif_ctx_simp_congr, dif_pos],
+dunfold option.is_some has_coe.coe coe_b has_coe_t.coe coe_t lift_t has_lift_t.lift,
+reflexivity,
+},
+{
+simp [H_neq, dif_ctx_simp_congr, dif_neg],
+exact H_hk
+}
 end
 
 

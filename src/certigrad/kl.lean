@@ -80,7 +80,7 @@ theorem integrate_mvn_iso_kl_correct (eloss : ID) (costs : list ID) :
 ∀ (nodes : list node) (inputs : env),
   eloss ∉ costs →
   integrate_mvn_iso_kl_pre eloss nodes inputs →
-  nodup (env.keys inputs ++ map node.ref nodes) →
+  uniq_ids nodes inputs →
   all_parents_in_env inputs nodes →
   pdfs_exist_at nodes inputs →
   is_gintegrable (λ m, ⟦sum_costs m (eloss::costs)⟧) inputs (integrate_mvn_iso_kl eloss nodes) dvec.head →
@@ -94,77 +94,74 @@ E (graph.to_dist (λ env₀, ⟦sum_costs env₀ (eloss::costs)⟧) inputs nodes
 
 -- EQ2 (a)
 --#check integrate_mvn_iso_kl.equations._eqn_2
-| (⟨(rname, rshape), [], operator.det op⟩::nodes) inputs H_eloss_not_cost H_pre H_nodup H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint :=
+| (⟨(rname, rshape), [], operator.det op⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint :=
 begin
 dunfold graph.to_dist operator.to_dist integrate_mvn_iso_kl,
 dunfold integrate_mvn_iso_kl_pre at H_pre,
 simp [E.E_bind, E.E_ret],
 assertv H_pre_next : integrate_mvn_iso_kl_pre eloss nodes (env.insert (rname, rshape) (op^.f (env.get_ks nil inputs)) inputs) := H_pre,
-assertv H_nodup_next : nodup (env.keys (env.insert (rname, rshape) (op^.f (env.get_ks nil inputs)) inputs) ++ map node.ref nodes) := env.nodup_insert H_nodup,
 assertv H_ps_in_env_next : all_parents_in_env (env.insert (rname, rshape) (op^.f (env.get_ks nil inputs)) inputs) nodes := H_ps_in_env^.right _,
-exact (integrate_mvn_iso_kl_correct _ _ H_eloss_not_cost H_pre_next H_nodup_next H_ps_in_env_next H_pdfs_exist_at H_kl_gint H_gint)
+exact (integrate_mvn_iso_kl_correct _ _ H_eloss_not_cost H_pre_next (H_uids^.right _) H_ps_in_env_next H_pdfs_exist_at H_kl_gint H_gint)
 end
 
 -- EQ2 (b)
-| (⟨(rname, rshape), [], operator.rand op⟩::nodes) inputs H_eloss_not_cost H_pre H_nodup H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
+| (⟨(rname, rshape), [], operator.rand op⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
 
 -- EQ3 (a)
-| (⟨(rname, rshape), [(pname, pshape)], operator.det op⟩::nodes) inputs H_eloss_not_cost H_pre H_nodup H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint :=
+| (⟨(rname, rshape), [(pname, pshape)], operator.det op⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint :=
 begin
 dunfold graph.to_dist operator.to_dist integrate_mvn_iso_kl,
 dunfold integrate_mvn_iso_kl_pre at H_pre,
 simp [E.E_bind, E.E_ret],
 assertv H_pre_next : integrate_mvn_iso_kl_pre eloss nodes (env.insert (rname, rshape) (op^.f (env.get_ks [(pname, pshape)] inputs)) inputs) := H_pre,
-assertv H_nodup_next : nodup (env.keys (env.insert (rname, rshape) (op^.f (env.get_ks [(pname, pshape)] inputs)) inputs) ++ map node.ref nodes) := env.nodup_insert H_nodup,
 assertv H_ps_in_env_next : all_parents_in_env (env.insert (rname, rshape) (op^.f (env.get_ks [(pname, pshape)] inputs)) inputs) nodes := H_ps_in_env^.right _,
-exact (integrate_mvn_iso_kl_correct _ _ H_eloss_not_cost H_pre_next H_nodup_next H_ps_in_env_next H_pdfs_exist_at H_kl_gint H_gint)
+exact (integrate_mvn_iso_kl_correct _ _ H_eloss_not_cost H_pre_next (H_uids^.right _) H_ps_in_env_next H_pdfs_exist_at H_kl_gint H_gint)
 end
 
 -- EQ3 (b)
-| (⟨(rname, rshape), [(pname, pshape)], operator.rand op⟩::nodes) inputs H_eloss_not_cost H_pre H_nodup H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
+| (⟨(rname, rshape), [(pname, pshape)], operator.rand op⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
 
 -- EQ4
-| (⟨(rname, rshape), [(pname₁, pshape₁), (pname₂, pshape₂)], operator.det op⟩::nodes) inputs H_eloss_not_cost H_pre H_nodup H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint :=
+| (⟨(rname, rshape), [(pname₁, pshape₁), (pname₂, pshape₂)], operator.det op⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint :=
 begin
 dunfold graph.to_dist operator.to_dist integrate_mvn_iso_kl,
 dunfold integrate_mvn_iso_kl_pre at H_pre,
 simp [E.E_bind, E.E_ret],
 assertv H_pre_next : integrate_mvn_iso_kl_pre eloss nodes (env.insert (rname, rshape) (op^.f (env.get_ks [(pname₁, pshape₁), (pname₂, pshape₂)] inputs)) inputs) := H_pre,
-assertv H_nodup_next : nodup (env.keys (env.insert (rname, rshape) (op^.f (env.get_ks [(pname₁, pshape₁), (pname₂, pshape₂)] inputs)) inputs) ++ map node.ref nodes) := env.nodup_insert H_nodup,
 assertv H_ps_in_env_next : all_parents_in_env (env.insert (rname, rshape) (op^.f (env.get_ks [(pname₁, pshape₁), (pname₂, pshape₂)] inputs)) inputs) nodes := H_ps_in_env^.right _,
-exact (integrate_mvn_iso_kl_correct _ _ H_eloss_not_cost H_pre_next H_nodup_next H_ps_in_env_next H_pdfs_exist_at H_kl_gint H_gint)
+exact (integrate_mvn_iso_kl_correct _ _ H_eloss_not_cost H_pre_next (H_uids^.right _) H_ps_in_env_next H_pdfs_exist_at H_kl_gint H_gint)
 end
 
 -- EQ5
 --#check integrate_mvn_iso_kl.equations._eqn_5
-| [⟨(rname, .(shape)), [(pname₁, .(shape)), (pname₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩] inputs H_eloss_not_cost H_pre H_nodup H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
+| [⟨(rname, .(shape)), [(pname₁, .(shape)), (pname₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩] inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
 
 -- EQ6
 --#check integrate_mvn_iso_kl.equations._eqn_6
 | (⟨(rname, .(shape)), [(pname₁, .(shape)), (pname₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
-  ::⟨(rname₂, []), [], op⟩::nodes) inputs H_eloss_not_cost H_pre H_nodup H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
+  ::⟨(rname₂, []), [], op⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
 
 -- EQ7
 --#check integrate_mvn_iso_kl.equations._eqn_7
 | (⟨(rname, .(shape)), [(pname₁, .(shape)), (pname₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
-  ::⟨(rname₂, []), [(pname₃, shape₃)], op⟩::nodes) inputs H_eloss_not_cost H_pre H_nodup H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
+  ::⟨(rname₂, []), [(pname₃, shape₃)], op⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
 
 -- EQ8
 --#check integrate_mvn_iso_kl.equations._eqn_8
 | (⟨(rname, .(shape)), [(pname₁, .(shape)), (pname₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
-  ::⟨(rname₂, []), [(pname₃, shape₃), (pname₄, shape₄)], op⟩::nodes) inputs H_eloss_not_cost H_pre H_nodup H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
+  ::⟨(rname₂, []), [(pname₃, shape₃), (pname₄, shape₄)], op⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
 
 -- EQ9
 --#check integrate_mvn_iso_kl.equations._eqn_9
 | (⟨(rname, .(shape)), [(pname₁, .(shape)), (pname₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
-  ::⟨(rname₂, []), [(pname₃, shape₃), (pname₄, shape₄), (pname₅, shape₅)], operator.det (det.op.special op)⟩::nodes) inputs H_eloss_not_cost H_pre H_nodup H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint :=
+  ::⟨(rname₂, []), [(pname₃, shape₃), (pname₄, shape₄), (pname₅, shape₅)], operator.det (det.op.special op)⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint :=
 false.rec _ H_pre
 
 -- EQ10
 --#check integrate_mvn_iso_kl.equations._eqn_10
 | (⟨(z, .(shape)), [(μ, .(shape)), (σ, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
  ::⟨(el, []), [(μ', .(shape')), (σ', .(shape')), (z', .(shape'))], operator.det (det.op.mvn_iso_empirical_kl shape')⟩
- ::nodes) inputs H_eloss_not_cost H_pre H_nodup H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint :=
+ ::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint :=
 begin
 assertv H_ok : μ = μ' ∧ σ = σ' ∧ z = z' ∧ shape = shape' ∧ eloss = el ∧ σ ≠ μ := H_pre^.left,
 
@@ -178,16 +175,16 @@ dunfold graph.to_dist operator.to_dist dvec.head integrate_mvn_iso_kl,
 simp [E.E_bind, E.E_ret],
 dunfold dvec.head, dsimp,
 
-assertv H_μ_mem : (μ, shape) ∈ env.keys inputs := env.has_key_mem_keys (H_ps_in_env^.left (μ, shape) (mem_cons_self _ _)),
-assertv H_σ_mem : (σ, shape) ∈ env.keys inputs := env.has_key_mem_keys (H_ps_in_env^.left (σ, shape) (mem_cons_of_mem _ (mem_cons_self _ _))),
+assertv H_μ_mem : env.has_key (μ, shape) inputs := H_ps_in_env^.left (μ, shape) (mem_cons_self _ _),
+assertv H_σ_mem : env.has_key (σ, shape) inputs := H_ps_in_env^.left (σ, shape) (mem_cons_of_mem _ (mem_cons_self _ _)),
 assertv H_z_mem : (z, shape) ∈ (z,shape) :: (eloss, []) :: map node.ref nodes := mem_of_cons_same,
 assertv H_eloss_mem : (eloss, []) ∈ (z, shape) :: (eloss, []) :: map node.ref nodes := mem_cons_of_mem _ mem_of_cons_same,
 
-assertv H_μ_neq_z : (μ, shape) ≠ (z, shape) := nodup_append_neq H_μ_mem H_z_mem H_nodup,
-assertv H_σ_neq_z : (σ, shape) ≠ (z, shape) := nodup_append_neq H_σ_mem H_z_mem H_nodup,
-assertv H_μ_neq_eloss : (μ, shape) ≠ (eloss, []) := nodup_append_neq H_μ_mem H_eloss_mem H_nodup,
-assertv H_σ_neq_eloss : (σ, shape) ≠ (eloss, []) := nodup_append_neq H_σ_mem H_eloss_mem H_nodup,
-assertv H_eloss_neq_z : (eloss, []) ≠ (z, shape) := ne.symm (nodup_cons_neq mem_of_cons_same (nodup_of_nodup_append_right H_nodup)),
+assertv H_μ_neq_z : (μ, shape) ≠ (z, shape) := nodup_append_neq H_μ_mem H_z_mem H_uids,
+assertv H_σ_neq_z : (σ, shape) ≠ (z, shape) := nodup_append_neq H_σ_mem H_z_mem H_uids,
+assertv H_μ_neq_eloss : (μ, shape) ≠ (eloss, []) := nodup_append_neq H_μ_mem H_eloss_mem H_uids,
+assertv H_σ_neq_eloss : (σ, shape) ≠ (eloss, []) := nodup_append_neq H_σ_mem H_eloss_mem H_uids,
+assertv H_eloss_neq_z : (eloss, []) ≠ (z, shape) := ne.symm (nodup_cons_neq mem_of_cons_same (nodup_of_nodup_append_right H_uids)),
 
 dunfold env.get_ks,
 tactic.dget_dinsert,
@@ -374,18 +371,18 @@ clear integrate_mvn_iso_kl_correct,
 assert H_eloss_not_in_nodes : (eloss, []) ∉ map node.ref nodes,
 {
 intro H_eloss_in_nodes,
-assertv H_nodup₂ : ∀ (val : T shape), nodup (env.keys (env.insert (z, shape) val inputs) ++ (eloss, []) :: map node.ref nodes) := assume val, env.nodup_insert H_nodup,
-assertv H_nodup₃ : nodup ((eloss, []) :: map node.ref nodes) := nodup_of_nodup_append_right (H_nodup₂ 1),
-exact not_mem_of_nodup_cons H_nodup₃ H_eloss_in_nodes
+assertv H_uids₂ : ∀ (val : T shape), nodup (env.keys (env.insert (z, shape) val inputs) ++ (eloss, []) :: map node.ref nodes) := assume val, env.nodup_insert H_uids,
+assertv H_uids₃ : nodup ((eloss, []) :: map node.ref nodes) := nodup_of_nodup_append_right (H_uids₂ 1),
+exact not_mem_of_nodup_cons H_uids₃ H_eloss_in_nodes
 },
 
 assert H_eloss_notin : ∀ {x : dvec T [shape]}, (eloss, []) ∉ env.keys (env.insert (z, shape) x^.head inputs) ++ map node.ref nodes,
 {
 intros x H_eloss_in,
-assertv H_nodup₂ : ∀ (val : T shape), nodup (env.keys (env.insert (z, shape) val inputs) ++ (eloss, []) :: map node.ref nodes) := assume val, env.nodup_insert H_nodup,
+assertv H_uids₂ : ∀ (val : T shape), nodup (env.keys (env.insert (z, shape) val inputs) ++ (eloss, []) :: map node.ref nodes) := assume val, env.nodup_insert H_uids,
 assertv H_eloss_in_either : (eloss, []) ∈ env.keys (env.insert (z, shape) x^.head inputs) ∨ (eloss, []) ∈ map node.ref nodes := mem_or_mem_of_mem_append H_eloss_in,
 cases H_eloss_in_either with H_eloss_in_keys H_eloss_in_nodes,
-  { exact nodup_append_neq H_eloss_in_keys mem_of_cons_same (H_nodup₂ x^.head) rfl },
+  { exact nodup_append_neq H_eloss_in_keys mem_of_cons_same (H_uids₂ x^.head) rfl },
   { exact H_eloss_not_in_nodes H_eloss_in_nodes }
 },
 
@@ -463,21 +460,21 @@ end
 -- EQ11
 --#check integrate_mvn_iso_kl.equations._eqn_11
 | (⟨(rname, .(shape)), [(pname₁, .(shape)), (pname₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
-  ::⟨(rname₂, []), [(pname₃, shape₃), (pname₄, shape₄), (pname₅, shape₅)], operator.rand op⟩::nodes) inputs H_eloss_not_cost H_pre H_nodup H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
+  ::⟨(rname₂, []), [(pname₃, shape₃), (pname₄, shape₄), (pname₅, shape₅)], operator.rand op⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
 
 -- EQ12
 --#check integrate_mvn_iso_kl.equations._eqn_12
 | (⟨(rname, .(shape)), [(pname₁, .(shape)), (pname₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
-  ::⟨(rname₂, []), ((pname₃, shape₃)::(pname₄, shape₄)::(pname₅, shape₅)::parent::parents), op⟩::nodes) inputs H_eloss_not_cost H_pre H_nodup H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
+  ::⟨(rname₂, []), ((pname₃, shape₃)::(pname₄, shape₄)::(pname₅, shape₅)::parent::parents), op⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
 
 -- EQ13
 --#check integrate_mvn_iso_kl.equations._eqn_13
 | (⟨(rname, .(shape)), [(pname₁, .(shape)), (pname₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
-  ::⟨(rname₂, (shape₂ :: shapes₂)), parents, op⟩::nodes) inputs H_eloss_not_cost H_pre H_nodup H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
+  ::⟨(rname₂, (shape₂ :: shapes₂)), parents, op⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
 
 -- EQ14 (a)
 --#check integrate_mvn_iso_kl.equations._eqn_14
-| (⟨(rname₂, shape₂), ((pname₃, shape₃)::(pname₄, shape₄)::parent::parents), operator.det op⟩::nodes) inputs H_eloss_not_cost H_pre H_nodup H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint :=
+| (⟨(rname₂, shape₂), ((pname₃, shape₃)::(pname₄, shape₄)::parent::parents), operator.det op⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint :=
 begin
 dunfold graph.to_dist operator.to_dist integrate_mvn_iso_kl,
 dunfold integrate_mvn_iso_kl_pre at H_pre,
@@ -488,14 +485,14 @@ definev next_inputs : env := env.insert (rname₂, shape₂) (op^.f (env.get_ks 
 definev next_nodes : list node := nodes,
 
 assertv H_pre_next : integrate_mvn_iso_kl_pre eloss next_nodes next_inputs := H_pre,
-assertv H_nodup_next : nodup (env.keys next_inputs ++ map node.ref next_nodes) := env.nodup_insert H_nodup,
+assertv H_uids_next : nodup (env.keys next_inputs ++ map node.ref next_nodes) := env.nodup_insert H_uids,
 assertv H_ps_in_env_next : all_parents_in_env next_inputs next_nodes := H_ps_in_env^.right _,
-exact (integrate_mvn_iso_kl_correct _ _ H_eloss_not_cost H_pre_next H_nodup_next H_ps_in_env_next H_pdfs_exist_at H_kl_gint H_gint)
+exact (integrate_mvn_iso_kl_correct _ _ H_eloss_not_cost H_pre_next H_uids_next H_ps_in_env_next H_pdfs_exist_at H_kl_gint H_gint)
 end
 
 -- EQ14 (b)
 --#check integrate_mvn_iso_kl.equations._eqn_14
-| (⟨(rname₂, shape₂), ((pname₃, shape₃)::(pname₄, shape₄)::parent::parents), operator.rand op⟩::nodes) inputs H_eloss_not_cost H_pre H_nodup H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
+| (⟨(rname₂, shape₂), ((pname₃, shape₃)::(pname₄, shape₄)::parent::parents), operator.rand op⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
 
 -- More useful API
 

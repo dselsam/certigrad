@@ -264,8 +264,10 @@ meta def cgsimpn : ℕ → tactic unit
 meta def cgsimp : tactic unit := cgsimpn 50
 
 private meta def prove_indep_hyps (g fdict : expr) : tactic unit :=
-do to_expr ```((%%g)^.targets ⊆ env.keys %%fdict) >>= assert `H_tgts_ss_inputs,
+do trace "targets subset inputs...",
+   to_expr ```((%%g)^.targets ⊆ env.keys %%fdict) >>= assert `H_tgts_ss_inputs,
      solve1 cgsimp,
+   trace "pdfs_exist_at...",
    to_expr ```(pdfs_exist_at (%%g)^.nodes %%fdict) >>= assert `H_pdfs_exist,
      solve1 cgsimp
 
@@ -309,7 +311,10 @@ do H_at_idx ← get_local `H_at_idx,
    to_expr ```(backprop_correct %%fdict (%%g)^.targets H_tgts_ss_inputs H_at_idx H_wf H_gs_exist H_pdfs_exist H_gint H_can_diff) >>= exact
 
 meta def prove_model_ok (g fdict : expr) : tactic unit :=
-do -- introduce hypotheses
+do trace "prove_model_ok...",
+   trace "g: ", trace g,
+   trace "fdict: ", trace fdict,
+   -- introduce hypotheses
    [tgt, idx, H_at_idx] ← intros | fail "can't intro hyps",
    -- prove independent hyps once and for all
    prove_indep_hyps g fdict,

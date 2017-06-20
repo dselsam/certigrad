@@ -53,39 +53,47 @@ assertv H_wf_ref : well_formed_at costs nodes next_inputs ref :=
 exact ⟨H_wf_tgt, H_wf_ref⟩
 end
 
+/-
 lemma ref_notin_parents_alt : ∀ {n : node} {nodes : list node} {ref₀ : reference} {m : env},
   all_parents_in_env m (n::nodes) → ref₀ ∉ (env.keys m ++ map node.ref (n::nodes)) → ref₀ ∉ n^.parents
 | ⟨ref, parents, op⟩ nodes ref₀ m H_ps_in_env H_ref₀_notin H_ref₀_in_parents :=
 have H_ref₀_in : ref₀ ∈ env.keys m, from env.has_key_mem_keys (H_ps_in_env^.left _ H_ref₀_in_parents),
 not_mem_of_not_mem_append_left H_ref₀_notin H_ref₀_in
+-/
 
 lemma pdfs_exist_at_ignore {ref₀ : reference} {x₁ x₂ : T ref₀.2} :
   ∀ {nodes : list node} {inputs : env},
      all_parents_in_env inputs nodes →
-     ref₀ ∉ (env.keys inputs ++ map node.ref nodes) →
+     (¬ env.has_key ref₀ inputs) → ref₀ ∉ map node.ref nodes →
      pdfs_exist_at nodes (env.insert ref₀ x₁ inputs) → pdfs_exist_at nodes (env.insert ref₀ x₂ inputs)
-| [] _ _ _ _ := true.intro
-| (⟨ref, parents, operator.det op⟩ :: nodes) inputs H_ps_in_env H_fresh H_pdfs_exist_at :=
+| [] _ _ _ _ _ := true.intro
+| (⟨ref, parents, operator.det op⟩ :: nodes) inputs H_ps_in_env H_fresh₁ H_fresh₂ H_pdfs_exist_at :=
 begin
 dsimp [pdfs_exist_at] at H_pdfs_exist_at,
 dsimp [pdfs_exist_at],
-assertv H_ref₀_notin_parents : ref₀ ∉ parents := ref_notin_parents_alt H_ps_in_env H_fresh,
-assertv H_ref₀_neq_ref : ref₀ ≠ ref := ne_of_not_mem_cons (not_mem_of_not_mem_append_right H_fresh),
+assertv H_ref₀_notin_parents : ref₀ ∉ parents := λ H_contra, H_fresh₁ (H_ps_in_env^.left ref₀ H_contra),
+assert H_ref₀_neq_ref : ref₀ ≠ ref,
+{ intro H_contra, subst H_contra, exact H_fresh₂ mem_of_cons_same },
+
 rw env.get_ks_insert_diff H_ref₀_notin_parents,
 rw env.insert_insert_flip _ _ _ (ne.symm H_ref₀_neq_ref),
 rw env.get_ks_insert_diff H_ref₀_notin_parents at H_pdfs_exist_at,
 rw env.insert_insert_flip _ _ _ (ne.symm H_ref₀_neq_ref) at H_pdfs_exist_at,
 
-assertv H_fresh_next : ref₀ ∉ (env.keys (env.insert ref (det.op.f op (env.get_ks parents inputs)) inputs) ++ map node.ref nodes) := env.not_mem_of_insert H_fresh,
-exact (pdfs_exist_at_ignore (H_ps_in_env^.right _) H_fresh_next H_pdfs_exist_at)
+
+apply (pdfs_exist_at_ignore (H_ps_in_env^.right _) _ _ H_pdfs_exist_at),
+
+{ intro H_contra, exact H_fresh₁ (env.has_key_insert_diff H_ref₀_neq_ref H_contra) },
+{ exact not_mem_of_not_mem_cons H_fresh₂ }
 end
 
-| (⟨ref, parents, operator.rand op⟩ :: nodes) inputs H_ps_in_env H_fresh H_pdfs_exist_at :=
+| (⟨ref, parents, operator.rand op⟩ :: nodes) inputs H_ps_in_env H_fresh₁ H_fresh₂ H_pdfs_exist_at :=
 begin
 dsimp [pdfs_exist_at] at H_pdfs_exist_at,
 dsimp [pdfs_exist_at],
-assertv H_ref₀_notin_parents : ref₀ ∉ parents := ref_notin_parents_alt H_ps_in_env H_fresh,
-assertv H_ref₀_neq_ref : ref₀ ≠ ref := ne_of_not_mem_cons (not_mem_of_not_mem_append_right H_fresh),
+assertv H_ref₀_notin_parents : ref₀ ∉ parents := λ H_contra, H_fresh₁ (H_ps_in_env^.left ref₀ H_contra),
+assert H_ref₀_neq_ref : ref₀ ≠ ref,
+{ intro H_contra, subst H_contra, exact H_fresh₂ mem_of_cons_same },
 rw env.get_ks_insert_diff H_ref₀_notin_parents,
 rw env.get_ks_insert_diff H_ref₀_notin_parents at H_pdfs_exist_at,
 
@@ -95,8 +103,10 @@ intro y,
 note H_pdfs_exist_at_next := H_pdfs_exist_at^.right y,
 rw env.insert_insert_flip _ _ _ (ne.symm H_ref₀_neq_ref),
 rw env.insert_insert_flip _ _ _ (ne.symm H_ref₀_neq_ref) at H_pdfs_exist_at_next,
-assertv H_fresh_next : ref₀ ∉ (env.keys (env.insert ref y inputs) ++ map node.ref nodes) := env.not_mem_of_insert H_fresh,
-exact (pdfs_exist_at_ignore (H_ps_in_env^.right _) H_fresh_next H_pdfs_exist_at_next)
+
+apply (pdfs_exist_at_ignore (H_ps_in_env^.right _) _ _ H_pdfs_exist_at_next),
+{ intro H_contra, exact H_fresh₁ (env.has_key_insert_diff H_ref₀_neq_ref H_contra) },
+{ exact not_mem_of_not_mem_cons H_fresh₂ }
 end
 
 lemma pdf_continuous {ref : reference} {parents : list reference} {op : rand.op parents^.p2 ref.2}
@@ -321,7 +331,7 @@ end
 private lemma fref_notin_parents :
   Π {n : node} {nodes : list node} {inputs : env} {fref : reference},
     all_parents_in_env inputs (n::nodes) →
-    fref ∉ env.keys inputs ++ map node.ref (n::nodes) →
+    (¬ env.has_key fref inputs) →
     fref ∉ n^.parents :=
 begin
 intro n,
@@ -329,29 +339,30 @@ cases n with ref parents op,
 dsimp,
 intros nodes inputs fref H_ps_in_env H_fref_fresh H_fref_in_ps,
 dunfold all_parents_in_env at H_ps_in_env,
-assertv H_fref_in_keys : fref ∈ env.keys inputs := env.has_key_mem_keys (H_ps_in_env^.left _ H_fref_in_ps),
-exact (not_mem_of_not_mem_append_left H_fref_fresh H_fref_in_keys)
+exact H_fref_fresh (H_ps_in_env^.left fref H_fref_in_ps)
 end
 
 private lemma fref_neq_ref :
   Π {n : node} {nodes : list node} {inputs : env} {fref : reference},
-    fref ∉ env.keys inputs ++ map node.ref (n::nodes) →
+    (¬ env.has_key fref inputs) → fref ∉ map node.ref (n::nodes) →
     fref ≠ n^.ref :=
 begin
-intros n nodes inputs fref H_fref_fresh,
-exact (ne_of_not_mem_cons $ not_mem_of_not_mem_append_right H_fref_fresh)
+intros n nodes inputs fref H_fref_fresh₁ H_fref_fresh₂,
+intro H_contra,
+subst H_contra,
+exact (ne_of_not_mem_cons H_fref_fresh₂) rfl
 end
 
 lemma to_dist_congr_insert :
   Π {costs : list ID} {nodes : list node} {inputs : env} {fref : reference} {fval : T fref.2},
     all_parents_in_env inputs nodes →
-    fref ∉ env.keys inputs ++ map node.ref nodes →
+    (¬ env.has_key fref inputs) → fref ∉ map node.ref nodes →
     fref.1 ∉ costs →
 E (graph.to_dist (λ env₀, ⟦sum_costs env₀ costs⟧) (env.insert fref fval inputs) nodes) dvec.head
 =
 E (graph.to_dist (λ env₀, ⟦sum_costs env₀ costs⟧) inputs nodes) dvec.head
 
-| costs [] inputs fref fval H_ps_in_env H_fresh H_not_cost :=
+| costs [] inputs fref fval H_ps_in_env H_fresh₁ H_fresh₂ H_not_cost :=
 begin
 dunfold graph.to_dist, simp [E.E_ret],
 dunfold dvec.head sum_costs map,
@@ -376,24 +387,26 @@ simp [env.get_insert_diff fval inputs H_neq],
 rw IH_cost H_notin
 end
 
-| costs (⟨ref, parents, operator.det op⟩::nodes) inputs fref fval H_ps_in_env H_fresh H_not_cost :=
+| costs (⟨ref, parents, operator.det op⟩::nodes) inputs fref fval H_ps_in_env H_fresh₁ H_fresh₂ H_not_cost :=
 begin
 dunfold graph.to_dist operator.to_dist,
 simp [E.E_bind, E.E_ret],
-assertv H_fref_notin_parents : fref ∉ parents := fref_notin_parents H_ps_in_env H_fresh,
-assertv H_fref_neq_ref : fref ≠ ref := fref_neq_ref H_fresh,
+assertv H_fref_notin_parents : fref ∉ parents := fref_notin_parents H_ps_in_env H_fresh₁,
+assertv H_fref_neq_ref : fref ≠ ref := fref_neq_ref H_fresh₁ H_fresh₂,
 rw env.get_ks_insert_diff H_fref_notin_parents,
 rw env.insert_insert_flip _ _ _ (ne.symm H_fref_neq_ref),
 dsimp,
-exact (to_dist_congr_insert (H_ps_in_env^.right _) (env.not_mem_of_insert H_fresh) H_not_cost),
+apply (to_dist_congr_insert (H_ps_in_env^.right _) _ _ H_not_cost),
+{ intro H_contra, exact H_fresh₁ (env.has_key_insert_diff H_fref_neq_ref H_contra) },
+{ exact not_mem_of_not_mem_cons H_fresh₂ }
 end
 
-| costs (⟨ref, parents, operator.rand op⟩::nodes) inputs fref fval H_ps_in_env H_fresh H_not_cost :=
+| costs (⟨ref, parents, operator.rand op⟩::nodes) inputs fref fval H_ps_in_env H_fresh₁ H_fresh₂ H_not_cost :=
 begin
 dunfold graph.to_dist operator.to_dist,
 simp [E.E_bind, E.E_ret],
-assertv H_fref_notin_parents : fref ∉ parents := fref_notin_parents H_ps_in_env H_fresh,
-assertv H_fref_neq_ref : fref ≠ ref := fref_neq_ref H_fresh,
+assertv H_fref_notin_parents : fref ∉ parents := fref_notin_parents H_ps_in_env H_fresh₁,
+assertv H_fref_neq_ref : fref ≠ ref := fref_neq_ref H_fresh₁ H_fresh₂,
 rw env.get_ks_insert_diff H_fref_notin_parents,
 
 apply congr_arg,
@@ -401,7 +414,9 @@ apply funext,
 intro x,
 
 rw env.insert_insert_flip _ _ _ (ne.symm H_fref_neq_ref),
-exact (to_dist_congr_insert (H_ps_in_env^.right _) (env.not_mem_of_insert H_fresh) H_not_cost)
+apply (to_dist_congr_insert (H_ps_in_env^.right _) _ _ H_not_cost),
+{ intro H_contra, exact H_fresh₁ (env.has_key_insert_diff H_fref_neq_ref H_contra) },
+{ exact not_mem_of_not_mem_cons H_fresh₂ }
 end
 
 lemma map_filter_expand_helper {costs : list ID} (ref : reference) (parents : list reference)

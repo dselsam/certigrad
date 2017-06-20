@@ -33,6 +33,9 @@ def insert_all : Π (refs : list reference) (vs : dvec T refs^.p2), env
 lemma has_key_insert {ref₁ ref₂ : reference} {x₂ : T ref₂.2} {m : env} :
   has_key ref₁ m → has_key ref₁ (insert ref₂ x₂ m) := dmap.has_key_insert
 
+lemma has_key_insert_diff {ref₁ ref₂ : reference} {x : T ref₂.2} {m : env} :
+  ref₁ ≠ ref₂ → has_key ref₁ (insert ref₂ x m) → has_key ref₁ m := sorry
+
 lemma has_key_insert_same (ref : reference) {x : T ref.2} (m : env) :
   has_key ref (insert ref x m) := dmap.has_key_insert_same ref m
 

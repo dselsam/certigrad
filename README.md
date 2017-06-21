@@ -9,10 +9,6 @@ Certigrad is a proof-of-concept of a new way to develop machine learning systems
 
 Specifically, Certigrad is a system for optimizing over stochastic computation graphs, that we debugged systematically in the Lean Theorem Prover, and ultimately proved correct in terms of the underlying mathematics.
 
-## Warning
-
-We are currently in the process of porting Certigrad to the newest version of Lean, and parts of it are in an inconsistent state. Please check back in a week.
-
 ## Background: stochastic computation graphs
 
 Stochastic computation graphs extend the computation graphs that underly systems like TensorFlow and Theano by allowing nodes to represent random variables and by defining the loss function to be the expected value of the sum of the leaf nodes over all the random choices in the graph. Certigrad allows users to construct arbitrary stochastic computation graphs out of the primitives that we provide. The main purpose of the system is to take a program describing a stochastic computation graph and to run a randomized algorithm (stochastic backpropagation) that, in expectation, samples the gradients of the loss function with respect to the parameters.
@@ -55,10 +51,6 @@ We have adopted a very high standard for our proofs, but there are a few ways in
 * By necessity, we execute with floating-point numbers even though our correctness theorems only hold in terms of infinite-precision real numbers.
 * For performance, we replace the primitive tensor operations with calls to Eigen at runtime.
 * We execute in a virtual machine, which is not designed to be as trustworthy as the proof-checker for the core logic.
-
-#### Todo
-
-Lean 3 is not backwards compatible with Lean 2 and some basic lemmas (e.g. properties of lists) are still being ported to the newest version. As placeholders, we currently rely on a few such lemmas without proof. We are also in the process of restruring our tactic programs to use the simplifier more aggressively, and the proof that all the preconditions hold for the AEVB model is not currently working.
 
 ## Performance
 

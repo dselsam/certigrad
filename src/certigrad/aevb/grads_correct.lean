@@ -9,28 +9,20 @@ applied to the naive variational encoder.
 import .util .naive ..prove_model_ok ..pre ..backprop_correct
 
 set_option max_memory 2048
+set_option profiler true
 
 namespace certigrad
 namespace aevb
 
-set_option profiler true
 open graph list tactic certigrad.tactic
+
+meta def admit : tactic unit := mk_sorry >>= exact
 
 meta def prove_for_tgt : tactic unit :=
 --mk_sorry >>= exact -- just for perf reasons
 
 do trace "prove_for_tgt start...",
    whnf_target,
-
-/-
-   H_at_idx ← get_local `H_at_idx,
-   mk_app `and.right [H_at_idx] >>= note `H_tgt_eq,
-   H_tgt_eq_type ← get_local `H_tgt_eq >>= infer_type,
-   s ← join_user_simp_lemmas true [`cgsimp],
-   (H_tgt_eq_new_type, pr) ← simplify s H_tgt_eq_type {},
-   get_local `H_tgt_eq >>= λ H_tgt_eq, replace_hyp H_tgt_eq H_tgt_eq_new_type pr,
-   get_local `H_tgt_eq >>= subst,
--/
    applyc `certigrad.backprop_correct,
    trace "targets subset inputs...",
      solve1 cgsimp,

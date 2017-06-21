@@ -5,7 +5,7 @@ Author: Daniel Selsam
 
 Predicates.
 -/
-import library_dev_extras.util .id .reference .graph .compute_grad
+import .util .id .reference .graph .compute_grad
 open list
 
 namespace certigrad

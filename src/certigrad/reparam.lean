@@ -5,7 +5,7 @@ Author: Daniel Selsam
 
 Certified graph transformation that "reparameterizes" a specific occurrence of a stochastic choice.
 -/
-import library_dev_extras.util .tensor .tfacts .compute_grad .graph .tactics .predicates .lemmas .env
+import .util .tensor .tfacts .compute_grad .graph .tactics .predicates .lemmas .env
 
 namespace certigrad
 open list

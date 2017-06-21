@@ -5,7 +5,7 @@ Author: Daniel Selsam
 
 Properties of continuous functions.
 -/
-import .tfacts library_dev_extras.util
+import .tfacts .util
 
 namespace certigrad
 namespace T

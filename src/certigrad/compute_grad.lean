@@ -5,7 +5,7 @@ Author: Daniel Selsam
 
 Stochastic backpropagation.
 -/
-import library_dev_extras.util .tensor .tvec .graph
+import .util .tensor .tvec .graph
 
 namespace certigrad
 open list

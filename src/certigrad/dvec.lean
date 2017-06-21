@@ -7,7 +7,7 @@ Dependently-typed vectors.
 
 These are necessary to store multiple tensors of arbitrary shapes.
 -/
-import library_dev_extras.util
+import .util
 
 inductive dvec {X : Type} (Y : X → Type) : list X → Type
 | nil {}  : dvec []

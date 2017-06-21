@@ -5,7 +5,7 @@ Author: Daniel Selsam
 
 Environments.
 -/
-import data.hash_map library_dev.data.list.sort .tensor .id library_dev_extras.util .reference
+import data.hash_map library_dev.data.list.sort .tensor .id .util .reference
 
 namespace certigrad
 

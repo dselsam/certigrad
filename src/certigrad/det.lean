@@ -7,7 +7,7 @@ Deterministic operators.
 
 Note: many of the proofs in this file could be automated by simple meta-programs.
 -/
-import .tgrads library_dev_extras.util .tcont
+import .tgrads .util .tcont
 
 namespace certigrad
 open T list

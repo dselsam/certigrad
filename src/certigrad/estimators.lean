@@ -5,7 +5,7 @@ Author: Daniel Selsam
 
 Estimators.
 -/
-import library_dev_extras.util .tactics .tensor .id .graph .expected_value .tgrads
+import .util .tactics .tensor .id .graph .expected_value .tgrads
 
 namespace certigrad
 namespace estimators

@@ -5,7 +5,7 @@ Author: Daniel Selsam
 
 Stochastic computation graphs.
 -/
-import .det .rand library_dev_extras.util .id .sprog .env .reference
+import .det .rand .util .id .sprog .env .reference
 
 namespace certigrad
 

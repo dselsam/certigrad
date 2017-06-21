@@ -8,7 +8,7 @@ Properties of dvecs of tensors.
 We often want to do algebra manipulations on an entire dvec at a time,
 and this file makes it possible to use standard notation when doing so.
 -/
-import .tensor .dvec library_dev_extras.util .graph
+import .tensor .dvec .util .graph
 
 namespace certigrad
 

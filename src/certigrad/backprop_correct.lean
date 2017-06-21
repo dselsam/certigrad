@@ -5,7 +5,7 @@ Author: Daniel Selsam
 
 Main functional correctness theorem for stochastic backpropagation.
 -/
-import library_dev_extras.util .graph .compute_grad .predicates .estimators .env .dvec .compute_grad_slow_correct .memoize_correct .is_gdifferentiable .lemmas_extra
+import .util .graph .compute_grad .predicates .estimators .env .dvec .compute_grad_slow_correct .memoize_correct .is_gdifferentiable .lemmas_extra
 
 namespace certigrad
 open tactic list theorems

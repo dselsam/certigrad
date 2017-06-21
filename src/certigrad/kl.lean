@@ -5,7 +5,7 @@ Author: Daniel Selsam
 
 Certified graph transformation that integrates out a specific KL divergence term.
 -/
-import library_dev_extras.util .tensor .compute_grad .graph .tactics .predicates .lemmas .env .expected_value
+import .util .tensor .compute_grad .graph .tactics .predicates .lemmas .env .expected_value
 
 namespace certigrad
 open list

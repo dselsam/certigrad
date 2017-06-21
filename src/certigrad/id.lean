@@ -5,7 +5,7 @@ Author: Daniel Selsam
 
 Identifiers.
 -/
-import library_dev_extras.util .label
+import .util .label
 
 namespace certigrad
 

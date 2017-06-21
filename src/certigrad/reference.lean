@@ -5,7 +5,7 @@ Author: Daniel Selsam
 
 References.
 -/
-import .id .tensor library_dev_extras.util
+import .id .tensor .util
 
 namespace certigrad
 

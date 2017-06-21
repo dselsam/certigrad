@@ -19,7 +19,7 @@ Stochastic computation graphs extend the computation graphs that underly systems
 
 Here is the theorem stating and proving that our implementation of stochastic backpropagation is correct:
 
-https://github.com/dselsam/certigrad/blob/master/src/certigrad/backprop_correct.lean#L14-L28
+https://github.com/dselsam/certigrad/blob/master/src/certigrad/backprop_correct.lean#L13-L26
 
 Informally, it says that for any stochastic computation graph, `backprop` computes a vector of tensors such that each element of the vector is a random variable that (in expectation) equals the gradient of the expected loss of the graph with respect to that parameter.
 
@@ -29,15 +29,15 @@ Even more informally, `∇ E[loss(graph)] = E[backprop(graph)]`.
 
 We also implemented two stochastic-computation-graph-transformations, one to "reparameterize" a graph so that a random variable no longer depends directly on a parameter, and one to integrate out the KL-divergence of the multivariate isotropic Gaussian.
 
-https://github.com/dselsam/certigrad/blob/master/src/certigrad/kl.lean#L79-L90
+https://github.com/dselsam/certigrad/blob/master/src/certigrad/kl.lean#L79-L91
 
-https://github.com/dselsam/certigrad/blob/master/src/certigrad/reparam.lean#L70-L79
+https://github.com/dselsam/certigrad/blob/master/src/certigrad/reparam.lean#L70-L80
 
 #### Verifying specific graphs
 
 Finally, we prove that stochastic backpropagation is correct on a specific stochastic computation graph that results from applying the two transformations mentioned above. The resulting graph represents the autoencoding variational Bayes model. Specifically, we prove that all the necessary preconditions for the certified transformations and the stochastic backpropagation algorithm hold.
 
-TODO(dhs): link to theorem statement
+https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/grads_correct.lean#L91-L96
 
 #### Formal proof
 

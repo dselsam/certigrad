@@ -65,44 +65,65 @@ have H₂ : T.is_dintegrable (λ (xs : dvec T [oshape]), rand.op.pdf pd args (dv
 T.dintegral_add_middle _ _ _ H₁ H₂
 
 lemma is_eintegrable_add₁ {oshape : S} : Π {shapes : list S} (d : sprog shapes) (f₁ f₂ : dvec T shapes → T oshape),
-  (is_eintegrable d f₁ ∧ is_eintegrable d f₂) → is_eintegrable d (λ x, f₁ x + f₂ x) := sorry
-/-
-| shapes (@sprog.ret .(shapes) xs) f₁ f₂ :=
-
+  (is_eintegrable d f₁ ∧ is_eintegrable d f₂) → is_eintegrable d (λ x, f₁ x + f₂ x)
+| .(shapes) (@sprog.ret shapes xs) f₁ f₂ :=
 begin
 simp only [is_eintegrable_ret],
-split, intro, exact trivial, intro, split, exact trivial, exact trivial
+intro, exact trivial
 end
 
-| shapes (@sprog.bind shapes₁ .(shapes) start rest) f₁ f₂ :=
+| .(shapes) (@sprog.bind shapes₁ shapes start rest) f₁ f₂ :=
 begin
-split,
-{
 simp only [is_eintegrable_bind],
 intro H,
 cases H with H₁ H₂,
 split,
 { simp only [(λ x, E_add (rest x) _ _ (H₁^.right x) (H₂^.right x))],
-  apply iff.mp (is_eintegrable_add _ _ _) (and.intro H₁^.left H₂^.left) },
-{ intro x, exact iff.mp (is_eintegrable_add _ _ _) (and.intro (H₁^.right x) (H₂^.right x)) }
-},
-{
-intro H,
-exact iff.mpr (is_eintegrable_add _ _ _) H
-}
+  apply is_eintegrable_add₁, apply and.intro H₁^.left H₂^.left },
+{ intro x, apply is_eintegrable_add₁, apply and.intro (H₁^.right x) (H₂^.right x) }
 end
 
-| ([oshape]) (@sprog.prim ishapes .(oshape) pd args) f₁ f₂ :=
-is_eintegrable_add (sprog.prim pd args) f₁ f₂
--/
+| .([oshape]) (@sprog.prim ishapes oshape pd args) f₁ f₂ :=
+by apply iff.mp (T.is_integrable_add_middle _ _ _)
 
 lemma is_eintegrable_add₂ {oshape : S} : Π {shapes : list S} (d : sprog shapes) (f₁ f₂ : dvec T shapes → T oshape),
-  is_eintegrable d (λ x, f₁ x + f₂ x) → (is_eintegrable d f₁ ∧ is_eintegrable d f₂) := sorry
+  is_eintegrable d (λ x, f₁ x + f₂ x) → (is_eintegrable d f₁ ∧ is_eintegrable d f₂)
+| .(shapes) (@sprog.ret shapes xs) f₁ f₂ :=
+
+begin
+simp only [is_eintegrable_ret],
+intro, split, exact trivial, exact trivial
+end
+
+| .(shapes) (@sprog.bind shapes₁ shapes start rest) f₁ f₂ :=
+begin
+simp only [is_eintegrable_bind],
+intro H,
+cases H with H_start H_rest,
+assert H_rest_next : ∀ x, is_eintegrable (rest x) f₁ ∧ is_eintegrable (rest x) f₂,
+intro x, apply is_eintegrable_add₂,
+exact H_rest x,
+simp only [(λ x, E_add (rest x) f₁ f₂ (H_rest_next x)^.left (H_rest_next x)^.right)] at H_start,
+
+split,
+split,
+exact (is_eintegrable_add₂ _ _ _ H_start)^.left,
+intro x, exact (H_rest_next x)^.left,
+split,
+exact (is_eintegrable_add₂ _ _ _ H_start)^.right,
+intro x, exact (H_rest_next x)^.right,
+end
+
+| .([oshape]) (@sprog.prim ishapes oshape pd args) f₁ f₂ :=
+by apply iff.mpr (T.is_integrable_add_middle _ _ _)
 
 lemma is_eintegrable_add {oshape : S} : Π {shapes : list S} (d : sprog shapes) (f₁ f₂ : dvec T shapes → T oshape),
   (is_eintegrable d f₁ ∧ is_eintegrable d f₂) ↔ is_eintegrable d (λ x, f₁ x + f₂ x) :=
 begin
-intros shapes d f₁ f₂, split, apply is_eintegrable_add₁, apply is_eintegrable_add₂
+intros shapes d f₁ f₂,
+split,
+apply is_eintegrable_add₁,
+apply is_eintegrable_add₂
 end
 
 lemma E_congr {shapes : list S} {oshape : S} (d₁ d₂ : sprog shapes) (f : dvec T shapes → T oshape) (H : d₁ = d₂) :

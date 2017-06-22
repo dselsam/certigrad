@@ -5,7 +5,7 @@ Author: Daniel Selsam
 
 Certigrad code for a naive variational autoencoder.
 -/
-import ..program ..prove_model_ok .util
+import ..program ..prove_model_ok .util .prog
 
 namespace certigrad
 namespace aevb
@@ -38,6 +38,11 @@ graph.mk [⟨(ID.nat 0, [a^.n_in, a^.n_x]), [], operator.det $ op.const x_data�
           (ID.str W_encode_logσ₂, [a^.nz, a^.ne]), (ID.str W_decode, [a^.nd, a^.nz]), (ID.str W_decode_p, [a^.n_in, a^.nd])]
 
 attribute [cgsimp] graph_naive
+
+open tactic certigrad.tactic
+
+@[cgsimp] lemma naive_aevb_as_graph (a : arch) (x_data : T [a^.n_in, a^.n_x]) : naive_aevb a x_data = graph_naive a x_data :=
+by { dunfold naive_aevb, dcgsimp, cgsimp, reflexivity }
 
 end nodes
 

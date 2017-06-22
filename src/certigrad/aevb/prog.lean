@@ -5,7 +5,7 @@ Author: Daniel Selsam
 
 Certigrad code for a naive variational autoencoder.
 -/
-import ..program ..prove_model_ok .util .graph
+import ..program ..prove_model_ok .util
 
 namespace certigrad
 namespace aevb
@@ -37,9 +37,6 @@ cost decoding_loss
 ]
 
 end program
-
-@[cgsimp] lemma naive_aevb_as_graph (a : arch) (x_data : T [a^.n_in, a^.n_x]) : naive_aevb a x_data = graph_naive a x_data :=
-by { dunfold graph_naive naive_aevb, dcgsimp, cgsimp, reflexivity }
 
 end aevb
 end certigrad

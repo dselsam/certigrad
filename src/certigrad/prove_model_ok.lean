@@ -295,19 +295,19 @@ meta def cgsimpn : ℕ → tactic unit
 
 meta def cgsimp : tactic unit := cgsimpn 50
 
-private meta def forall_idxs (tac_base tac_step : tactic unit) : expr → tactic unit
+meta def forall_idxs (tac_base tac_step : tactic unit) : expr → tactic unit
 | idx :=
 tac_base <|>
 (do cases idx [`_idx],
     solve1 tac_step,
     get_local `_idx >>= forall_idxs)
 
-private meta def prove_model_base : tactic unit :=
+meta def prove_model_base : tactic unit :=
 do exfalso,
    H_at_idx ← get_local `H_at_idx,
 to_expr ```(list.at_idx_over %%H_at_idx dec_trivial) >>= exact
 
-private meta def prove_model_step : tactic unit :=
+meta def prove_model_step : tactic unit :=
 do H_at_idx ← get_local `H_at_idx,
    mk_app `and.right [H_at_idx] >>= note `H_tgt_eq,
    H_tgt_eq_type ← get_local `H_tgt_eq >>= infer_type,

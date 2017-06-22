@@ -37,7 +37,7 @@ meta def fsimpt (ns : list name) (tac : tactic unit) : tactic unit := do
   at_target (λ e, do (a, new_e, pf) ← ext_simplify_core () {} s
                                                         (λ u, failed)
                                                         (λ a s r p e, failed)
-                                                        (λ a s r p e, do ⟨u, new_e, pr⟩ ← conv.apply_lemmas_core s tac r e,
+                                                        (λ a s r p e, do ⟨u, new_e, pr⟩ ← conv.apply_lemmas_core reducible s tac r e,
                                                                          return ((), new_e, pr, tt))
                                                         `eq e,
                      return (new_e, pf))
@@ -67,7 +67,7 @@ meta def dget_dinsert : tactic unit := do
   at_target (λ e, do (a, new_e, pf) ← ext_simplify_core () {} s
                                                         (λ u, failed)
                                                         (λ a s r p e, failed)
-                                                        (λ a s r p e, do ⟨u, new_e, pr⟩ ← conv.apply_lemmas_core s refs_neq r e,
+                                                        (λ a s r p e, do ⟨u, new_e, pr⟩ ← conv.apply_lemmas_core reducible s refs_neq r e,
                                                                          return ((), new_e, pr, tt))
                                                         `eq e,
                      return (new_e, pf))
@@ -77,7 +77,7 @@ meta def dget_dinsert_at (n : name) : tactic unit := do
   at_hyp n (λ e, do (a, new_e, pf) ← ext_simplify_core () {} s
                                                         (λ u, failed)
                                                         (λ a s r p e, failed)
-                                                        (λ a s r p e, do ⟨u, new_e, pr⟩ ← conv.apply_lemmas_core s refs_neq r e,
+                                                        (λ a s r p e, do ⟨u, new_e, pr⟩ ← conv.apply_lemmas_core reducible s refs_neq r e,
                                                                          return ((), new_e, pr, tt))
                                                         `eq e,
                      return (new_e, pf))

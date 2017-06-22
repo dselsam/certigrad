@@ -18,10 +18,10 @@ let g : graph   := graph_naive a x_data, fdict : env := mk_input_dict ws g in
 E (graph.to_dist (λ m, ⟦sum_costs m (integrate_kl g)^.costs⟧) fdict (integrate_kl g)^.nodes) dvec.head
 =
 E (graph.to_dist (λ m, ⟦sum_costs m g^.costs⟧) fdict g^.nodes) dvec.head :=
-let g : graph   := graph_naive a x_data, fdict : env := mk_input_dict ws g in
 begin
-apply integrate_mvn_iso_kl_correct (ID.str label.encoding_loss) [ID.str label.decoding_loss] g^.nodes fdict,
-all_goals { cgsimp }
+whnf_target,
+apply integrate_mvn_iso_kl_correct (ID.str label.encoding_loss) [ID.str label.decoding_loss] (graph_naive a x_data)^.nodes,
+all_goals { cgsimp >> try prove_is_mvn_integrable >> try T.prove_preconditions }
 end
 
 lemma reparam_sound (a : arch) (ws : weights a) (x_data : T [a^.n_in, a^.n_x]) :
@@ -29,9 +29,9 @@ let g : graph   := integrate_kl $ graph_naive a x_data, fdict : env := mk_input_
 E (graph.to_dist (λ m, ⟦sum_costs m (reparam g)^.costs⟧) fdict (reparam g)^.nodes) dvec.head
 =
 E (graph.to_dist (λ m, ⟦sum_costs m g^.costs⟧) fdict g^.nodes) dvec.head :=
-let g : graph   := integrate_kl $ graph_naive a x_data, fdict : env := mk_input_dict ws g in
 begin
-apply reparameterize_correct g^.costs g^.nodes fdict (ID.str label.ε, [a^.nz, a^.bs]),
+whnf_target,
+apply reparameterize_correct _ (integrate_kl $ graph_naive a x_data)^.nodes _ (ID.str label.ε, [a^.nz, a^.bs]),
 all_goals { cgsimp }
 end
 
@@ -43,8 +43,7 @@ E (graph.to_dist (λ m, ⟦sum_costs m g_aevb^.costs⟧) fdict g_aevb^.nodes) dv
 E (graph.to_dist (λ m, ⟦sum_costs m g^.costs⟧) fdict g^.nodes) dvec.head :=
 begin
 note H₁ := reparam_sound, note H₂ := integrate_kl_sound,
-dsimp at H₁, dsimp at H₂,
-dsimp,
+dsimp at *,
 erw [H₁, H₂]
 end
 

@@ -185,7 +185,7 @@ attribute [cgsimp] T.smul_zero T.one_smul
 
 attribute [cgsimp] if_pos if_neg if_true if_false
 
-attribute [cgsimp] hash_map.find_insert
+--attribute [cgsimp] hash_map.find_insert
 
 attribute [cgsimp] dif_pos dif_neg dif_ctx_simp_congr
 
@@ -263,7 +263,7 @@ meta def gsimpt (tac : tactic unit) : tactic unit := do
   (a, new_tgt, pf) ← ext_simplify_core () {} s
                                      (λ u, failed)
                                      (λ a s r p e, failed)
-                                     (λ a s r p e, do ⟨u, new_e, pr⟩ ← conv.apply_lemmas_core s tac r e,
+                                     (λ a s r p e, do ⟨u, new_e, pr⟩ ← conv.apply_lemmas_core reducible s tac r e,
                                                       return ((), new_e, pr, tt))
                                      `eq tgt,
   replace_target new_tgt pf
@@ -276,7 +276,53 @@ meta def cgsimpn : ℕ → tactic unit
 | 0 := cgsimpt skip
 | (n+1) := cgsimpt (cgsimpn n)
 
-meta def cgsimp : tactic unit := cgsimpn 50
+meta def cgsimp : tactic unit := cgsimpn 50 >> try (intros >> triv)
+
+private meta def forall_idxs (tac_base tac_step : tactic unit) : expr → tactic unit
+| idx :=
+tac_base <|>
+(do cases idx [`_idx],
+    solve1 tac_step,
+    get_local `_idx >>= forall_idxs)
+
+private meta def prove_model_base : tactic unit :=
+do exfalso,
+   H_at_idx ← get_local `H_at_idx,
+to_expr ```(list.at_idx_over %%H_at_idx dec_trivial) >>= exact
+
+private meta def prove_model_step : tactic unit :=
+do H_at_idx ← get_local `H_at_idx,
+   mk_app `and.right [H_at_idx] >>= note `H_tgt_eq,
+   H_tgt_eq_type ← get_local `H_tgt_eq >>= infer_type,
+   s ← join_user_simp_lemmas true [`cgsimp],
+   (H_tgt_eq_new_type, pr) ← simplify s H_tgt_eq_type {},
+   get_local `H_tgt_eq >>= λ H_tgt_eq, replace_hyp H_tgt_eq H_tgt_eq_new_type pr,
+   get_local `H_tgt_eq >>= subst,
+   applyc `certigrad.backprop_correct,
+   trace "nodup tgts nodes",
+     solve1 cgsimp,
+   trace "at_idx...",
+     solve1 (applyc `and.intro >> dec_triv >> reflexivity),
+   trace "well_formed_at...",
+     solve1 (constructor >> all_goals cgsimp),
+   trace "grads_exist_at...",
+     solve1 (cgsimp),
+   trace "pdfs_exist_at...",
+     solve1 cgsimp,
+   trace "is_gintegrable...",
+     solve1 (cgsimp >> prove_is_mvn_integrable),
+   trace "can_diff_under_ints...",
+     solve1 (cgsimp >> prove_is_mvn_uintegrable),
+   trace "prove_for_tgt done"
+
+meta def prove_model_ok : tactic unit :=
+do -- unfold lets
+   whnf_target,
+   -- introduce hypotheses
+   [tgt, idx, H_at_idx] ← intros | fail "can't intro hyps",
+   -- repeated case-analysis on idx
+   forall_idxs prove_model_base prove_model_step idx
+
 
 end tactic
 end certigrad

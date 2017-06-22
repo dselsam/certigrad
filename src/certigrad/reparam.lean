@@ -52,7 +52,7 @@ end
 def reparameterize_pre (eshape : S) : list node → env → Prop
 | [] inputs := true
 | (⟨⟨ref, shape⟩, [⟨μ, .(shape)⟩, ⟨σ, .(shape)⟩], operator.rand (rand.op.mvn_iso .(shape))⟩::nodes) inputs :=
-  eshape = shape ∧ σ ≠ μ ∧ env.get (σ, shape) inputs > 0
+  eshape = shape ∧ σ ≠ μ ∧ 0 < env.get (σ, shape) inputs
 | (⟨ref, parents, operator.det op⟩::nodes) inputs := reparameterize_pre nodes (env.insert ref (op^.f (env.get_ks parents inputs)) inputs)
 | (⟨ref, parents, operator.rand op⟩::nodes) inputs := ∀ x, reparameterize_pre nodes (env.insert ref x inputs)
 

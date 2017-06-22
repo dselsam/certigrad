@@ -9,8 +9,9 @@ import data.hash_map library_dev.data.list.sort .tensor .id .util .reference
 
 namespace certigrad
 
-@[reducible] def pre_env : Type := hash_map reference (λ (ref : reference), T ref.2)
+def pre_env : Type := hash_map reference (λ (ref : reference), T ref.2)
 
+attribute [reducible] pre_env
 namespace pre_env
 
 definition eqv (m₁ m₂ : pre_env) : Prop :=
@@ -262,4 +263,5 @@ induction H_elem_at_idx with xs x xs idx' x y H_elem_at_idx IH,
 end
 
 end env
+attribute [semireducible] pre_env
 end certigrad

@@ -60,7 +60,7 @@ integrate_mvn_iso_kl_pre nodes (env.insert (rname, rshape) (op^.f (env.get_ks [(
  ::⟨(el, []), [(μ', .(shape')), (σ', .(shape')), (z', .(shape'))], operator.det (det.op.mvn_iso_empirical_kl shape')⟩
  ::nodes) inputs :=
 (μ = μ' ∧ σ = σ' ∧ z = z' ∧ shape = shape' ∧ eloss = el ∧ σ ≠ μ)
-∧ ((¬ env.has_key (eloss, []) inputs) ∧ (eloss, []) ∉ (z, shape) :: map node.ref nodes ∧ env.get (σ, shape) inputs > 0 ∧ ∀ (y : T shape), all_parents_in_env (env.insert (z, shape) y inputs) nodes)
+∧ ((¬ env.has_key (eloss, []) inputs) ∧ (eloss, []) ∉ (z, shape) :: map node.ref nodes ∧ 0 < env.get (σ, shape) inputs ∧ ∀ (y : T shape), all_parents_in_env (env.insert (z, shape) y inputs) nodes)
 -- EQ11
 | (⟨(rname, .(shape)), [(pname₁, .(shape)), (pname₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
   ::⟨(rname₂, []), [(pname₃, shape₃), (pname₄, shape₄), (pname₅, shape₅)], operator.rand op⟩::nodes) inputs := false

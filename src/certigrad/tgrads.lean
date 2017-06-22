@@ -378,7 +378,7 @@ meta def simplify_grad_core_helper (tac : tactic unit) : conv unit :=
           grad ← check_grad e,
           k ← compute_k grad,
           s ← build_simplify_grad_simp_lemmas k,
-          conv.apply_lemmas_core s tac r e
+          conv.apply_lemmas_core reducible s tac r e
 
 meta def simplify_grad_core (tac : tactic unit) : tactic unit :=
 at_target (λ e, do (a, new_e, pf) ← ext_simplify_core () {zeta := ff, beta := ff, eta := ff, proj := ff} simp_lemmas.mk

@@ -6,7 +6,7 @@ Author: Daniel Selsam
 Proofs that integrating out the KL and reparametizing are sound when
 applied to the naive variational encoder.
 -/
-import .util .naive ..prove_model_ok ..pre ..backprop_correct
+import .util .graph .prog ..prove_model_ok ..pre ..backprop_correct
 
 set_option profiler true
 

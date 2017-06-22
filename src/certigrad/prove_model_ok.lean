@@ -79,6 +79,18 @@ cases H with H1 H2,
 exact (nat.not_lt_zero idx) H1
 end
 
+@[cgsimp] lemma simp_at_idx_0 {α : Type*} [inhabited α] {x : α} {xs : list α} : list.at_idx (x::xs) 0 x = true :=
+begin apply pextt, apply list.at_idx_0 end
+
+@[cgsimp] lemma simp_at_idx_cons {α : Type*} [inhabited α] {x : α} {xs : list α} {y : α} {idx : ℕ} :
+  list.at_idx (x::xs) (idx+1) y = list.at_idx xs idx y :=
+begin
+apply propext,
+split,
+apply list.at_idx_of_cons,
+apply list.at_idx_cons
+end
+
 @[cgsimp] lemma of_in_list_forall_cons {α : Type*} (ys : list α) (P : α → Prop) (y : α) : (∀ x, x ∈ list.cons y ys → P x) = (P y ∧ (∀ x, x ∈ ys → P x)) :=
 begin
 apply propext,
@@ -185,8 +197,6 @@ attribute [cgsimp] T.smul_zero T.one_smul
 
 attribute [cgsimp] if_pos if_neg if_true if_false
 
---attribute [cgsimp] hash_map.find_insert
-
 attribute [cgsimp] dif_pos dif_neg dif_ctx_simp_congr
 
 attribute [cgsimp] mvn_iso_mvn_iso_empirical_kl_int mvn_iso_bernoulli_neglogpdf_int
@@ -195,6 +205,8 @@ attribute [cgsimp] force_ok
 
 attribute [cgsimp] list.sumr list.map list.concat list.head list.tail list.riota list.filter list.length list.dnth
                    list.sublist.refl list.nil_subset list.sublist_cons list.cons_append list.append_nil list.nil_append
+
+attribute [cgsimp] hash_map.find_insert_eq hash_map.find_insert_ne
 
 attribute [cgsimp] zero_add add_zero
 
@@ -245,17 +257,22 @@ attribute [cgsimp] program_to_graph program.program_to_graph_core
                   program_to_graph._match_1
                   program.program_to_graph_core._match_1
                   program.program_to_graph_core._match_2
+                  program.process_rterm._match_1
                   program.process_term._match_6
                   program.process_term._match_10
                   program.process_term._match_13
                   program.process_term._match_16
-                  program.process_rterm._match_1
                   program.exp program.log program.sqrt program.softplus program.sigmoid
 
 @[cgsimp] lemma lift_t_label_to_term (x : label) : (lift_t x : program.term) = (program.term.id x) := rfl
+@[cgsimp] lemma lift_t_tensor_to_term (shape : S) (x : T shape) : (lift_t x : program.term) = (program.term.const x) := rfl
 
 namespace tactic
 open tactic
+
+meta def dcgsimp : tactic unit := do
+  s ← join_user_simp_lemmas tt [`cgsimp],
+  dsimp_core s
 
 meta def gsimpt (tac : tactic unit) : tactic unit := do
   s ← join_user_simp_lemmas tt [`cgsimp],
@@ -276,7 +293,7 @@ meta def cgsimpn : ℕ → tactic unit
 | 0 := cgsimpt skip
 | (n+1) := cgsimpt (cgsimpn n)
 
-meta def cgsimp : tactic unit := cgsimpn 50 >> try (intros >> triv)
+meta def cgsimp : tactic unit := cgsimpn 50
 
 private meta def forall_idxs (tac_base tac_step : tactic unit) : expr → tactic unit
 | idx :=
@@ -302,7 +319,7 @@ do H_at_idx ← get_local `H_at_idx,
    trace "nodup tgts nodes",
      solve1 cgsimp,
    trace "at_idx...",
-     solve1 (applyc `and.intro >> dec_triv >> reflexivity),
+     solve1 cgsimp,
    trace "well_formed_at...",
      solve1 (constructor >> all_goals cgsimp),
    trace "grads_exist_at...",

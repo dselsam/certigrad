@@ -8,7 +8,7 @@ Tactics to prove specific models satisfy the preconditions of backprop_correct.
 TODO(dhs): we are in the process of refactoring this tactic to use the simplifier
 more aggressively and this file is currently in an inconsistent state.
 -/
-import data.list.set .tfacts .graph .predicates .expected_value .reparam .kl .tactics .program .pre .mvn .tactics
+import data.list.set .tfacts .graph .predicates .expected_value .reparam .kl .tactics .program .mvn .tactics
 
 namespace certigrad
 open T tactic

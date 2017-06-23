@@ -18,11 +18,11 @@ program_to_graph
 [
 input batch_start     [],
 param W_encode₁       [a^.ne, a^.n_in],
-param W_encode₂       [a^.ne, a^.n_in],
+param W_encode₂       [a^.ne, a^.ne],
 param W_encode_μ      [a^.nz, a^.ne],
 param W_encode_logσ₂  [a^.nz, a^.ne],
 param W_decode₁       [a^.nd, a^.nz],
-param W_decode₂       [a^.nd, a^.nz],
+param W_decode₂       [a^.nd, a^.nd],
 param W_decode_p      [a^.n_in, a^.nd],
 
 assign x             $ get_col_range (const x_data) batch_start a^.bs,

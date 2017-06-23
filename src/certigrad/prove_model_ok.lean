@@ -328,9 +328,9 @@ do H_at_idx ← get_local `H_at_idx,
    trace "pdfs_exist_at...",
      solve1 cgsimp,
    trace "is_gintegrable...",
-     solve1 (cgsimp >> prove_is_mvn_integrable),
+     solve1 (prove_goal_async $ cgsimp >> prove_is_mvn_integrable),
    trace "can_diff_under_ints...",
-     solve1 (cgsimp >> prove_is_mvn_uintegrable),
+     solve1 (prove_goal_async $ cgsimp >> prove_is_mvn_uintegrable),
    trace "prove_for_tgt done"
 
 meta def prove_model_ok : tactic unit :=
@@ -339,7 +339,8 @@ do -- unfold lets
    -- introduce hypotheses
    [tgt, idx, H_at_idx] ← intros | fail "can't intro hyps",
    -- repeated case-analysis on idx
-   forall_idxs prove_model_base (prove_goal_async prove_model_step) idx
+   -- TODO(dhs): async would be great but I run out of memory
+   forall_idxs prove_model_base prove_model_step idx
 
 
 end tactic

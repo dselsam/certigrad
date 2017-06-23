@@ -36,10 +36,11 @@ graph.mk [⟨(ID.nat 0, [a^.n_in, a^.n_x]), [], operator.det $ op.const x_data�
           ⟨(ID.str p, [a^.n_in, a^.bs]), [(ID.nat 16, [a^.n_in, a^.bs])], operator.det $ op.unary $ sigmoid⟩,
           ⟨(ID.str decoding_loss, []), [(ID.str p, [a^.n_in, a^.bs]), (ID.str x, [a^.n_in, a^.bs])], operator.det $ op.special $ bernoulli_neglogpdf _⟩]
          [ID.str encoding_loss, ID.str decoding_loss]
-         [(ID.str W_encode, [a^.ne, a^.n_in]), (ID.str W_encode_μ, [a^.nz, a^.ne]), (ID.str W_encode_logσ₂, [a^.nz, a^.ne]),
-          (ID.str W_decode, [a^.nd, a^.nz]), (ID.str W_decode_p, [a^.n_in, a^.nd])]
-         [(ID.str batch_start, []), (ID.str W_encode, [a^.ne, a^.n_in]), (ID.str W_encode_μ, [a^.nz, a^.ne]),
-          (ID.str W_encode_logσ₂, [a^.nz, a^.ne]), (ID.str W_decode, [a^.nd, a^.nz]), (ID.str W_decode_p, [a^.n_in, a^.nd])]
+         [(ID.str W_encode₁, [a^.ne, a^.n_in]), (ID.str W_encode₂, [a^.ne, a^.ne]), (ID.str W_encode_μ, [a^.nz, a^.ne]), (ID.str W_encode_logσ₂, [a^.nz, a^.ne]),
+          (ID.str W_decode₁, [a^.nd, a^.nz]), (ID.str W_decode₂, [a^.nd, a^.nd]), (ID.str W_decode_p, [a^.n_in, a^.nd])]
+         [(ID.str batch_start, []),
+          (ID.str W_encode₁, [a^.ne, a^.n_in]), (ID.str W_encode₂, [a^.ne, a^.ne]), (ID.str W_encode_μ, [a^.nz, a^.ne]), (ID.str W_encode_logσ₂, [a^.nz, a^.ne]),
+          (ID.str W_decode₁, [a^.nd, a^.nz]), (ID.str W_decode₂, [a^.nd, a^.nd]), (ID.str W_decode_p, [a^.n_in, a^.nd])]
 
 attribute [cgsimp] graph_naive
 

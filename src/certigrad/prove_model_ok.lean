@@ -262,6 +262,7 @@ attribute [cgsimp] program_to_graph program.program_to_graph_core
                   program.process_term._match_10
                   program.process_term._match_13
                   program.process_term._match_16
+                  program.process_term._match_17
                   program.exp program.log program.sqrt program.softplus program.sigmoid
 
 @[cgsimp] lemma lift_t_label_to_term (x : label) : (lift_t x : program.term) = (program.term.id x) := rfl

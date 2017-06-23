@@ -8,8 +8,6 @@ applied to the naive variational encoder.
 -/
 import .util .graph ..prove_model_ok ..pre ..backprop_correct
 
-set_option profiler true
-
 namespace certigrad
 namespace aevb
 
@@ -21,7 +19,8 @@ let fdict : env := mk_input_dict ws g in
 ∀ (tgt : reference) (idx : ℕ) (H_at_idx : at_idx g^.targets idx tgt),
 ∇ (λ θ₀, E (graph.to_dist (λ m, ⟦sum_costs m g^.costs⟧) (env.insert tgt θ₀ fdict) g^.nodes) dvec.head) (env.get tgt fdict)
 =
-E (graph.to_dist (λ m, backprop g^.costs g^.nodes m g^.targets) fdict g^.nodes) (λ dict, dvec.get tgt.2 dict idx) := by prove_model_ok
+E (graph.to_dist (λ m, backprop g^.costs g^.nodes m g^.targets) fdict g^.nodes) (λ dict, dvec.get tgt.2 dict idx) :=
+by prove_model_ok
 
 end aevb
 end certigrad

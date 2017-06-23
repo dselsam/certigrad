@@ -88,12 +88,11 @@ theorem integrate_mvn_iso_kl_correct (eloss : ID) (costs : list ID) :
 E (graph.to_dist (λ env₀, ⟦sum_costs env₀ (eloss::costs)⟧) inputs (integrate_mvn_iso_kl eloss nodes)) dvec.head
 =
 E (graph.to_dist (λ env₀, ⟦sum_costs env₀ (eloss::costs)⟧) inputs nodes) dvec.head
+
 -- EQ1
---#check integrate_mvn_iso_kl.equations._eqn_1
 | [] _ _ _ _ _ _ _ _ := rfl
 
 -- EQ2 (a)
---#check integrate_mvn_iso_kl.equations._eqn_2
 | (⟨(rname, rshape), [], operator.det op⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint :=
 begin
 dunfold graph.to_dist operator.to_dist integrate_mvn_iso_kl,
@@ -133,32 +132,26 @@ exact (integrate_mvn_iso_kl_correct _ _ H_eloss_not_cost H_pre_next (H_uids^.rig
 end
 
 -- EQ5
---#check integrate_mvn_iso_kl.equations._eqn_5
 | [⟨(rname, .(shape)), [(pname₁, .(shape)), (pname₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩] inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
 
 -- EQ6
---#check integrate_mvn_iso_kl.equations._eqn_6
 | (⟨(rname, .(shape)), [(pname₁, .(shape)), (pname₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
   ::⟨(rname₂, []), [], op⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
 
 -- EQ7
---#check integrate_mvn_iso_kl.equations._eqn_7
 | (⟨(rname, .(shape)), [(pname₁, .(shape)), (pname₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
   ::⟨(rname₂, []), [(pname₃, shape₃)], op⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
 
 -- EQ8
---#check integrate_mvn_iso_kl.equations._eqn_8
 | (⟨(rname, .(shape)), [(pname₁, .(shape)), (pname₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
   ::⟨(rname₂, []), [(pname₃, shape₃), (pname₄, shape₄)], op⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
 
 -- EQ9
---#check integrate_mvn_iso_kl.equations._eqn_9
 | (⟨(rname, .(shape)), [(pname₁, .(shape)), (pname₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
   ::⟨(rname₂, []), [(pname₃, shape₃), (pname₄, shape₄), (pname₅, shape₅)], operator.det (det.op.special op)⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint :=
 false.rec _ H_pre
 
 -- EQ10
---#check integrate_mvn_iso_kl.equations._eqn_10
 | (⟨(z, .(shape)), [(μ, .(shape)), (σ, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
  ::⟨(el, []), [(μ', .(shape')), (σ', .(shape')), (z', .(shape'))], operator.det (det.op.mvn_iso_empirical_kl shape')⟩
  ::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint :=
@@ -443,22 +436,18 @@ erw (to_dist_congr_insert H_ps_in_env (env_not_has_key_insert H_eloss_neq_z H_el
 end
 
 -- EQ11
---#check integrate_mvn_iso_kl.equations._eqn_11
 | (⟨(rname, .(shape)), [(pname₁, .(shape)), (pname₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
   ::⟨(rname₂, []), [(pname₃, shape₃), (pname₄, shape₄), (pname₅, shape₅)], operator.rand op⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
 
 -- EQ12
---#check integrate_mvn_iso_kl.equations._eqn_12
 | (⟨(rname, .(shape)), [(pname₁, .(shape)), (pname₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
   ::⟨(rname₂, []), ((pname₃, shape₃)::(pname₄, shape₄)::(pname₅, shape₅)::parent::parents), op⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
 
 -- EQ13
---#check integrate_mvn_iso_kl.equations._eqn_13
 | (⟨(rname, .(shape)), [(pname₁, .(shape)), (pname₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
   ::⟨(rname₂, (shape₂ :: shapes₂)), parents, op⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
 
 -- EQ14 (a)
---#check integrate_mvn_iso_kl.equations._eqn_14
 | (⟨(rname₂, shape₂), ((pname₃, shape₃)::(pname₄, shape₄)::parent::parents), operator.det op⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint :=
 begin
 dunfold graph.to_dist operator.to_dist integrate_mvn_iso_kl,
@@ -475,7 +464,6 @@ exact (integrate_mvn_iso_kl_correct _ _ H_eloss_not_cost H_pre_next (H_uids^.rig
 end
 
 -- EQ14 (b)
---#check integrate_mvn_iso_kl.equations._eqn_14
 | (⟨(rname₂, shape₂), ((pname₃, shape₃)::(pname₄, shape₄)::parent::parents), operator.rand op⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
 
 -- More useful API

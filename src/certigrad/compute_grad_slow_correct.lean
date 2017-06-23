@@ -6,7 +6,7 @@ Author: Daniel Selsam
 Proof that the simple, non-memoized version of stochastic backpropagation
 is correct.
 -/
-import .graph .estimators .predicates .compute_grad .lemmas .tgrads .tactics .is_gdifferentiable
+import .graph .estimators .predicates .compute_grad .lemmas .tgrads .tactics
 
 namespace certigrad
 namespace theorems

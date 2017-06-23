@@ -13,8 +13,8 @@ namespace certigrad
 inductive label : Type
 | default
 | batch_start
-| W_encode, h_encode, W_encode_μ, W_encode_logσ₂
-| W_decode, h_decode, W_decode_p
+| W_encode, W_encode₁, W_encode₂, h_encode, W_encode_μ, W_encode_logσ₂
+| W_decode, W_decode₁, W_decode₂, h_decode, W_decode_p
 | μ, σ, σ₂, log_σ₂, z, encoding_loss, decoding_loss, ε, x, p
 
 namespace label
@@ -25,10 +25,14 @@ def to_str : label → string
 | default := "<default>"
 | batch_start := "batch_start"
 | W_encode := "W_encode"
+| W_encode₁ := "W_encode₁"
+| W_encode₂ := "W_encode₂"
 | h_encode := "h_encode"
 | W_encode_μ := "W_encode_μ"
 | W_encode_logσ₂ := "W_encode_logσ₂"
 | W_decode := "W_decode"
+| W_decode₁ := "W_decode₁"
+| W_decode₂ := "W_decode₂"
 | h_decode := "h_decode"
 | W_decode_p := "W_decode_p"
 | μ := "μ"
@@ -48,22 +52,26 @@ def to_nat : label → ℕ
 | default := 0
 | batch_start := 1
 | W_encode := 2
-| h_encode := 3
-| W_encode_μ := 4
-| W_encode_logσ₂ := 5
-| W_decode := 6
-| h_decode := 7
-| W_decode_p := 8
-| μ := 9
-| σ := 10
-| σ₂ := 11
-| log_σ₂ := 12
-| z := 13
-| encoding_loss := 14
-| decoding_loss := 15
-| ε := 16
-| x := 17
-| p := 18
+| W_encode₁ := 3
+| W_encode₂ := 4
+| h_encode := 5
+| W_encode_μ := 6
+| W_encode_logσ₂ := 7
+| W_decode := 8
+| W_decode₁ := 9
+| W_decode₂ := 10
+| h_decode := 11
+| W_decode_p := 12
+| μ := 13
+| σ := 14
+| σ₂ := 15
+| log_σ₂ := 16
+| z := 17
+| encoding_loss := 18
+| decoding_loss := 19
+| ε := 20
+| x := 21
+| p := 22
 
 section proofs
 open tactic

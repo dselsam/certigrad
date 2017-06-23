@@ -338,7 +338,7 @@ do -- unfold lets
    -- introduce hypotheses
    [tgt, idx, H_at_idx] ← intros | fail "can't intro hyps",
    -- repeated case-analysis on idx
-   forall_idxs prove_model_base prove_model_step idx
+   forall_idxs prove_model_base (prove_goal_async prove_model_step) idx
 
 
 end tactic

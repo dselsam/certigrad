@@ -42,7 +42,7 @@ attribute [cgsimp] graph_naive
 open tactic certigrad.tactic
 
 @[cgsimp] lemma naive_aevb_as_graph (a : arch) (x_data : T [a^.n_in, a^.n_x]) : naive_aevb a x_data = graph_naive a x_data :=
-by { dunfold naive_aevb, dcgsimp, cgsimp, reflexivity }
+by { dunfold naive_aevb, cgsimp, dcgsimp, cgsimp, reflexivity }
 
 end nodes
 

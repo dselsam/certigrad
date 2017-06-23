@@ -48,16 +48,18 @@ by prove_transformation ```(reparameterize_correct [ID.str label.encoding_loss, 
                                                   (integrate_kl $ graph_naive a x_data)^.nodes _ (ID.str label.ε, [a^.nz, a^.bs]))
 
 #print "proving aevb_transformations_sound..."
--- TODO(dhs): this is annoying, rw and simp should whnf the let
+
 lemma aevb_transformations_sound {a : arch} (ws : weights a) (x_data : T [a^.n_in, a^.n_x]) :
 let g₀ : graph := naive_aevb a x_data, g_aevb : graph := reparam (integrate_kl g₀), fdict : env := mk_input_dict ws g₀ in
 ∀ (tgt : reference) (idx : ℕ) (H_at_idx : at_idx g₀^.targets idx tgt) (θ : T tgt.2),
 E (graph.to_dist (λ m, ⟦sum_costs m g₀^.costs⟧) (env.insert tgt θ fdict) g₀^.nodes) dvec.head
 =
 E (graph.to_dist (λ m, ⟦sum_costs m g_aevb^.costs⟧) (env.insert tgt θ fdict) g_aevb^.nodes) dvec.head :=
+
 begin
 whnf_target,
 intros tgt idx H_at_idx θ,
+-- TODO(dhs): this is annoying, rw and simp should whnf the let
 note H₁ := @reparam_sound a ws x_data tgt idx,
 note H₂ := @integrate_kl_sound a ws x_data tgt idx,
 simp only [naive_aevb_as_graph] at *,

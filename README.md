@@ -33,17 +33,19 @@ https://github.com/dselsam/certigrad/blob/master/src/certigrad/kl.lean#L79-L90
 
 https://github.com/dselsam/certigrad/blob/master/src/certigrad/reparam.lean#L70-L79
 
-#### Verifying specific graphs
+#### Certigrad programs
 
 Certigrad also includes a front-end syntax for constructing stochastic computation graphs. Here is an example program that describes a naive variational autoencoder:
 
 https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/prog.lean#L16-L40
 
+#### Verifying properties of Certigrad programs
 
+We prove that the two certified optimizations mentioned above are sound to apply in sequence to the naive autoencoder:
 
-Finally, we prove that stochastic backpropagation is correct on a specific stochastic computation graph that results from applying the two transformations mentioned above. The resulting graph represents the autoencoding variational Bayes model. Specifically, we prove that all the necessary preconditions for the certified transformations and the stochastic backpropagation algorithm hold.
+https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/transformations.lean#L52-57
 
-https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/grads_correct.lean#L16-L23
+We also prove that backpropagation will work correctly on the resulting model, i.e. that it satisfies all the necessary preconditions.
 
 #### Formal proof
 

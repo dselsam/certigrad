@@ -1,6 +1,6 @@
 # Certigrad
 
-Certigrad is a proof-of-concept of a new way to develop machine learning systems, in which the following components are developed simultaneously:
+Certigrad is a proof-of-concept for a new way to develop machine learning systems, in which the following components are developed simultaneously:
 
 * The implementation itself.
 * A library of background mathematics.
@@ -34,6 +34,12 @@ https://github.com/dselsam/certigrad/blob/master/src/certigrad/kl.lean#L79-L90
 https://github.com/dselsam/certigrad/blob/master/src/certigrad/reparam.lean#L70-L79
 
 #### Verifying specific graphs
+
+Certigrad also includes a front-end syntax for constructing stochastic computation graphs. Here is an example program that describes a naive variational autoencoder:
+
+https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/prog.lean#L16-L40
+
+
 
 Finally, we prove that stochastic backpropagation is correct on a specific stochastic computation graph that results from applying the two transformations mentioned above. The resulting graph represents the autoencoding variational Bayes model. Specifically, we prove that all the necessary preconditions for the certified transformations and the stochastic backpropagation algorithm hold.
 

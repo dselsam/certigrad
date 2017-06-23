@@ -37,7 +37,7 @@ https://github.com/dselsam/certigrad/blob/master/src/certigrad/reparam.lean#L70-
 
 Finally, we prove that stochastic backpropagation is correct on a specific stochastic computation graph that results from applying the two transformations mentioned above. The resulting graph represents the autoencoding variational Bayes model. Specifically, we prove that all the necessary preconditions for the certified transformations and the stochastic backpropagation algorithm hold.
 
-https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/grads_correct.lean#L18-24
+https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/grads_correct.lean#L18-L24
 
 #### Formal proof
 

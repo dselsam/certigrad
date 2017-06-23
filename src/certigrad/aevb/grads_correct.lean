@@ -14,6 +14,7 @@ namespace aevb
 open graph list tactic certigrad.tactic
 
 #print "proving final_backprop_correct..."
+
 theorem final_backprop_correct (a : arch) (ws : weights a) (x_data : T [a^.n_in, a^.n_x]) :
 let g : graph := reparam (integrate_kl $ naive_aevb a x_data) in
 let fdict : env := mk_input_dict ws g in

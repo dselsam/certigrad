@@ -23,6 +23,7 @@ let fdict : env := mk_input_dict ws g₀ in
 ∇ (λ θ₀, E (graph.to_dist (λ m, ⟦sum_costs m g₀^.costs⟧) (env.insert tgt θ₀ fdict) g₀^.nodes) dvec.head) (env.get tgt fdict)
 =
 E (graph.to_dist (λ m, backprop g_aevb^.costs g_aevb^.nodes m g_aevb^.targets) fdict g_aevb^.nodes) (λ dict, dvec.get tgt.2 dict idx) :=
+
 begin
 whnf_target,
 intros tgt idx H_at_idx,

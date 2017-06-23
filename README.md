@@ -45,7 +45,9 @@ We prove that the two certified optimizations mentioned above are sound to apply
 
 https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/transformations.lean#L52-57
 
-We also prove that backpropagation will work correctly on the resulting model, i.e. that it satisfies all the necessary preconditions.
+We also prove that backpropagation will work correctly on the resulting model, i.e. that it satisfies all the necessary preconditions:
+
+https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/grads_correct.lean#L18-25
 
 #### Formal proof
 

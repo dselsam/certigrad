@@ -90,11 +90,9 @@ Our methodology may already be economical for high-assurrance systems, and yet t
 
 ## Building Certigrad
 
-TODO(dhs): use new Lean package manager to minimize dependencies
+Instructions for installing Certigrad will be posted shortly.
 
-TODO(dhs): use forthcoming Lean foreign function interface instead of forking Lean.
-
-TODO(dhs): include command that downloads Eigen to a subdirectory
+Note: Lean is still under development, and there are several efforts in progress that will make it much easier to install Certigrad. One of particular relevance to installing Certigrad is the foreign function interface (FFI). We forked Lean in order to add code to wrap Eigen inside Lean's VM (https://github.com/dselsam/lean/tree/certigrad) but soon Lean will have a foreign function interface that lets us add to the VM without needing to rebuild Lean. The intrepid user can build our fork, but we hope to port Certigrad to the master branch of Lean once the FFI has been released.
 
 ## Warning
 

@@ -31,8 +31,8 @@ graph.mk [⟨(ID.nat 0, [a^.n_in, a^.n_x]), [], operator.det $ op.const x_data�
           ⟨(ID.nat 12, [a^.nd, a^.bs]), [(ID.str W_decode₁, [a^.nd, a^.nz]), (ID.str z, [a^.nz, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
           ⟨(ID.nat 13, [a^.nd, a^.bs]), [(ID.nat 12, [a^.nd, a^.bs])], operator.det $ op.unary $ softplus⟩,
           ⟨(ID.nat 14, [a^.nd, a^.bs]), [(ID.str W_decode₂, [a^.nd, a^.nd]), (ID.nat 13, [a^.nd, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
-          ⟨(ID.nat 15, [a^.nd, a^.bs]), [(ID.nat 14, [a^.nd, a^.bs])], operator.det $ op.unary $ softplus⟩,
-          ⟨(ID.nat 16, [a^.n_in, a^.bs]), [(ID.str W_decode_p, [a^.n_in, a^.nd]), (ID.nat 15, [a^.nd, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
+          ⟨(ID.str h_decode, [a^.nd, a^.bs]), [(ID.nat 14, [a^.nd, a^.bs])], operator.det $ op.unary $ softplus⟩,
+          ⟨(ID.nat 16, [a^.n_in, a^.bs]), [(ID.str W_decode_p, [a^.n_in, a^.nd]), (ID.str h_decode, [a^.nd, a^.bs])], operator.det $ op.special $ gemm _ _ _⟩,
           ⟨(ID.str p, [a^.n_in, a^.bs]), [(ID.nat 16, [a^.n_in, a^.bs])], operator.det $ op.unary $ sigmoid⟩,
           ⟨(ID.str decoding_loss, []), [(ID.str p, [a^.n_in, a^.bs]), (ID.str x, [a^.n_in, a^.bs])], operator.det $ op.special $ bernoulli_neglogpdf _⟩]
          [ID.str encoding_loss, ID.str decoding_loss]

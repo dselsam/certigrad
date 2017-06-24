@@ -17,6 +17,7 @@ def naive_aevb : Π (a : arch) (x_data : T [a^.n_in, a^.n_x]), graph | a x_data 
 program_to_graph
 [
 input batch_start     [],
+input x               [a^.n_in, a^.bs],
 param W_encode₁       [a^.ne, a^.n_in],
 param W_encode₂       [a^.ne, a^.ne],
 param W_encode_μ      [a^.nz, a^.ne],
@@ -25,7 +26,6 @@ param W_decode₁       [a^.nd, a^.nz],
 param W_decode₂       [a^.nd, a^.nd],
 param W_decode_p      [a^.n_in, a^.nd],
 
-assign x             $ get_col_range (const x_data) batch_start a^.bs,
 assign h_encode      $ softplus (gemm W_encode₂ (softplus (gemm W_encode₁ x))),
 assign μ             $ gemm W_encode_μ h_encode,
 assign σ             $ sqrt (exp (gemm W_encode_logσ₂ h_encode)),

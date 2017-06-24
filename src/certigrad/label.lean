@@ -15,7 +15,7 @@ inductive label : Type
 | batch_start
 | W_encode, W_encode₁, W_encode₂, h_encode, W_encode_μ, W_encode_logσ₂
 | W_decode, W_decode₁, W_decode₂, h_decode, W_decode_p
-| μ, σ, σ₂, log_σ₂, z, encoding_loss, decoding_loss, ε, x, p
+| μ, σ, σ₂, log_σ₂, z, encoding_loss, decoding_loss, ε, x, p, x_all
 
 namespace label
 
@@ -45,6 +45,7 @@ def to_str : label → string
 | ε := "eps"
 | x := "x"
 | p := "p"
+| x_all := "x_all"
 
 instance : has_to_string label := ⟨to_str⟩
 
@@ -72,6 +73,7 @@ def to_nat : label → ℕ
 | ε := 20
 | x := 21
 | p := 22
+| x_all := 23
 
 section proofs
 open tactic
@@ -87,7 +89,6 @@ do H ← intro `H,
    exfalso,
    get_local `H_not >>= λ H_not, exact (expr.app H_not H)
 
---cases x, all_goals { cases y, all_goals { (prove_neq_case_core <|> (intro1 >> reflexivity)) } }
 lemma label_eq_of_to_nat {x y : label} : x = y → to_nat x = to_nat y :=
 begin
 intro H,

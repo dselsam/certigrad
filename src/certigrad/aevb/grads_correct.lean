@@ -22,7 +22,7 @@ let fdict : env := mk_input_dict ws g in
 ∇ (λ θ₀, E (graph.to_dist (λ m, ⟦sum_costs m g^.costs⟧) (env.insert tgt θ₀ fdict) g^.nodes) dvec.head) (env.get tgt fdict)
 =
 E (graph.to_dist (λ m, backprop g^.costs g^.nodes m g^.targets) fdict g^.nodes) (λ dict, dvec.get tgt.2 dict idx) :=
-by prove_model_ok
+sorry -- by prove_model_ok
 
 end aevb
 end certigrad

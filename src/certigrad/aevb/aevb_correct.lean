@@ -3,8 +3,9 @@ Copyright (c) 2017 Daniel Selsam. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Daniel Selsam
 
-Proofs that integrating out the KL and reparametizing are sound when
-applied to the naive variational encoder.
+Proof of the end-to-end correctness theorem for the variational autoencoder: that
+backpropagation on AEVB samples correct gradients for the naive variational autoencoder
+we started with.
 -/
 import .util .graph .prog .grads_correct .transformations ..prove_model_ok ..backprop_correct
 
@@ -15,7 +16,9 @@ namespace aevb
 
 open graph list tactic certigrad.tactic
 
-theorem aevb_backprop_correct (a : arch) (ws : weights a) (x_data : T [a^.n_in, a^.n_x]) :
+#print "proving aevb_backprop_correct_for_naive_aevb..."
+
+theorem aevb_backprop_correct_for_naive_aevb (a : arch) (ws : weights a) (x_data : T [a^.n_in, a^.n_x]) :
 let g₀ : graph := naive_aevb a x_data in
 let g_aevb : graph := reparam (integrate_kl g₀) in
 let fdict : env := mk_input_dict ws g₀ in
@@ -28,7 +31,7 @@ begin
 whnf_target,
 intros tgt idx H_at_idx,
 simp only [@aevb_transformations_sound a ws x_data tgt idx H_at_idx],
-apply final_backprop_correct,
+apply backprop_correct_on_aevb,
 rw [naive_aevb_as_graph] at H_at_idx,
 rw [naive_aevb_as_graph],
 exact H_at_idx

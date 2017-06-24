@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Daniel Selsam
 
 Tactics to prove specific models satisfy the preconditions of backprop_correct.
-
-TODO(dhs): we are in the process of refactoring this tactic to use the simplifier
-more aggressively and this file is currently in an inconsistent state.
 -/
 import data.list.set .tfacts .graph .predicates .expected_value .reparam .kl .tactics .program .mvn .tactics
 

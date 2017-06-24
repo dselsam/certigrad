@@ -3,7 +3,7 @@ Copyright (c) 2017 Daniel Selsam. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Daniel Selsam
 
-Miscellaneous lemmas.
+Miscellaneous lemmas that depend on compute_grad_slow_correct.
 -/
 import .predicates .tcont .expected_value .lemmas .compute_grad_slow_correct
 

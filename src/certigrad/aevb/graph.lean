@@ -3,7 +3,10 @@ Copyright (c) 2017 Daniel Selsam. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Daniel Selsam
 
-Certigrad code for a naive variational autoencoder.
+The actual graph produced by the naive variational auto-encoder code in aevb/prog.lean.
+
+Note: we include this file as an optimization, to avoid repeatedly simplifying the
+program into the graph.
 -/
 import ..program ..prove_model_ok .util .prog
 

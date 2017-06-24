@@ -38,7 +38,6 @@ def mk_run_dir_name (dir : string) (a : arch) (num_iters seed : ℕ) : string :=
 dir ++ "/run_bs=" ++ to_string a^.bs ++ "_nz=" ++ to_string a^.nz ++ "_nh=" ++ to_string a^.nd
     ++ "_iters=" ++ to_string num_iters ++ "_seed=" ++ to_string seed
 
--- TODO(dhs): confirm that this will run
 meta def main [io.interface] : io unit :=
 let a : arch := ⟨250, 60000, 784, 2, 2, 2⟩ in
 let num_iters : ℕ := 1 in

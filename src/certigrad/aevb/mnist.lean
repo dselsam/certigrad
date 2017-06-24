@@ -39,10 +39,12 @@ dir ++ "/run_bs=" ++ to_string a^.bs ++ "_nz=" ++ to_string a^.nz ++ "_nh=" ++ t
     ++ "_iters=" ++ to_string num_iters ++ "_seed=" ++ to_string seed
 
 meta def main [io.interface] : io unit :=
-let a : arch := ⟨250, 60000, 784, 2, 2, 2⟩ in
+let a : arch := {bs := 250, n_x := 60000, n_in := 784, nz := 2, ne := 2, nd := 2} in
 let num_iters : ℕ := 1 in
 let seed : ℕ := 0 in
+-- CHANGE ME
 let mnist_dir : string := "/home/dselsam/projects/mnist" in
+-- CHANGE ME
 let run_dir : string := mk_run_dir_name "/home/dselsam/projects/mnist/runs" a num_iters seed in
 train_aevb_on_mnist a num_iters seed mnist_dir run_dir
 

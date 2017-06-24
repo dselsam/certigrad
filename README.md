@@ -47,7 +47,16 @@ https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/transformati
 
 We also prove that backpropagation will work correctly on the resulting model, i.e. that it satisfies all the necessary preconditions:
 
-https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/grads_correct.lean#L18-L25
+https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/grads_correct.lean#L20-L27
+
+#### Running Certigrad programs
+
+We include a script to train an AEVB on MNIST:
+
+https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/mnist.lean#L41-L49
+
+Note: there are currently paths hard-coded, so users who want to run Certigrad will need to change them
+to be able to run the script.
 
 #### Formal proof
 

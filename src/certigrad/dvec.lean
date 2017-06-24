@@ -22,6 +22,9 @@ notation `⟦` l:(foldr `, ` (h t, cons h t) nil `⟧`) := l
 def head {X : Type} {Y : X → Type} {x : X} {xs : list X} : dvec Y (x::xs) → Y x
 | (cons y ys) := y
 
+def tail {X : Type} {Y : X → Type} {x : X} {xs : list X} : dvec Y (x::xs) → dvec Y xs
+| (cons y ys) := ys
+
 def head2 {X : Type} {Y : X → Type} {x₁ x₂ : X} {xs : list X} : dvec Y (x₁::x₂::xs) → Y x₂
 | (cons y₁ (cons y₂ ys)) := y₂
 

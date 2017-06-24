@@ -11,7 +11,7 @@ namespace certigrad
 open io
 
 namespace T
-meta constant read_mnist (dir : string) [io.interface] : io (T [60000, 784] × T [60000])
+meta constant read_mnist (dir : string) [io.interface] (n_x n_in : ℕ) : io (T [n_x, n_in] × T [n_x])
 meta constant read_from_file (shape : S) (s : string) [io.interface] : io (T shape)
 meta constant write_to_file {shape : S} (x : T shape) (s : string) [io.interface] : io unit
 end T
@@ -29,6 +29,18 @@ meta def write_all [io.interface] (dir pfix sfix : string) (refs : list referenc
   write_all_core (dir ++ "/" ++ pfix) sfix refs^.p1 refs^.p2 xs
 
 end tvec
+
+def xavier_init : Π (shape : S), state RNG (T shape)
+| [] := return 0
+| shape :=
+  let low  :ℝ := - T.sqrt ((6 : ℝ) / (T.of_nat $ list.sumr shape)),
+      high :ℝ :=   T.sqrt ((6 : ℝ) / (T.of_nat $ list.sumr shape))
+  in
+    T.sample_uniform shape low high
+
+def sample_initial_weights : Π (refs : list reference), state RNG (dvec T refs.p2)
+| []          := return ⟦⟧
+| (ref::refs) := sample_initial_weights refs >>= λ ws, xavier_init ref.2 >>= λ w, return (w ::: ws)
 
 namespace run
 open optim

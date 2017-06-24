@@ -169,7 +169,7 @@ notation `∇` := grad
 /- Other instances -/
 
 instance {shape : S} : has_to_string (T shape) := has_to_string.mk T.to_string
-@[inline] instance {shape : S} : inhabited (T shape) := ⟨silent_fail _⟩ --⟨T.zero shape⟩ (switch back once no course-of-values)
+@[inline] instance {shape : S} : inhabited (T shape) := ⟨T.zero shape⟩ -- ⟨silent_fail _⟩ --⟨T.zero shape⟩ (switch back once no course-of-values)
 @[inline] instance {shape : S} : has_smul (ℝ) (T shape) := ⟨scalar_mul⟩
 
 /- Derived definitions -/

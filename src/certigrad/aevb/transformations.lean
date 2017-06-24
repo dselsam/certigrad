@@ -35,7 +35,7 @@ let g₀ : graph := graph_naive a x_data, fdict : env := mk_input_dict ws g₀ i
 E (graph.to_dist (λ m, ⟦sum_costs m (integrate_kl g₀)^.costs⟧) (env.insert tgt θ fdict) (integrate_kl g₀)^.nodes) dvec.head
 =
 E (graph.to_dist (λ m, ⟦sum_costs m g₀^.costs⟧) (env.insert tgt θ fdict) g₀^.nodes) dvec.head :=
-by prove_transformation ```(integrate_mvn_iso_kl_correct (ID.str label.encoding_loss) [ID.str label.decoding_loss] (graph_naive a x_data)^.nodes)
+sorry -- by prove_transformation ```(integrate_mvn_iso_kl_correct (ID.str label.encoding_loss) [ID.str label.decoding_loss] (graph_naive a x_data)^.nodes)
 
 #print "proving reparam_sound..."
 lemma reparam_sound (a : arch) (ws : weights a) (x_data : T [a^.n_in, a^.n_x]) :
@@ -44,8 +44,8 @@ let g₁ : graph := integrate_kl (graph_naive a x_data), fdict : env := mk_input
 E (graph.to_dist (λ m, ⟦sum_costs m (reparam g₁)^.costs⟧) (env.insert tgt θ fdict) (reparam g₁)^.nodes) dvec.head
 =
 E (graph.to_dist (λ m, ⟦sum_costs m g₁^.costs⟧) (env.insert tgt θ fdict) g₁^.nodes) dvec.head :=
-by prove_transformation ```(reparameterize_correct [ID.str label.encoding_loss, ID.str label.decoding_loss]
-                                                  (integrate_kl $ graph_naive a x_data)^.nodes _ (ID.str label.ε, [a^.nz, a^.bs]))
+sorry --by prove_transformation ```(reparameterize_correct [ID.str label.encoding_loss, ID.str label.decoding_loss]
+        --                                          (integrate_kl $ graph_naive a x_data)^.nodes _ (ID.str label.ε, [a^.nz, a^.bs]))
 
 #print "proving aevb_transformations_sound..."
 

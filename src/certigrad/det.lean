@@ -987,7 +987,7 @@ def pb : Π {shapes : list S} {shape : S}, special shapes shape → pullback sha
 | ._ ._ (@mvn_iso_logpdf shape) := pullback.error "mvn_iso_logpdf"
 | ._ ._ (@mvn_iso_std_logpdf shape) := pullback.error "mvn_iso_std_logpdf"
 | ._ ._ (@get_col m n cidx) := pullback.error "get_col"
-| ._ ._ (@get_col_range m n ncols) := pullback.serror
+| ._ ._ (@get_col_range m n ncols) := pullback.dummy
 | ._ ._ (@replicate_col m n) := @pullback.replicate_col m n
 | ._ ._ (@mul_add shape) := @pullback.mul_add shape
 | ._ ._ (@mvn_iso_kl shape) := @pullback.mvn_iso_kl shape

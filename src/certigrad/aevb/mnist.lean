@@ -18,8 +18,6 @@ then do (x, y) ← T.read_mnist mnist_dir,
         return $ eq.rec_on H^.left (eq.rec_on H^.right (x^.transpose, y))
 else io.fail "architecture not compatible with mnist"
 
---def sample_initial
-
 meta def train_aevb_on_mnist [io.interface] (a : arch) (num_iters seed : ℕ) (mnist_dir run_dir : string) : io unit := do
   put_str_ln ("reading mnist data from '" ++ mnist_dir ++ "' ..."),
   (train_data, train_labels) ← load_mnist_dataset mnist_dir a,
@@ -42,7 +40,7 @@ dir ++ "/run_bs=" ++ to_string a^.bs ++ "_nz=" ++ to_string a^.nz ++ "_nh=" ++ t
 
 -- TODO(dhs): confirm that this will run
 meta def main [io.interface] : io unit :=
-let a : arch := ⟨250, 60000, 784, 1, 1, 1⟩ in
+let a : arch := ⟨250, 60000, 784, 2, 2, 2⟩ in
 let num_iters : ℕ := 1 in
 let seed : ℕ := 0 in
 let mnist_dir : string := "/home/dselsam/projects/mnist" in

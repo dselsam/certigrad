@@ -11,6 +11,7 @@ namespace certigrad
 open io
 
 namespace T
+meta constant read_mnist (dir : string) [io.interface] : io (T [60000, 784] × T [60000])
 meta constant read_from_file (shape : S) (s : string) [io.interface] : io (T shape)
 meta constant write_to_file {shape : S} (x : T shape) (s : string) [io.interface] : io unit
 end T
@@ -85,7 +86,6 @@ meta def run_iters_core [io.interface] (tval : time) (dir : string) (g : graph) 
   : Π (num_iters : ℕ), dvec T g^.targets^.p2 → adam.state g^.targets^.p2 → RNG → io (dvec T g^.targets^.p2 × adam.state g^.targets^.p2 × RNG)
 | 0 θ astate rng := return (θ, astate, rng)
 | (t+1) θ astate rng := do ((θ', epoch_cost, astate', rng')) ← run_epoch g n_x batch_size astate θ rng init_dict,
---                           tvec.write_all (dir ++ "/iter" ++ to_string t) "params_" ".ssv" g^.targets θ',
                            tval' ← time.get,
                            put_str (to_string epoch_cost ++ ", " ++ time.sdiff tval' tval ++ "\n"),
                            run_iters_core t θ' astate' rng'

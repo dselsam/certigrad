@@ -51,14 +51,14 @@ dir ++ "/run_bs=" ++ to_string a^.bs ++ "_nz=" ++ to_string a^.nz ++ "_nh=" ++ t
 -- 5. Uncomment the 'run_cmd tactic.run_io @main' command below to run it.
 
 meta def main [io.interface] : io unit :=
-let a : arch := {bs := 250, n_x := 60000, n_in := 784, nz := 2, ne := 2, nd := 2} in
-let num_iters : ℕ := 1 in
+let a : arch := {bs := 250, n_x := 60000, n_in := 784, nz := 30, ne := 500, nd := 500} in
+let num_iters : ℕ := 100 in
 let seed : ℕ := 0 in
 let mnist_dir : string := "/home/dselsam/projects/mnist" in
 let run_dir : string := mk_run_dir_name "/home/dselsam/projects/mnist/runs" a num_iters seed in
 train_aevb_on_mnist a num_iters seed mnist_dir run_dir
 
--- run_cmd tactic.run_io @main
+run_cmd tactic.run_io @main
 
 end aevb
 end certigrad

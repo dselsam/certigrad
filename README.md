@@ -62,11 +62,16 @@ We have adopted a very high standard for our proofs, but there are a few ways in
 
 ## Performance
 
-Provable correctness need not come at the expense of computational efficiency: proofs need only be checked once and they introduce no ongoing costs or runtime overhead. Although the algorithms we verify in this work lack many optimizations, most of the time training machine learning systems is spent multiplying matrices, and we are able to acheive competitive performance simply by linking with an optimized library for matrix operations (Eigen). As an experiment, we trained an Auto-Encoding Variational Bayes (AEVB) model on MNIST using ADAM and find that our performance is competitive with TensorFlow (on CPUs).
+Provable correctness need not come at the expense of computational efficiency: proofs need only be checked once and they introduce no ongoing costs or runtime overhead. Although the algorithms we verify in this work lack many optimizations, most of the time training machine learning systems is spent multiplying matrices, and we are able to acheive competitive performance simply by linking with an optimized library for matrix operations (Eigen). We trained an Auto-Encoding Variational Bayes (AEVB) model on MNIST using ADAM and find that our performance is competitive with TensorFlow (on CPUs).
 
 We include a script to train an AEVB on MNIST using ADAM:
 
 https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/mnist.lean#L42-L59
+
+Note: the Lean code-generator is being refactored to avoid "course-of-values" recursion, but as of now
+many large "default" matrices are being constructed unnecessarily, at substantial performance cost.
+We can get around this for now (e.g. by having a cheap "default" matrix that lies about its shape),
+but the current version of Certigrad does not do this.
 
 ## Benefits of the methodology
 
@@ -102,7 +107,7 @@ Our methodology may already be economical for high-assurrance systems, and yet t
 
 ## Building Certigrad
 
-Lean is still under development, and there are several efforts in progress that will make it much easier to install Certigrad. One of particular relevance to installing Certigrad is the foreign function interface (FFI). We forked Lean in order to add code to wrap Eigen inside Lean's VM but soon Lean will have a foreign function interface that lets us add to the VM without needing to rebuild Lean. The intrepid user can build our fork, but we hope to port Certigrad to the master branch of Lean once the FFI has been released.
+Lean is still under development, and there are several efforts in progress that will make it much easier to install Certigrad. One of particular relevance to installing Certigrad is the foreign function interface (FFI). We forked Lean in order to add code to wrap Eigen inside Lean's VM but soon Lean will have a foreign function interface that lets us add to the VM without needing to rebuild Lean. We will port Certigrad to the master branch of Lean once the FFI has been released.
 
 Until then:
 1. Download our fork of Lean from https://github.com/dselsam/lean/tree/certigrad and build/install it using the instructions at https://github.com/leanprover/lean.

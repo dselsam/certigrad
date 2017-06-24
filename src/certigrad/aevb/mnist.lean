@@ -38,17 +38,27 @@ def mk_run_dir_name (dir : string) (a : arch) (num_iters seed : ℕ) : string :=
 dir ++ "/run_bs=" ++ to_string a^.bs ++ "_nz=" ++ to_string a^.nz ++ "_nh=" ++ to_string a^.nd
     ++ "_iters=" ++ to_string num_iters ++ "_seed=" ++ to_string seed
 
+
+------------------------------------
+-- Script to train an AEVB on MNIST.
+------------------------------------
+-- 1. Create a directory 'mnist_dir'
+-- 2. Download, uncompress, and put in 'mnist_dir':
+--      http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz
+--      http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz
+-- 3. Create a directory for 'run_dir' to store data from different runs.
+-- 4. Change 'mnist_dir' and 'run_dir' below accordingly.
+-- 5. Uncomment the 'run_cmd tactic.run_io @main' command below to run it.
+
 meta def main [io.interface] : io unit :=
 let a : arch := {bs := 250, n_x := 60000, n_in := 784, nz := 2, ne := 2, nd := 2} in
 let num_iters : ℕ := 1 in
 let seed : ℕ := 0 in
--- CHANGE ME
 let mnist_dir : string := "/home/dselsam/projects/mnist" in
--- CHANGE ME
 let run_dir : string := mk_run_dir_name "/home/dselsam/projects/mnist/runs" a num_iters seed in
 train_aevb_on_mnist a num_iters seed mnist_dir run_dir
 
-run_cmd tactic.run_io @main
+-- run_cmd tactic.run_io @main
 
 end aevb
 end certigrad

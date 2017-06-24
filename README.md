@@ -33,13 +33,11 @@ https://github.com/dselsam/certigrad/blob/master/src/certigrad/kl.lean#L79-L90
 
 https://github.com/dselsam/certigrad/blob/master/src/certigrad/reparam.lean#L70-L79
 
-#### Certigrad programs
+#### Verifying properties of Certigrad programs
 
 Certigrad also includes a front-end syntax for constructing stochastic computation graphs. Here is an example program that describes a naive variational autoencoder:
 
 https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/prog.lean#L16-L40
-
-#### Verifying properties of Certigrad programs
 
 We prove that the two certified optimizations mentioned above are sound to apply in sequence to the naive autoencoder:
 
@@ -48,12 +46,6 @@ https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/transformati
 We also prove that backpropagation will work correctly on the resulting model, i.e. that it satisfies all the necessary preconditions:
 
 https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/grads_correct.lean#L20-L27
-
-#### Running Certigrad programs
-
-We include a script to train an AEVB on MNIST:
-
-https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/mnist.lean#L42-L59
 
 #### Formal proof
 
@@ -71,6 +63,10 @@ We have adopted a very high standard for our proofs, but there are a few ways in
 ## Performance
 
 Provable correctness need not come at the expense of computational efficiency: proofs need only be checked once and they introduce no ongoing costs or runtime overhead. Although the algorithms we verify in this work lack many optimizations, most of the time training machine learning systems is spent multiplying matrices, and we are able to acheive competitive performance simply by linking with an optimized library for matrix operations (Eigen). As an experiment, we trained an Auto-Encoding Variational Bayes (AEVB) model on MNIST using ADAM and find that our performance is competitive with TensorFlow (on CPUs).
+
+We include a script to train an AEVB on MNIST using ADAM:
+
+https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/mnist.lean#L42-L59
 
 ## Benefits of the methodology
 
@@ -106,9 +102,15 @@ Our methodology may already be economical for high-assurrance systems, and yet t
 
 ## Building Certigrad
 
-Instructions for installing Certigrad will be posted shortly.
+Lean is still under development, and there are several efforts in progress that will make it much easier to install Certigrad. One of particular relevance to installing Certigrad is the foreign function interface (FFI). We forked Lean in order to add code to wrap Eigen inside Lean's VM but soon Lean will have a foreign function interface that lets us add to the VM without needing to rebuild Lean. The intrepid user can build our fork, but we hope to port Certigrad to the master branch of Lean once the FFI has been released.
 
-Note: Lean is still under development, and there are several efforts in progress that will make it much easier to install Certigrad. One of particular relevance to installing Certigrad is the foreign function interface (FFI). We forked Lean in order to add code to wrap Eigen inside Lean's VM (https://github.com/dselsam/lean/tree/certigrad) but soon Lean will have a foreign function interface that lets us add to the VM without needing to rebuild Lean. The intrepid user can build our fork, but we hope to port Certigrad to the master branch of Lean once the FFI has been released.
+Until then:
+1. Download our fork of Lean from https://github.com/dselsam/lean/tree/certigrad and build/install it using the instructions at https://github.com/leanprover/lean.
+2. Download Eigen (http://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2) and install it. You may need to change https://github.com/dselsam/lean/blob/certigrad/src/CMakeLists.txt#L285 depending on where you install it.
+3. Download this repository, and in the main directory execute `leanpkg --build`.
+
+Note: we are still working on some performance issues in Lean when proving certain (large) Certigrad theorems and checking the resulting proofs.
+Building Certigrad currently takes a long time (~90 minutes) and at its peak consumes around 30 GB of memory. We hope to get these numbers way down in the near future.
 
 ## Warning
 

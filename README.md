@@ -53,7 +53,7 @@ https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/grads_correc
 
 We include a script to train an AEVB on MNIST:
 
-https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/mnist.lean#L42-L60
+https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/mnist.lean#L42-L59
 
 #### Formal proof
 

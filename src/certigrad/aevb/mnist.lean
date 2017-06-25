@@ -50,17 +50,20 @@ dir ++ "/run_bs=" ++ to_string a^.bs ++ "_nz=" ++ to_string a^.nz ++ "_nh=" ++ t
 -- 4. Change 'mnist_dir' and 'run_dir' below accordingly.
 -- 5. Uncomment the 'run_cmd tactic.run_io @main' command below to run it.
 
-set_option profiler true
+--set_option profiler true
 
-meta def main [io.interface] : io unit :=
-let a : arch := {bs := 1000, n_x := 60000, n_in := 784, nz := 30, ne := 1000, nd := 1000} in
-let num_iters : ℕ := 3 in
-let seed : ℕ := 0 in
+meta def train_core [io.interface] (a : arch) (num_iters seed : ℕ) : io unit :=
 let mnist_dir : string := "/home/dselsam/projects/mnist" in
 let run_dir : string := mk_run_dir_name "/home/dselsam/projects/mnist/runs" a num_iters seed in
 train_aevb_on_mnist a num_iters seed mnist_dir run_dir
 
---run_cmd tactic.run_io @main
+meta def main [io.interface] : io unit :=
+let a : arch := {bs := 250, n_x := 60000, n_in := 784, nz := 30, ne := 1000, nd := 1000} in
+let num_iters : ℕ := 1000 in
+let seed : ℕ := 100 in
+train_core a num_iters seed
+
+run_cmd tactic.run_io @main
 
 end aevb
 end certigrad

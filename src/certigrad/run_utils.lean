@@ -45,71 +45,72 @@ def sample_initial_weights : Π (refs : list reference), state RNG (dvec T refs.
 namespace run
 open optim
 
-@[reducible] def get_batch_start (batch_size batch_num : ℕ) : ℕ := batch_size * batch_num
-@[reducible] def mk_initial_env (batch_size num_batches : ℕ) (targets : list reference) (θ : dvec T targets^.p2) : env :=
-  env.insert (ID.str label.batch_start, []) (T.of_nat $ get_batch_start batch_size num_batches) (tvec.to_env targets θ)
+def get_batch_start (batch_size batch_num : ℕ) : ℕ := batch_size * batch_num
+
+def mk_initial_env ⦃n_in n_x : ℕ⦄ (x_all : T [n_in, n_x]) (batch_size batch_num : ℕ) (targets : list reference) (θ : dvec T targets^.p2) : env :=
+  env.insert (ID.str label.x, [n_in, batch_size]) (T.get_col_range batch_size x_all (get_batch_start batch_size batch_num)) (tvec.to_env targets θ)
 
 def compute_costs (g : graph) (inputs : env) : state RNG (ℝ) :=
   let dist : sprog [[]] := graph.to_dist (λ env₀, ⟦sum_costs env₀ g^.costs⟧) inputs g^.nodes in do
   result ← dist^.to_rngprog,
   return (dvec.head result)
 
-def compute_cost_epoch_core (g : graph) (batch_size : ℕ) (θ : dvec T g^.targets^.p2)
+def compute_cost_epoch_core (g : graph) ⦃n_in n_x : ℕ⦄ (x_all : T [n_in, n_x]) (batch_size : ℕ) (θ : dvec T g^.targets^.p2)
   : Π (batches_left : ℕ) (costs_so_far : ℝ), state RNG (ℝ)
 | 0 cs := return cs
 
 | (bl + 1) cs := do
-    inputs ← return $ mk_initial_env batch_size bl g^.targets θ,
+    inputs ← return $ mk_initial_env x_all batch_size bl g^.targets θ,
     c ← compute_costs g inputs,
     compute_cost_epoch_core bl (cs + c)
 
-def compute_cost_epoch (g : graph) (batch_size : ℕ) (θ : dvec T g^.targets^.p2) (num_batches : ℕ) : state RNG (ℝ) := do
-  total_ecost ← compute_cost_epoch_core g batch_size θ num_batches 0,
+def compute_cost_epoch (g : graph) ⦃n_in n_x : ℕ⦄ (x_all : T [n_in, n_x]) (batch_size : ℕ) (θ : dvec T g^.targets^.p2) (num_batches : ℕ) : state RNG (ℝ) := do
+  total_ecost ← compute_cost_epoch_core g x_all batch_size θ num_batches 0,
   return $ total_ecost / (T.of_nat $ batch_size * num_batches)
 
--- Assumes that "bstart" is an argument to the graph
+-- Assumes that "x" is an argument to the graph
 def optimize_step (g : graph) (inputs : env) (astate : adam.state g^.targets^.p2) (θ : dvec T g^.targets^.p2) (init_dict : env) (batch_size : ℕ)
   : state RNG (dvec T g^.targets^.p2 × adam.state g^.targets^.p2) := do
     grads ← (graph.to_dist (λ env, bprop g^.costs init_dict g^.nodes env g^.targets) inputs g^.nodes)^.to_rngprog,
     return $ adam.step θ ((1 / T.of_nat batch_size) ⬝ grads) astate
 
-def optimize_epoch_core (g : graph) (batch_size : ℕ)
+def optimize_epoch_core (g : graph) ⦃n_in n_x : ℕ⦄ (x_all : T [n_in, n_x]) (batch_size : ℕ)
   : Π (batches_left : ℕ) (astate : adam.state g^.targets^.p2) (θ : dvec T g^.targets^.p2) (init_dict : env), state RNG (dvec T g^.targets^.p2 × adam.state g^.targets^.p2)
 | 0 astate θ init_dict := return (θ, astate)
 
 | (bl + 1) astate θ init_dict := do
-    inputs ← return $ mk_initial_env batch_size bl g^.targets θ,
+    inputs ← return $ mk_initial_env x_all batch_size bl g^.targets θ,
     (θ_new, astate_new) ← optimize_step g inputs astate θ init_dict batch_size,
     optimize_epoch_core bl astate_new θ_new init_dict
 
-def optimize_epoch (g : graph) (n_x batch_size : ℕ) (astate : adam.state g^.targets^.p2) (θ : dvec T g^.targets^.p2) (init_dict : env)
+def optimize_epoch (g : graph) ⦃n_in n_x : ℕ⦄ (x_all : T [n_in, n_x]) (batch_size : ℕ) (astate : adam.state g^.targets^.p2) (θ : dvec T g^.targets^.p2) (init_dict : env)
 : state RNG (dvec T g^.targets^.p2 × ℝ × adam.state g^.targets^.p2) :=
   let num_batches : ℕ := n_x / batch_size in do
-    (θ_new, astate_new) ← optimize_epoch_core g batch_size num_batches astate θ init_dict,
-    epoch_cost ← compute_cost_epoch g batch_size θ_new num_batches,
+    (θ_new, astate_new) ← optimize_epoch_core g x_all batch_size num_batches astate θ init_dict,
+    epoch_cost ← compute_cost_epoch g x_all batch_size θ_new num_batches,
     return (θ_new, epoch_cost, astate_new)
 
-meta def run_epoch [io.interface] (g : graph) (n_x batch_size : ℕ) (astate : adam.state g^.targets^.p2) (θ : dvec T g^.targets^.p2) (rng : RNG) (init_dict : env)
+meta def run_epoch [io.interface] (g : graph) ⦃n_in n_x : ℕ⦄ (x_all : T [n_in, n_x]) (batch_size : ℕ) (astate : adam.state g^.targets^.p2) (θ : dvec T g^.targets^.p2) (rng : RNG) (init_dict : env)
   : io (dvec T g^.targets^.p2 × ℝ × adam.state g^.targets^.p2 × RNG) := do
-      ((θ_new, epoch_costs, astate_new), rng_new) ← return $ optimize_epoch g n_x batch_size astate θ init_dict rng,
+      ((θ_new, epoch_costs, astate_new), rng_new) ← return $ optimize_epoch g x_all batch_size astate θ init_dict rng,
       return (θ_new, epoch_costs, astate_new, rng_new)
 
-meta def run_iters_core [io.interface] (tval : time) (dir : string) (g : graph) (n_x batch_size : ℕ) (init_dict : env)
+meta def run_iters_core [io.interface] (tval : time) (dir : string) (g : graph) ⦃n_in n_x : ℕ⦄ (x_all : T [n_in, n_x]) (batch_size : ℕ) (init_dict : env)
   : Π (num_iters : ℕ), dvec T g^.targets^.p2 → adam.state g^.targets^.p2 → RNG → io (dvec T g^.targets^.p2 × adam.state g^.targets^.p2 × RNG)
 | 0 θ astate rng := return (θ, astate, rng)
-| (t+1) θ astate rng := do ((θ', epoch_cost, astate', rng')) ← run_epoch g n_x batch_size astate θ rng init_dict,
+| (t+1) θ astate rng := do ((θ', epoch_cost, astate', rng')) ← run_epoch g x_all batch_size astate θ rng init_dict,
                            tval' ← time.get,
                            put_str (to_string epoch_cost ++ ", " ++ time.sdiff tval' tval ++ "\n"),
                            run_iters_core t θ' astate' rng'
 
-meta def run_iters [io.interface] (dir : string) (g : graph) (n_x batch_size : ℕ)
+meta def run_iters [io.interface] (dir : string) (g : graph) ⦃n_x n_in : ℕ⦄ (x_all : T [n_in, n_x]) (batch_size : ℕ)
               (num_iters : ℕ) (θ : dvec T g^.targets^.p2) (astate : adam.state g^.targets^.p2) (rng : RNG)
   : io (dvec T g^.targets^.p2 × adam.state g^.targets^.p2 × RNG) := do
     init_dict ← return $ compute_init_dict g^.costs g^.nodes g^.targets,
-    (epoch_cost, rng) ← return $ compute_cost_epoch g batch_size θ (n_x / batch_size) rng,
+    (epoch_cost, rng) ← return $ compute_cost_epoch g x_all batch_size θ (n_x / batch_size) rng,
     tval ← time.get,
     put_str (to_string epoch_cost ++ ", 0\n"),
-    run_iters_core tval dir g n_x batch_size init_dict num_iters θ astate rng
+    run_iters_core tval dir g x_all batch_size init_dict num_iters θ astate rng
 
 end run
 end certigrad

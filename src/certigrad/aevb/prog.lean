@@ -16,7 +16,6 @@ open certigrad.program certigrad.program.statement certigrad.program.term certig
 def naive_aevb : Π (a : arch) (x_data : T [a^.n_in, a^.n_x]), graph | a x_data :=
 program_to_graph
 [
-input batch_start     [],
 input x               [a^.n_in, a^.bs],
 param W_encode₁       [a^.ne, a^.n_in],
 param W_encode₂       [a^.ne, a^.ne],

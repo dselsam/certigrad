@@ -51,8 +51,8 @@ dir ++ "/run_bs=" ++ to_string a^.bs ++ "_nz=" ++ to_string a^.nz ++ "_nh=" ++ t
 -- 5. Uncomment the 'run_cmd tactic.run_io @main' command below to run it.
 
 meta def main [io.interface] : io unit :=
-let a : arch := {bs := 250, n_x := 60000, n_in := 784, nz := 30, ne := 500, nd := 500} in
-let num_iters : ℕ := 100 in
+let a : arch := {bs := 1000, n_x := 60000, n_in := 784, nz := 1, ne := 1, nd := 1} in
+let num_iters : ℕ := 1 in
 let seed : ℕ := 0 in
 let mnist_dir : string := "/home/dselsam/projects/mnist" in
 let run_dir : string := mk_run_dir_name "/home/dselsam/projects/mnist/runs" a num_iters seed in

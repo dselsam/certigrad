@@ -21,7 +21,7 @@ open graph list tactic certigrad.tactic
 theorem aevb_backprop_correct_for_naive_aevb (a : arch) (ws : weights a) (x_data : T [a^.n_in, a^.n_x]) :
 let g₀ : graph := naive_aevb a x_data in
 let g_aevb : graph := reparam (integrate_kl g₀) in
-let fdict : env := mk_input_dict ws g₀ in
+let fdict : env := mk_input_dict ws x_data g₀ in
 ∀ (tgt : reference) (idx : ℕ) (H_at_idx : at_idx g₀^.targets idx tgt),
 ∇ (λ θ₀, E (graph.to_dist (λ m, ⟦sum_costs m g₀^.costs⟧) (env.insert tgt θ₀ fdict) g₀^.nodes) dvec.head) (env.get tgt fdict)
 =

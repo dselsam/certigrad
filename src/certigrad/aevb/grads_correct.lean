@@ -19,7 +19,7 @@ set_option profiler true
 
 theorem backprop_correct_on_aevb (a : arch) (ws : weights a) (x_data : T [a^.n_in, a^.n_x]) :
 let g : graph := reparam (integrate_kl $ naive_aevb a x_data) in
-let fdict : env := mk_input_dict ws g in
+let fdict : env := mk_input_dict ws x_data g in
 ∀ (tgt : reference) (idx : ℕ) (H_at_idx : at_idx g^.targets idx tgt),
 ∇ (λ θ₀, E (graph.to_dist (λ m, ⟦sum_costs m g^.costs⟧) (env.insert tgt θ₀ fdict) g^.nodes) dvec.head) (env.get tgt fdict)
 =

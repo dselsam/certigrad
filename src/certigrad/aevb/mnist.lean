@@ -29,7 +29,7 @@ meta def train_aevb_on_mnist [io.interface] (a : arch) (num_iters seed : ℕ) (m
   (ws, rng₁) ← return $ sample_initial_weights g^.targets (RNG.mk seed),
   put_str_ln "training...",
   num_batches ← return (a.n_x / a.bs),
-  (θ, astate, rng₂) ← run.run_iters run_dir g a^.n_x a^.bs num_iters ws optim.adam.init_state rng₁,
+  (θ, astate, rng₂) ← run.run_iters run_dir g train_data a^.bs num_iters ws optim.adam.init_state rng₁,
   put_str_ln "writing results...",
   tvec.write_all run_dir "params_" ".ssv" g^.targets θ,
   put_str_ln "(done)"
@@ -50,15 +50,17 @@ dir ++ "/run_bs=" ++ to_string a^.bs ++ "_nz=" ++ to_string a^.nz ++ "_nh=" ++ t
 -- 4. Change 'mnist_dir' and 'run_dir' below accordingly.
 -- 5. Uncomment the 'run_cmd tactic.run_io @main' command below to run it.
 
+set_option profiler true
+
 meta def main [io.interface] : io unit :=
-let a : arch := {bs := 1000, n_x := 60000, n_in := 784, nz := 1, ne := 1, nd := 1} in
-let num_iters : ℕ := 1 in
+let a : arch := {bs := 1000, n_x := 60000, n_in := 784, nz := 30, ne := 1000, nd := 1000} in
+let num_iters : ℕ := 3 in
 let seed : ℕ := 0 in
 let mnist_dir : string := "/home/dselsam/projects/mnist" in
 let run_dir : string := mk_run_dir_name "/home/dselsam/projects/mnist/runs" a num_iters seed in
 train_aevb_on_mnist a num_iters seed mnist_dir run_dir
 
-run_cmd tactic.run_io @main
+--run_cmd tactic.run_io @main
 
 end aevb
 end certigrad

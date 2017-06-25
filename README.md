@@ -68,11 +68,6 @@ We include a script to train an AEVB on MNIST using ADAM:
 
 https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/mnist.lean#L42-L59
 
-Note: the Lean code-generator is being refactored to avoid "course-of-values" recursion, but as of now
-many large "default" matrices are being constructed unnecessarily, at moderate performance cost.
-We can get around this (e.g. by having a cheap "default" matrix that lies about its shape),
-but the current version of Certigrad does not do this.
-
 ## Benefits of the methodology
 
 Although our methodology introduces many new challenges, it offers substantial benefits as well.

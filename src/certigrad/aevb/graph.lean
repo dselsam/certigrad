@@ -39,7 +39,7 @@ graph.mk [⟨(ID.nat 0, [a^.ne, a^.bs]), [(ID.str W_encode₁, [a^.ne, a^.n_in])
          [ID.str encoding_loss, ID.str decoding_loss]
          [(ID.str W_encode₁, [a^.ne, a^.n_in]), (ID.str W_encode₂, [a^.ne, a^.ne]), (ID.str W_encode_μ, [a^.nz, a^.ne]), (ID.str W_encode_logσ₂, [a^.nz, a^.ne]),
           (ID.str W_decode₁, [a^.nd, a^.nz]), (ID.str W_decode₂, [a^.nd, a^.nd]), (ID.str W_decode_p, [a^.n_in, a^.nd])]
-         [(ID.str x_all, [a^.n_in, a^.bs]),
+         [(ID.str x, [a^.n_in, a^.bs]),
           (ID.str W_encode₁, [a^.ne, a^.n_in]), (ID.str W_encode₂, [a^.ne, a^.ne]), (ID.str W_encode_μ, [a^.nz, a^.ne]), (ID.str W_encode_logσ₂, [a^.nz, a^.ne]),
           (ID.str W_decode₁, [a^.nd, a^.nz]), (ID.str W_decode₂, [a^.nd, a^.nd]), (ID.str W_decode_p, [a^.n_in, a^.nd])]
 

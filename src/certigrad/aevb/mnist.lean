@@ -21,7 +21,7 @@ else io.fail "architecture not compatible with mnist"
 meta def train_aevb_on_mnist [io.interface] (a : arch) (num_iters seed : ℕ) (mnist_dir run_dir : string) : io unit := do
   put_str_ln ("reading mnist data from '" ++ mnist_dir ++ "' ..."),
   (train_data, train_labels) ← load_mnist_dataset mnist_dir a,
-  x_data ← return $ T.get_col_range 55000 train_data 0,
+  x_data ← return $ T.get_col_range a^.n_x train_data 0,
   put_str_ln ("creating directory to store run data at '" ++ run_dir ++ "' ..."),
   mkdir run_dir,
   put_str_ln "building graph...",
@@ -64,7 +64,7 @@ let num_iters : ℕ := 1000 in
 let seed : ℕ := 100 in
 train_core a num_iters seed
 
-run_cmd tactic.run_io @main
+--run_cmd tactic.run_io @main
 
 end aevb
 end certigrad

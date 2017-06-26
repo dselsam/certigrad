@@ -347,6 +347,7 @@ do es ← monad.mapm to_expr
                   , ``(@certigrad.T.grad_dot₁)
                   , ``(@certigrad.T.grad_dot₂)
                   , ``(certigrad.T.grad_square %%k)
+                  , ``(certigrad.T.grad_sqrt %%k)
                   , ``(certigrad.T.grad_softplus %%k)
                   , ``(certigrad.T.grad_sigmoid %%k)
 ],

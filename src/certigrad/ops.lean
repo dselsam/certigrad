@@ -42,7 +42,8 @@ do prove_pb_correct_init,
    try dsimp,
    mk_const `certigrad.T.grad_tmulT >>= rewrite_core reducible tt tt occurrences.all tt,
    simplify_grad,
-   simp
+   try simp,
+   try reflexivity
 
 meta def prove_ocont_init : tactic unit :=
 do get_local `f_ocont >>= clear,
@@ -58,6 +59,33 @@ do prove_ocont_init,
 end tactic
 
 open det
+
+namespace scale
+
+def f (α : ℝ) {shape : S} (xs : dvec T [shape]) : T shape := α ⬝ xs^.head
+def f_pre {shape : S} : precondition [shape] := λ xs, true
+def f_pb (α : ℝ) {shape : S} (xs : dvec T [shape]) (y gy : T shape) (idx : ℕ) (fshape : S) : T fshape := force (α ⬝ gy) fshape
+
+attribute [simp] f f_pre f_pb
+
+lemma f_odiff (α : ℝ) {shape : S} : is_odifferentiable (@f α shape) (@f_pre shape)
+| ⟦x⟧ H_pre 0 fshape H_at_idx k H_k := by prove_odiff
+| ⟦x⟧ H_pre (n+1) fshape H_at_idx k H_k := by idx_over
+
+lemma f_pb_correct (α : ℝ) {shape : S} : pullback_correct (@f α shape) (@f_pre shape) (@f_pb α shape)
+| ⟦x⟧ y H_y g_out 0 fshape H_at_idx H_pre := by prove_pb_correct
+| xs y H_y g_out (n+1) fshape H_at_idx H_pre := by idx_over
+
+lemma f_ocont (α : ℝ) {shape : S} : is_ocontinuous (@f α shape) (@f_pre shape)
+| ⟦x⟧ 0 ishape H_at_idx H_pre := by prove_ocont
+| ⟦x⟧ (n+1) ishape H_at_idx H_pre := by idx_over
+
+end scale
+
+section open scale
+def scale (α : ℝ) (shape : S) : det.op [shape] shape :=
+det.op.mk "scale" [shape] shape (f α) f_pre (f_pb α) (f_odiff α) (f_pb_correct α) (f_ocont α)
+end
 
 namespace neg
 
@@ -111,6 +139,60 @@ end exp
 section open exp
 def exp (shape : S) : det.op [shape] shape :=
 det.op.mk "exp" [shape] shape f f_pre f_pb f_odiff f_pb_correct f_ocont
+end
+
+namespace log
+
+def f {shape : S} (xs : dvec T [shape]) : T shape := log xs^.head
+def f_pre {shape : S} : precondition [shape] := λ xs, xs^.head > 0
+def f_pb {shape : S} (xs : dvec T [shape]) (y gy : T shape) (idx : ℕ) (fshape : S) : T fshape := force (gy / xs^.head) fshape
+
+attribute [simp] f f_pre f_pb
+
+lemma f_odiff {shape : S} : is_odifferentiable (@f shape) (@f_pre shape)
+| ⟦x⟧ H_pre 0 fshape H_at_idx k H_k := by prove_odiff
+| ⟦x⟧ H_pre (n+1) fshape H_at_idx k H_k := by idx_over
+
+lemma f_pb_correct {shape : S} : pullback_correct (@f shape) (@f_pre shape) (@f_pb shape)
+| ⟦x⟧ y H_y g_out 0 fshape H_at_idx H_pre := by prove_pb_correct
+| xs y H_y g_out (n+1) fshape H_at_idx H_pre := by idx_over
+
+lemma f_ocont {shape : S} : is_ocontinuous (@f shape) (@f_pre shape)
+| ⟦x⟧ 0 ishape H_at_idx H_pre := by prove_ocont
+| ⟦x⟧ (n+1) ishape H_at_idx H_pre := by idx_over
+
+end log
+
+section open log
+def log (shape : S) : det.op [shape] shape :=
+det.op.mk "log" [shape] shape f f_pre f_pb f_odiff f_pb_correct f_ocont
+end
+
+namespace sqrt
+
+def f {shape : S} (xs : dvec T [shape]) : T shape := sqrt xs^.head
+def f_pre {shape : S} : precondition [shape] := λ xs, xs^.head > 0
+def f_pb {shape : S} (xs : dvec T [shape]) (y gy : T shape) (idx : ℕ) (fshape : S) : T fshape := force (gy / (2 * y)) fshape
+
+attribute [simp] f f_pre f_pb
+
+lemma f_odiff {shape : S} : is_odifferentiable (@f shape) (@f_pre shape)
+| ⟦x⟧ H_pre 0 fshape H_at_idx k H_k := by prove_odiff
+| ⟦x⟧ H_pre (n+1) fshape H_at_idx k H_k := by idx_over
+
+lemma f_pb_correct {shape : S} : pullback_correct (@f shape) (@f_pre shape) (@f_pb shape)
+| ⟦x⟧ y H_y g_out 0 fshape H_at_idx H_pre := by prove_pb_correct
+| xs y H_y g_out (n+1) fshape H_at_idx H_pre := by idx_over
+
+lemma f_ocont {shape : S} : is_ocontinuous (@f shape) (@f_pre shape)
+| ⟦x⟧ 0 ishape H_at_idx H_pre := by prove_ocont
+| ⟦x⟧ (n+1) ishape H_at_idx H_pre := by idx_over
+
+end sqrt
+
+section open sqrt
+def sqrt (shape : S) : det.op [shape] shape :=
+det.op.mk "sqrt" [shape] shape f f_pre f_pb f_odiff f_pb_correct f_ocont
 end
 
 namespace sigmoid
@@ -167,6 +249,81 @@ end softplus
 section open softplus
 def softplus (shape : S) : det.op [shape] shape :=
 det.op.mk "softplus" [shape] shape f f_pre f_pb f_odiff f_pb_correct f_ocont
+end
+
+namespace add
+
+def f {shape : S} (xs : dvec T [shape, shape]) : T shape := xs^.head + xs^.head2
+def f_pre {shape : S} : precondition [shape, shape] := λ xs, true
+def f_pb {shape : S} (xs : dvec T [shape, shape]) (y gy : T shape) (idx : ℕ) (fshape : S) : T fshape := force (gy) fshape
+
+attribute [simp] f f_pre f_pb
+
+lemma f_odiff {shape : S} : is_odifferentiable (@f shape) (@f_pre shape)
+| ⟦x, y⟧ H_pre 0 fshape H_at_idx k H_k := by { prove_odiff, simp at *, exact H_k }
+| ⟦x, y⟧ H_pre 1 fshape H_at_idx k H_k := by { prove_odiff }
+| xs    H_pre (n+2) fshape H_at_idx k H_k := by idx_over
+
+-- TODO(dhs): CURRENT SPOT
+lemma f_pb_correct {shape : S} : pullback_correct (@f shape) (@f_pre shape) (@f_pb shape)
+| ⟦x₁, x₂⟧ y H_y g_out 0 fshape H_at_idx H_pre := by prove_pb_correct
+| ⟦x₁, x₂⟧ y H_y g_out 1 fshape H_at_idx H_pre := by prove_pb_correct
+| xs      y H_y g_out (n+2) fshape H_at_idx H_pre := by idx_over
+
+lemma f_ocont {shape : S} : is_ocontinuous (@f shape) (@f_pre shape)
+| ⟦x⟧ 0 ishape H_at_idx H_pre := by prove_ocont
+| ⟦x⟧ (n+1) ishape H_at_idx H_pre := by idx_over
+
+end add
+
+section open add
+def add (shape : S) : det.op [shape] shape :=
+det.op.mk "add" [shape] shape f f_pre f_pb f_odiff f_pb_correct f_ocont
+end
+
+
+namespace sum
+
+def f {shape : S} (xs : dvec T [shape]) : ℝ := T.sum xs^.head
+def f_pre {shape : S} : precondition [shape] := λ xs, true
+def f_pb {shape : S} (xs : dvec T [shape]) (y gy : ℝ) (idx : ℕ) (fshape : S) : T fshape := force (T.const gy shape) fshape
+
+attribute [simp] f f_pre f_pb
+
+lemma f_odiff {shape : S} : is_odifferentiable (@f shape) (@f_pre shape)
+| ⟦x⟧ H_pre 0 fshape H_at_idx k H_k := by prove_odiff
+| ⟦x⟧ H_pre (n+1) fshape H_at_idx k H_k := by idx_over
+
+lemma f_pb_correct {shape : S} : pullback_correct (@f shape) (@f_pre shape) (@f_pb shape)
+| ⟦x⟧ y H_y g_out 0 fshape H_at_idx H_pre :=
+begin
+clear f_pb_correct,
+assertv H_fshape_eq : shape = fshape := eq.symm H_at_idx^.right,
+subst H_fshape_eq,
+definev k : ℝ → ℝ := (λ θ, dot g_out θ),
+assert H_grad : ∇ k y = g_out,
+{ change ∇ (λ θ, dot g_out θ) y = g_out, rw certigrad.T.grad_dot₂ },
+rw -H_grad,
+subst H_y,
+simp, dsimp,
+dunfold dvec.get dvec.head dvec.update_at,
+rw -T.grad_tmulT,
+rw T.grad_sum k,
+simp [T.smul.def]
+end
+
+| xs y H_y g_out (n+1) fshape H_at_idx H_pre := by idx_over
+
+lemma f_ocont {shape : S} : is_ocontinuous (@f shape) (@f_pre shape)
+| ⟦x⟧ 0 ishape H_at_idx H_pre := by prove_ocont
+| ⟦x⟧ (n+1) ishape H_at_idx H_pre := by idx_over
+
+end sum
+
+section open sum
+-- TODO(dhs): why won't it find `f` without `sum.`? Bug in Lean?
+def sum (shape : S) : det.op [shape] [] :=
+det.op.mk "sum" [shape] [] sum.f sum.f_pre sum.f_pb sum.f_odiff sum.f_pb_correct sum.f_ocont
 end
 
 namespace gemm
@@ -311,6 +468,8 @@ section open mvn_iso_kl
 def mvn_iso_kl (shape : S) : det.op [shape, shape] [] :=
 det.op.mk "mvn_iso_kl" [shape, shape] [] f f_pre f_pb f_odiff f_pb_correct f_ocont
 end
+
+-- Seems silly but saves some fresh-name tracking in reparam
 namespace mul_add
 
 def f {shape : S} (xs : dvec T [shape, shape, shape]) : T shape := (xs^.head * xs^.head2) + xs^.head3

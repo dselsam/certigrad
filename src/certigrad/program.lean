@@ -5,7 +5,7 @@ Author: Daniel Selsam
 
 A term language for conveniently constructing stochastic computation graphs.
 -/
-import .tensor .graph .tactics data.hash_map
+import .tensor .graph .tactics .ops data.hash_map
 
 namespace certigrad
 namespace program
@@ -18,7 +18,6 @@ inductive binary_op : Type
 | add, sub, mul, div
 
 inductive term : Type
-| const : ∀ {shape : S}, T shape → term
 | unary : unary_op → term → term
 | binary : binary_op → term → term → term
 | sum : term → term
@@ -27,7 +26,6 @@ inductive term : Type
 | mvn_iso_kl : term → term → term
 | mvn_iso_empirical_kl : term → term → term → term
 | bernoulli_neglogpdf : term → term → term
-| get_col_range : term → term → ℕ → term
 | id : label → term
 
 instance : has_neg term := ⟨term.unary unary_op.neg⟩
@@ -38,7 +36,6 @@ instance : has_mul term := ⟨term.binary binary_op.mul⟩
 instance : has_div term := ⟨term.binary binary_op.div⟩
 
 instance coe_id : has_coe label term := ⟨term.id⟩
-instance coe_tensor {shape : S} : has_coe (T shape) term := ⟨term.const⟩
 
 def exp : term → term := term.unary unary_op.exp
 def log : term → term := term.unary unary_op.log
@@ -63,29 +60,25 @@ structure state : Type :=
 
 def empty_state : state := ⟨0, mk_hash_map (λ (x : label), x^.to_nat), [], [], [], []⟩
 
-def unary_to_cwise1 (shape : S) : unary_op → det.cwise1 shape
-| unary_op.neg      := det.cwise1.neg
-| unary_op.exp      := det.cwise1.exp
-| unary_op.log      := det.cwise1.log
-| unary_op.sqrt     := det.cwise1.sqrt
-| unary_op.softplus := det.cwise1.softplus
-| unary_op.sigmoid  := det.cwise1.sigmoid
+def unary_to_op (shape : S) : unary_op → det.op [shape] shape
+| unary_op.neg      := ops.neg shape
+| unary_op.exp      := ops.exp shape
+| unary_op.log      := ops.log shape
+| unary_op.sqrt     := ops.sqrt shape
+| unary_op.softplus := ops.softplus shape
+| unary_op.sigmoid  := ops.sigmoid shape
 
-def binary_to_cwise2 (shape : S) : binary_op → det.cwise2 shape
-| binary_op.add     := det.cwise2.add
-| binary_op.mul     := det.cwise2.mul
-| binary_op.sub     := det.cwise2.sub
-| binary_op.div     := det.cwise2.div
+def binary_to_cwise2 (shape : S) : binary_op → det.op [shape, shape] shape
+| binary_op.add     := det.cwise2.add shape
+| binary_op.mul     := det.cwise2.mul shape
+| binary_op.sub     := det.cwise2.sub shape
+| binary_op.div     := det.cwise2.div shape
 
 def get_id (next_id : ℕ) : option ID → ID
 | none := ID.nat next_id
 | (some ident) := ident
 
 def process_term : term → state → option ID → reference × state
-
-| (@term.const shape x) ⟨next_id, shapes, nodes, costs, targets, inputs⟩ ident :=
-    ((get_id next_id ident, shape),
-     ⟨next_id+1, shapes, concat nodes ⟨(get_id next_id ident, shape), [], operator.det (det.op.const x)⟩, costs, targets, inputs⟩)
 
 | (term.unary f t) st ident :=
     match process_term t st none with

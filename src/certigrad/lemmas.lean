@@ -233,7 +233,7 @@ apply T.continuous_multiple_args,
 intros idx H_at_idx,
 simp [env.insert_get_same H_wf^.m_contains_tgt],
 rw -(env.dvec_get_get_ks _ H_at_idx),
-apply (op^.cont (env.get_ks parents inputs) (at_idx_p2 H_at_idx) (H_gs_exist^.right $ mem_of_at_idx H_at_idx)^.left),
+apply (op^.is_ocont (env.get_ks parents inputs) (at_idx_p2 H_at_idx) (H_gs_exist^.right $ mem_of_at_idx H_at_idx)^.left),
 end,
 
 assert H_chain₂_θ : T.is_continuous (λ (x₀ : T tgt.2), chain₂ x₀ (chain₁ (env.get tgt inputs))) (env.get tgt inputs),

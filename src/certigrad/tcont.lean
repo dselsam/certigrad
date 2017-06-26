@@ -117,7 +117,7 @@ open tactic
 
 meta def prove_continuous_core : tactic unit :=
 first [
-       applyc `certigrad.T.continuous_id >> trace "[id]"
+       applyc `certigrad.T.continuous_id
      , applyc `certigrad.T.continuous_const
      , applyc `certigrad.T.continuous_add_fs
      , applyc `certigrad.T.continuous_sumr

@@ -19,20 +19,25 @@ meta def idx_over : tactic unit :=
 do exfalso, to_expr ```(at_idx_over H_at_idx dec_trivial) >>= exact
 
 meta def prove_odiff : tactic unit :=
-do to_expr ```(shape = fshape) >>= λ ty, to_expr ```(eq.symm H_at_idx^.right) >>= λ val, assertv `H_fshape_eq ty val,
+do get_local `f_odiff >>= clear,
+   to_expr ```(shape = fshape) >>= λ ty, to_expr ```(eq.symm H_at_idx^.right) >>= λ val, assertv `H_fshape_eq ty val,
    get_local `H_fshape_eq >>= subst,
    dunfold [`certigrad.det.is_odifferentiable],
    try simp,
    try dsimp,
    prove_differentiable
 
-meta def prove_pb_correct : tactic unit :=
-do to_expr ```(shape = fshape) >>= λ ty, to_expr ```(eq.symm H_at_idx^.right) >>= λ val, assertv `H_fshape_eq ty val,
+meta def prove_pb_correct_init : tactic unit :=
+do get_local `f_pb_correct >>= clear,
+   to_expr ```(shape = fshape) >>= λ ty, to_expr ```(eq.symm H_at_idx^.right) >>= λ val, assertv `H_fshape_eq ty val,
    get_local `H_fshape_eq >>= subst,
    to_expr ```(T shape → ℝ) >>= λ ty, to_expr ```(λ (z : T shape), T.dot z g_out) >>= definev `k ty,
    to_expr ```(∇ k y = g_out) >>= assert `H_k_grad, dsimp, rewrite `certigrad.T.grad_dot₁,
    get_local `H_k_grad >>= rewrite_core reducible tt tt occurrences.all tt,
-   get_local `H_y >>= subst,
+   get_local `H_y >>= subst
+
+meta def prove_pb_correct : tactic unit :=
+do prove_pb_correct_init,
    try simp,
    try dsimp,
    mk_const `certigrad.T.grad_tmulT >>= rewrite_core reducible tt tt occurrences.all tt,
@@ -40,7 +45,8 @@ do to_expr ```(shape = fshape) >>= λ ty, to_expr ```(eq.symm H_at_idx^.right) >
    simp
 
 meta def prove_ocont : tactic unit :=
-do to_expr ```(shape = ishape) >>= λ ty, to_expr ```(eq.symm H_at_idx^.right) >>= λ val, assertv `H_ishape_eq ty val,
+do get_local `f_ocont >>= clear,
+   to_expr ```(shape = ishape) >>= λ ty, to_expr ```(eq.symm H_at_idx^.right) >>= λ val, assertv `H_ishape_eq ty val,
    get_local `H_ishape_eq >>= subst,
    try simp,
    try dsimp,
@@ -291,7 +297,69 @@ det.op.mk "mvn_iso_kl" [shape, shape] [] f f_pre f_pb f_odiff f_pb_correct f_oco
 
 end mvn_iso_kl
 
+namespace mul_add
 
+def f {shape : S} (xs : dvec T [shape, shape, shape]) : T shape := (xs^.head * xs^.head2) + xs^.head3
+def f_pre {shape : S} : precondition [shape, shape, shape] := λ xs, true
+def f_pb {shape : S} (xs : dvec T [shape, shape, shape]) (y gy : T shape) : Π (idx : ℕ) (fshape : S), T fshape
+| 0     fshape := force (gy * xs^.head2) fshape
+| 1     fshape := force (gy * xs^.head) fshape
+| 2     fshape := force gy fshape
+| (n+3) _      := T.error "mul_add: index too large"
+
+attribute [simp] f f_pre f_pb
+
+lemma f_odiff {shape : S} : is_odifferentiable (@f shape) (@f_pre shape)
+| ⟦z, σ, μ⟧ H_pre 0     fshape H_at_idx k H_k := by { prove_odiff, simp at *, exact H_k }
+| ⟦z, σ, μ⟧ H_pre 1     fshape H_at_idx k H_k := by { prove_odiff, simp at *, exact H_k }
+| ⟦z, σ, μ⟧ H_pre 2     fshape H_at_idx k H_k := by { prove_odiff }
+| xs       H_pre (n+3) fshape H_at_idx k H_k := by idx_over
+
+lemma f_pb_correct {shape : S} : pullback_correct (@f shape) (@f_pre shape) (@f_pb shape)
+| ⟦z, σ, μ⟧ y H_y g_out 0 fshape H_at_idx H_pre :=
+begin
+prove_pb_correct_init,
+simp only [f, f_pre, f_pb, force_ok, dif_pos],
+dsimp,
+simp only [dif_pos, dif_neg],
+dsimp,
+rw -T.grad_tmulT,
+simplify_grad,
+reflexivity
+end
+
+| ⟦z, σ, μ⟧ y H_y g_out 1 fshape H_at_idx H_pre :=
+begin
+prove_pb_correct_init,
+simp without mul_comm add_comm,
+dsimp,
+rw -T.grad_tmulT,
+simplify_grad,
+reflexivity
+end
+
+| ⟦z, σ, μ⟧ y H_y g_out 2 fshape H_at_idx H_pre :=
+begin
+prove_pb_correct_init,
+simp without mul_comm add_comm,
+dsimp,
+rw -T.grad_tmulT,
+simplify_grad,
+reflexivity
+end
+
+| xs y H_y g_out (n+3) fshape H_at_idx H_pre := by idx_over
+
+lemma f_ocont {shape : S} : is_ocontinuous (@f shape) (@f_pre shape)
+| ⟦z, σ, μ⟧ 0     ishape H_at_idx H_pre := by prove_ocont
+| ⟦z, σ, μ⟧ 1     ishape H_at_idx H_pre := by prove_ocont
+| ⟦z, σ, μ⟧ 2     ishape H_at_idx H_pre := by prove_ocont
+| xs       (n+3) ishape H_at_idx H_pre := by idx_over
+
+def op (shape : S) : det.op [shape, shape, shape] shape :=
+det.op.mk "mul_add" [shape, shape, shape] shape f f_pre f_pb f_odiff f_pb_correct f_ocont
+
+end mul_add
 
 
 

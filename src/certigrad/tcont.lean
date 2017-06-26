@@ -53,16 +53,16 @@ axiom continuous_lift₀ {shape : S} (α : ℝ) : is_continuous (λ α : ℝ, co
 axiom continuous_scale {shape : S} (α : ℝ) (x : T shape) : is_continuous (λ x₀, α ⬝ x₀) x
 axiom continuous_neg {shape : S} {θ : T shape} : is_continuous neg θ
 axiom continuous_exp {shape : S} {θ : T shape} : is_continuous exp θ
-axiom continuous_log {shape : S} {θ : T shape} : 0 < θ → is_continuous log θ
-axiom continuous_sqrt {shape : S} {θ : T shape} : 0 < θ → is_continuous sqrt θ
+axiom continuous_log {shape : S} {θ : T shape} : θ > 0 → is_continuous log θ
+axiom continuous_sqrt {shape : S} {θ : T shape} : θ > 0 → is_continuous sqrt θ
 axiom continuous_add₁ {shape : S} {θ x : T shape} : is_continuous (λ θ₀, θ₀ + x) θ
 axiom continuous_add₂ {shape : S} {θ x : T shape} : is_continuous (λ θ₀, x + θ₀) θ
 axiom continuous_mul₁ {shape : S} {θ x : T shape} : is_continuous (λ θ₀, θ₀ * x) θ
 axiom continuous_mul₂ {shape : S} {θ x : T shape} : is_continuous (λ θ₀, x * θ₀) θ
 axiom continuous_sub₁ {shape : S} {θ x : T shape} : is_continuous (λ θ₀, θ₀ - x) θ
 axiom continuous_sub₂ {shape : S} {θ x : T shape} : is_continuous (λ θ₀, x - θ₀) θ
-axiom continuous_div₁ {shape : S} {θ x : T shape} : 0 < square x → is_continuous (λ θ₀, θ₀ / x) θ
-axiom continuous_div₂ {shape : S} {θ x : T shape} : 0 < square θ → is_continuous (λ θ₀, x / θ₀) θ
+axiom continuous_div₁ {shape : S} {θ x : T shape} : square x > 0 → is_continuous (λ θ₀, θ₀ / x) θ
+axiom continuous_div₂ {shape : S} {θ x : T shape} : square θ > 0 → is_continuous (λ θ₀, x / θ₀) θ
 axiom continuous_sum {shape : S} {θ : T shape} : is_continuous sum θ
 axiom continuous_gemm₁ {m n p : ℕ} (M : T [m, n]) (N : T [n, p]) : is_continuous (λ M₀, T.gemm M₀ N) M
 axiom continuous_gemm₂ {m n p : ℕ} (M : T [m, n]) (N : T [n, p]) : is_continuous (λ N₀, T.gemm M N₀) N
@@ -111,16 +111,22 @@ axiom continuous_multiple_args :
     is_continuous (λ θ₀, f (env.get_ks parents (env.insert tgt θ₀ m))) θ
 
 end T
-end certigrad
 
-namespace tactic
+section tactic
+open tactic
 
 meta def prove_continuous_core : tactic unit :=
-(first [
+first [
        applyc `certigrad.T.continuous_id >> trace "[id]"
      , applyc `certigrad.T.continuous_const
      , applyc `certigrad.T.continuous_add_fs
      , applyc `certigrad.T.continuous_sumr
+
+     -- TODO(dhs): bug in Lean
+     -- This causes a silent "sorry" in prove_continuous_core with
+     -- no explanation
+--     , applyc `certigrad.T.continuous_mvn_iso_kl₁
+--     , applyc `certigrad.T.continuous_mvn_iso_kl₂,
 
      , applyc `certigrad.T.continuous_lift₀
      , applyc `certigrad.T.continuous_scale
@@ -145,10 +151,27 @@ meta def prove_continuous_core : tactic unit :=
      , applyc `certigrad.T.continuous_scale_fs
      , applyc `certigrad.T.continuous_scale_f
      , applyc `certigrad.T.continuous_chain
-])
-<|>
-assumption
+     , assumption
+]
 
-meta def prove_continuous : tactic unit := repeat_at_most 50 prove_continuous_core
+meta def prove_continuous : tactic unit := repeat (prove_continuous_core <|> prove_preconditions_core)
 
 end tactic
+
+namespace T
+
+lemma continuous_mvn_iso_kl₁ {shape : S} (μ σ : T shape) (H_σ : σ > 0) : is_continuous (λ μ₀, mvn_iso_kl μ₀ σ) μ :=
+begin
+dunfold mvn_iso_kl,
+prove_continuous
+end
+
+lemma continuous_mvn_iso_kl₂ {shape : S} (μ σ : T shape) (H_σ : σ > 0) : is_continuous (λ σ₀, mvn_iso_kl μ σ₀) σ :=
+have H_σ₂ : square σ > 0, from square_pos_of_pos H_σ,
+begin
+dunfold mvn_iso_kl,
+prove_continuous,
+end
+
+end T
+end certigrad

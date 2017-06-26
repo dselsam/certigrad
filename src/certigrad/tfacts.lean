@@ -35,6 +35,8 @@ axiom const_one {shape : S} : const 1 shape = 1
 axiom const_bit0 {shape : S} : Π (α : ℝ), const (bit0 α) shape = bit0 (const α shape)
 axiom const_bit1 {shape : S} : Π (α : ℝ), const (bit1 α) shape = bit1 (const α shape)
 
+--attribute [simp] const_mul const_neg const_inv const_zero const_one const_bit0 const_bit1
+
 -- Module structure
 axiom smul.def (α : ℝ) (shape : S) (x : T shape) : α ⬝ x = const α shape * x
 axiom smul_neg (α : ℝ) : ∀ {shape : S} (x : T shape), α ⬝ (- x) = - (α ⬝ x)
@@ -514,10 +516,11 @@ axiom integral_scale_shift_var {shape fshape : S} (f : T shape → T fshape) (α
 @[simp]
 lemma force_ok {shape : S} (x : T shape) : force x shape = x := by { dunfold force, simp }
 
--- helper tactic
+end T
 
+-- helper tactic
 section tactic
-open tactic
+open tactic list
 meta def prove_preconditions_core : tactic unit :=
 first (assumption :: map applyc [`certigrad.T.sqrt_pos, `certigrad.T.square_pos_of_pos, `certigrad.T.exp_pos,
                                  `certigrad.T.sigmoid_pos, `certigrad.T.sigmoid_lt1, `certigrad.T.lt1_alt, `certigrad.T.one_plus_pos,
@@ -528,5 +531,5 @@ first (assumption :: map applyc [`certigrad.T.sqrt_pos, `certigrad.T.square_pos_
 meta def prove_preconditions : tactic unit := repeat prove_preconditions_core
 end tactic
 
-end T
+
 end certigrad

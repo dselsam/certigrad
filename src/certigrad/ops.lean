@@ -209,6 +209,89 @@ det.op.mk "gemm" [[m, n], [n, p]] [m, p] f f_pre f_pb f_odiff f_pb_correct f_oco
 
 end gemm
 
+namespace mvn_iso_kl
+
+def f {shape : S} (xs : dvec T [shape, shape]) : ℝ := mvn_iso_kl xs^.head xs^.head2
+def f_pre {shape : S} : precondition [shape, shape] := λ xs, 0 < xs^.head2
+
+def f_pb {shape : S} (xs : dvec T [shape, shape]) (y gy : ℝ) : Π (idx : ℕ) (fshape : S), T fshape
+| 0     fshape := force (gy ⬝ xs^.head) fshape
+| 1     fshape := force (gy ⬝ (xs^.head2 - (1 / xs^.head2))) fshape
+| (n+2) fshape := T.error "mvn_iso_kl: index too large"
+
+attribute [simp] f f_pre f_pb
+
+lemma f_odiff {shape : S} : is_odifferentiable (@f shape) (@f_pre shape)
+| ⟦μ, σ⟧ H_pre 0     fshape H_at_idx k H_k := by prove_odiff
+| ⟦μ, σ⟧ H_pre 1     fshape H_at_idx k H_k := by prove_odiff
+| xs    H_pre (n+2) fshape H_at_idx k H_k := by idx_over
+
+lemma f_pb_correct {shape : S} : pullback_correct (@f shape) (@f_pre shape) (@f_pb shape)
+| ⟦μ, σ⟧ y H_y g_out 0 fshape H_fshape_at_idx H_pre :=
+begin
+clear f_pb_correct,
+assertv H_fshape_eq : shape = fshape := eq.symm H_fshape_at_idx^.right,
+subst H_fshape_eq,
+definev k : ℝ → ℝ := λ (x : ℝ), x * g_out,
+assertv H_k_grad : ∇ k y = g_out :=  by { dsimp, erw [T.grad_mul₁ id, T.grad_id, one_mul] },
+rw -H_k_grad,
+subst H_y,
+dsimp,
+simp,
+rw -T.grad_tmulT,
+simplify_grad,
+simp [T.smul.def]
+end
+
+| ⟦μ, σ⟧ y H_y g_out 1 fshape H_at_idx H_pre :=
+have H_σ₂ : square σ > 0, from square_pos_of_pos H_pre,
+have H_diff₁ : is_cdifferentiable (λ (θ₀ : T shape), g_out * (-2⁻¹ * T.sum (1 + T.log (square θ₀) - square μ - square σ))) σ, by prove_differentiable,
+have H_diff₂ : is_cdifferentiable (λ (θ₀ : T shape), g_out * (-2⁻¹ * T.sum (1 + T.log (square σ) - square μ - square θ₀))) σ, by prove_differentiable,
+begin
+clear f_pb_correct,
+assertv H_fshape_eq : shape = fshape := eq.symm H_at_idx^.right,
+subst H_fshape_eq,
+definev k : ℝ → ℝ := λ (x : ℝ), x * g_out,
+assertv H_k_grad : ∇ k y = g_out :=  by { dsimp, erw [T.grad_mul₁ id, T.grad_id, one_mul] },
+rw -H_k_grad,
+subst H_y,
+dsimp,
+simp,
+rw -T.grad_tmulT,
+dunfold T.mvn_iso_kl,
+
+rw (T.grad_binary (λ θ₁ θ₂, g_out * ((- 2⁻¹) * T.sum (1 + T.log (square θ₁) - square μ - square θ₂))) _ H_diff₁ H_diff₂),
+dsimp,
+simplify_grad,
+
+simp [T.smul.def, T.const_neg, T.const_mul, T.const_zero,
+      T.const_one, T.const_bit0, T.const_bit1, T.const_inv,
+      left_distrib, right_distrib],
+rw T.mul_inv_cancel two_pos,
+erw T.neg_div,
+simp [mul_neg_eq_neg_mul_symm, neg_mul_eq_neg_mul_symm],
+apply congr_arg, apply congr_arg,
+simp only [T.mul_div_mul, square],
+rw [-mul_assoc, T.mul_div_mul, (@T.div_self_square _ σ H_pre)],
+simp,
+rw [T.mul_inv_cancel two_pos],
+simp,
+rw T.div_mul_inv,
+end
+
+| ⟦μ, σ⟧ y H_y g_out (n+2) fshape H_at_idx H_pre := by idx_over
+
+lemma f_ocont {shape : S} : is_ocontinuous (@f shape) (@f_pre shape)
+| ⟦μ, σ⟧ 0     ishape H_at_idx H_pre := by { prove_ocont, apply T.continuous_mvn_iso_kl₁, exact H_pre }
+| ⟦μ, σ⟧ 1     ishape H_at_idx H_pre := by { prove_ocont }
+| ⟦μ, σ⟧ (n+2) ishape H_at_idx H_pre := by idx_over
+
+def op (shape : S) : det.op [shape, shape] [] :=
+det.op.mk "mvn_iso_kl" [shape, shape] [] f f_pre f_pb f_odiff f_pb_correct f_ocont
+
+end mvn_iso_kl
+
+
 
 
 

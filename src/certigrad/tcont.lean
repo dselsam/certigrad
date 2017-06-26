@@ -161,15 +161,25 @@ end tactic
 namespace T
 
 lemma continuous_mvn_iso_kl₁ {shape : S} (μ σ : T shape) (H_σ : σ > 0) : is_continuous (λ μ₀, mvn_iso_kl μ₀ σ) μ :=
-begin
-dunfold mvn_iso_kl,
-prove_continuous
-end
+by { dunfold mvn_iso_kl, prove_continuous }
 
 lemma continuous_mvn_iso_kl₂ {shape : S} (μ σ : T shape) (H_σ : σ > 0) : is_continuous (λ σ₀, mvn_iso_kl μ σ₀) σ :=
 have H_σ₂ : square σ > 0, from square_pos_of_pos H_σ,
+by { dunfold mvn_iso_kl, prove_continuous }
+
+lemma continuous_bernoulli_neglogpdf₁ {shape : S} (p x : T shape) (H_p₁ : p > 0) (H_p₂ : 1 - p > 0) :
+is_continuous (λ p₀, bernoulli_neglogpdf p₀ x) p :=
+by { dunfold bernoulli_neglogpdf, prove_continuous }
+
+lemma continuous_bernoulli_neglogpdf₂ {shape : S} (p x : T shape) (H_p₁ : p > 0) (H_p₂ : 1 - p > 0) :
+is_continuous (λ x₀, bernoulli_neglogpdf p x₀) x :=
 begin
-dunfold mvn_iso_kl,
+dunfold bernoulli_neglogpdf,
+apply continuous_binary (λ θ₁ θ₂, - T.sum (θ₁ * T.log p + (1 - θ₂) * T.log (1 + -p))),
+dsimp,
+prove_continuous,
+-- TODO(dhs): not sure why this is necessary
+apply continuous_chain (λ x, 1 - x) (λ y, y * log (1 + - p)),
 prove_continuous,
 end
 

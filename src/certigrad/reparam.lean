@@ -5,7 +5,7 @@ Author: Daniel Selsam
 
 Certified graph transformation that "reparameterizes" a specific occurrence of a stochastic choice.
 -/
-import .util .tensor .tfacts .compute_grad .graph .tactics .predicates .lemmas .env
+import .util .tensor .tfacts .compute_grad .graph .tactics .ops .predicates .lemmas .env
 
 namespace certigrad
 open list
@@ -62,7 +62,7 @@ def reparameterize (fname : ID) : list node → list node
 | (⟨⟨ident, shape⟩, [⟨μ, .(shape)⟩, ⟨σ, .(shape)⟩], operator.rand (rand.op.mvn_iso .(shape))⟩::nodes) :=
 
  (⟨(fname, shape), [],                                       operator.rand (rand.op.mvn_iso_std shape)⟩
-::⟨(ident, shape),   [(fname, shape), (σ, shape), (μ, shape)], operator.det (det.op.special (det.special.mul_add shape))⟩
+::⟨(ident, shape),   [(fname, shape), (σ, shape), (μ, shape)], operator.det (ops.mul_add.op shape)⟩
 ::nodes)
 
 | (n::nodes) := n :: reparameterize nodes

@@ -14,6 +14,7 @@ namespace T
 meta constant read_mnist (dir : string) [io.interface] : io (T [60000, 784] × T [60000])
 meta constant read_from_file (shape : S) (s : string) [io.interface] : io (T shape)
 meta constant write_to_file {shape : S} (x : T shape) (s : string) [io.interface] : io unit
+meta constant set_num_threads (n : ℕ) [io.interface] : io unit
 end T
 
 namespace tvec

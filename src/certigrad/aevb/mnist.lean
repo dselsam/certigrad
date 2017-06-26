@@ -8,13 +8,6 @@ Script to run AEVB on MNIST.
 import system.io ..program ..prove_model_ok .util .prog ..run_utils
 
 namespace certigrad
-
-/- TODO(dhs): move to tensor.lean (will force recompile) -/
-namespace T
-
-meta constant set_num_threads (n : ℕ) [io.interface] : io unit
-end T
-
 namespace aevb
 
 open io
@@ -71,7 +64,7 @@ let num_iters : ℕ := 100 in
 let seed : ℕ := 100 in
 train_core a num_iters seed
 
-run_cmd tactic.run_io @main
+-- run_cmd tactic.run_io @main
 
 end aevb
 end certigrad

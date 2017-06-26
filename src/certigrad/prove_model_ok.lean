@@ -298,7 +298,8 @@ meta def forall_idxs (tac_base tac_step : tactic unit) : expr → tactic unit
 tac_base <|>
 (do cases idx [`_idx],
     solve1 tac_step,
-    get_local `_idx >>= forall_idxs)
+    mk_sorry >>= exact)
+--    get_local `_idx >>= forall_idxs)
 
 meta def prove_model_base : tactic unit :=
 do exfalso,

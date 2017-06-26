@@ -8,14 +8,21 @@ Script to run AEVB on MNIST.
 import system.io ..program ..prove_model_ok .util .prog ..run_utils
 
 namespace certigrad
+
+/- TODO(dhs): move to tensor.lean (will force recompile) -/
+namespace T
+
+meta constant set_num_threads (n : ℕ) [io.interface] : io unit
+end T
+
 namespace aevb
 
 open io
 
-meta def load_mnist_dataset [io.interface] (mnist_dir : string) (a : arch) : io (T [a^.n_in, a^.n_x] × T [a^.n_x]) :=
-if H : 60000 = a^.n_x ∧ 784 = a^.n_in
+meta def load_mnist_dataset [io.interface] (mnist_dir : string) (a : arch) : io (T [a^.n_in, 60000] × T [60000]) :=
+if H : 784 = a^.n_in
 then do (x, y) ← T.read_mnist mnist_dir,
-        return $ eq.rec_on H^.left (eq.rec_on H^.right (x^.transpose, y))
+        return $ eq.rec_on H (x^.transpose, y)
 else io.fail "architecture not compatible with mnist"
 
 meta def train_aevb_on_mnist [io.interface] (a : arch) (num_iters seed : ℕ) (mnist_dir run_dir : string) : io unit := do
@@ -59,12 +66,12 @@ let run_dir : string := mk_run_dir_name "/home/dselsam/projects/mnist/runs" a nu
 train_aevb_on_mnist a num_iters seed mnist_dir run_dir
 
 meta def main [io.interface] : io unit :=
-let a : arch := {bs := 250, n_x := 60000, n_in := 784, nz := 30, ne := 1000, nd := 1000} in
-let num_iters : ℕ := 1000 in
+let a : arch := {bs := 250, n_x := 55000, n_in := 784, nz := 30, ne := 1000, nd := 1000} in
+let num_iters : ℕ := 100 in
 let seed : ℕ := 100 in
 train_core a num_iters seed
 
---run_cmd tactic.run_io @main
+run_cmd tactic.run_io @main
 
 end aevb
 end certigrad

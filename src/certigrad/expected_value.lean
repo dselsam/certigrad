@@ -226,8 +226,7 @@ erw -T.integral_add _ _ Hk₁^.left Hk₂^.left,
 
 apply (congr_arg T.integral), apply funext, intro x,
 erw -T.smul_addr,
-rw -E_k_add _ _ (Hk₁^.right x) (Hk₂^.right x),
-reflexivity
+rw -E_k_add _ _ (Hk₁^.right x) (Hk₂^.right x)
 end
 
 lemma E_g_pull_out_of_sum {X : Type} {fshape : S} (f : env → X → T fshape) :
@@ -253,8 +252,8 @@ simp only [E.E_ret, E.E_bind],
 rw E_pull_out_of_sum _ _ H_pdfs_exist^.left,
 apply congr_arg, apply funext, intro y,
 rw E_g_pull_out_of_sum _ _ _ (H_pdfs_exist^.right y^.head) (H_gint^.right y^.head),
-dsimp [is_eintegrable],
-dsimp [is_gintegrable] at H_gint,
+dsimp [is_eintegrable] without dvec.head,
+dsimp [is_gintegrable] without dvec.head at H_gint,
 simp only [λ (y : dvec T [ref.2]), E_g_pull_out_of_sum _ _ _ (H_pdfs_exist^.right y^.head) (H_gint^.right y^.head)],
 exact H_gint^.left
 end
@@ -313,8 +312,7 @@ lemma E_k_tmulT {shape₁ shape₂ : S} (k : env → T shape₂) : Π (m : env) 
 | m []                                        M :=
 begin
 dunfold graph.to_dist,
-simp [E_ret],
-reflexivity
+simp [E_ret]
 end
 
 | m (⟨ref, parents, operator.det op⟩::nodes)  M :=
@@ -384,7 +382,7 @@ lemma E_k_scale {shape : S} (k : env → ℝ) (y : T shape) : Π (m : env) (node
   E (graph.to_dist (λ (m : env), ⟦k m ⬝ y⟧) m nodes) dvec.head
   =
   E (graph.to_dist (λ (m : env), ⟦k m⟧) m nodes) dvec.head ⬝ y
-| m []                                        := begin dunfold graph.to_dist, simp [E_ret], refl end
+| m []                                        := begin dunfold graph.to_dist, simp [E_ret] end
 | m (⟨ref, parents, operator.det op⟩::nodes)  :=
 begin
 dunfold graph.to_dist operator.to_dist,
@@ -474,7 +472,7 @@ lemma E_move_fn_to_continuation (shapes : list S) (fshape : S)
   Π (inputs : env) (nodes : list node), E (graph.to_dist k inputs nodes) f = E (graph.to_dist (λ m, ⟦f (k m)⟧) inputs nodes) dvec.head
 
 | m [] :=
-begin dunfold graph.to_dist, simp [E_ret], reflexivity end
+begin dunfold graph.to_dist, simp [E_ret] end
 
 | m (⟨ref, parents, op⟩::nodes) :=
 begin dunfold graph.to_dist, simp [E_bind], apply congr_arg, apply funext, intro x, rw E_move_fn_to_continuation end

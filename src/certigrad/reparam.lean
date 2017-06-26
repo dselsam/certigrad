@@ -62,7 +62,7 @@ def reparameterize (fname : ID) : list node → list node
 | (⟨⟨ident, shape⟩, [⟨μ, .(shape)⟩, ⟨σ, .(shape)⟩], operator.rand (rand.op.mvn_iso .(shape))⟩::nodes) :=
 
  (⟨(fname, shape), [],                                       operator.rand (rand.op.mvn_iso_std shape)⟩
-::⟨(ident, shape),   [(fname, shape), (σ, shape), (μ, shape)], operator.det (ops.mul_add.op shape)⟩
+::⟨(ident, shape),   [(fname, shape), (σ, shape), (μ, shape)], operator.det (ops.mul_add shape)⟩
 ::nodes)
 
 | (n::nodes) := n :: reparameterize nodes

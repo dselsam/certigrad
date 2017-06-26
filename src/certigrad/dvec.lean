@@ -57,4 +57,6 @@ protected def to_string {X : Type} {Y : X → Type} [∀ x, has_to_string (Y x)]
 instance {X : Type} {Y : X → Type} [∀ x, has_to_string (Y x)] {xs : list X} : has_to_string (dvec Y xs) :=
 ⟨dvec.to_string⟩
 
+attribute [simp] head tail head2 head3 get update_at
+
 end dvec

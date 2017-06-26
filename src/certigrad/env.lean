@@ -247,8 +247,8 @@ begin
 intro H_at_idx,
 assert H_elem_at_idx : list.elem_at_idx refs idx ref, { exact list.elem_at_idx_of_at_idx H_at_idx },
 induction H_elem_at_idx with xs x xs idx' x y H_elem_at_idx IH,
-{ dsimp [get_ks], erw dvec.update_at.equations._eqn_2, simp [dif_ctx_simp_congr, dif_pos] },
-{ dsimp [get_ks], erw dvec.update_at.equations._eqn_3, erw IH (list.at_idx_of_cons H_at_idx) }
+{ dsimp [get_ks], simp [dif_ctx_simp_congr, dif_pos] },
+{ dsimp [get_ks], erw IH (list.at_idx_of_cons H_at_idx) }
 end
 
 lemma dvec_get_get_ks {refs : list reference} {idx : ℕ} {ref : reference} (m : env) :

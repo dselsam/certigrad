@@ -89,8 +89,8 @@ axiom nneg_of_pos {shape : S} : ∀ {x : T shape}, x > 0 → x ≥ 0
 axiom sqrt_pos {shape : S} : ∀ {x : T shape}, x > 0 → sqrt x > 0
 axiom pos_of_sqrt_pos {shape : S} : ∀ {x : T shape}, sqrt x > 0 → x > 0
 axiom square_nneg {shape : S} : ∀ {x : T shape}, square x ≥ 0
-axiom square_pos_of_pos {shape : S} : ∀ {x : T shape}, x > 0 → square x > 0
-axiom square_pos_of_neg {shape : S} : ∀ {x : T shape}, x < 0 → square x > 0
+axiom square_pos_of_pos {shape : S} : ∀ {x : T shape}, 0 < x → 0 < square x
+axiom square_pos_of_neg {shape : S} : ∀ {x : T shape}, x < 0 → 0 < square x
 axiom exp_pos {shape : S} : ∀ {x : T shape}, exp x > 0
 axiom sigmoid_pos {shape : S} : ∀ {x : T shape}, sigmoid x > 0
 axiom sigmoid_lt1 {shape : S} : ∀ {x : T shape}, sigmoid x < 1
@@ -513,6 +513,20 @@ axiom integral_scale_shift_var {shape fshape : S} (f : T shape → T fshape) (α
 
 @[simp]
 lemma force_ok {shape : S} (x : T shape) : force x shape = x := by { dunfold force, simp }
+
+-- helper tactic
+
+section tactic
+open tactic
+meta def prove_preconditions_core : tactic unit :=
+first (assumption :: map applyc [`certigrad.T.sqrt_pos, `certigrad.T.square_pos_of_pos, `certigrad.T.exp_pos,
+                                 `certigrad.T.sigmoid_pos, `certigrad.T.sigmoid_lt1, `certigrad.T.lt1_alt, `certigrad.T.one_plus_pos,
+                                 `certigrad.T.plus_one_pos, `certigrad.T.one_pos, `certigrad.T.neg_of_pos, `certigrad.T.const_pos_of_pos,
+                                 `certigrad.T.mul_pos_of_pos_pos, `certigrad.T.pi_pos,
+                                 `certigrad.T.inv_pos, `certigrad.T.div_pos_pos, `certigrad.T.two_pos, `certigrad.T.two_pi_pos])
+
+meta def prove_preconditions : tactic unit := repeat prove_preconditions_core
+end tactic
 
 end T
 end certigrad

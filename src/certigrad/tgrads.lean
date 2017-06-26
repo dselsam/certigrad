@@ -364,15 +364,6 @@ do es ← monad.mapm to_expr
    s ← try_add_simp s ``(@certigrad.T.grad_scale_f),
    return s
 
-meta def prove_preconditions_core : tactic unit :=
-first (assumption :: map applyc [`certigrad.T.sqrt_pos, `certigrad.T.square_pos_of_pos, `certigrad.T.exp_pos,
-                                 `certigrad.T.sigmoid_pos, `certigrad.T.sigmoid_lt1, `certigrad.T.lt1_alt, `certigrad.T.one_plus_pos,
-                                 `certigrad.T.plus_one_pos, `certigrad.T.one_pos, `certigrad.T.neg_of_pos, `certigrad.T.const_pos_of_pos,
-                                 `certigrad.T.mul_pos_of_pos_pos, `certigrad.T.pi_pos,
-                                 `certigrad.T.inv_pos, `certigrad.T.div_pos_pos, `certigrad.T.two_pos, `certigrad.T.two_pi_pos])
-
-meta def prove_preconditions : tactic unit := repeat prove_preconditions_core
-
 meta def simplify_grad_core_helper (tac : tactic unit) : conv unit :=
 λ r e, do guard $ r = `eq,
           grad ← check_grad e,

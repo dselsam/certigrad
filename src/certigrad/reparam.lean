@@ -117,7 +117,7 @@ dsimp,
 
 definev fval : T shape := dvec.head x,
 definev fval_inputs : env := env.insert (ident, shape)
-                                        (det.op.f (det.op.special (det.special.mul_add shape))
+                                        (det.op.f (ops.mul_add shape)
                                                   ⟦dvec.head x, (env.get (σ, shape) inputs : T shape), (env.get (μ, shape) inputs : T shape)⟧)
                                          inputs,
 

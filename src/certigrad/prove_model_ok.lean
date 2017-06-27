@@ -219,6 +219,9 @@ attribute [cgsimp] graph.to_dist operator.to_dist sum_costs compute_grad_slow
 
 attribute [cgsimp] E.E_bind E.E_ret
 
+attribute [cgsimp] ops.neg ops.exp ops.log ops.sqrt ops.add ops.sub ops.mul ops.div ops.sum
+                   ops.gemm ops.sigmoid ops.softplus ops.scale ops.mul_add ops.mvn_iso_kl ops.bernoulli_neglogpdf
+
 attribute [cgsimp] det.op.f ops.neg.f ops.exp.f ops.log.f ops.sqrt.f ops.add.f ops.sub.f ops.mul.f ops.div.f ops.sum.f
                    ops.gemm.f ops.sigmoid.f ops.softplus.f ops.scale.f ops.mul_add.f ops.mvn_iso_kl.f ops.bernoulli_neglogpdf.f
 

@@ -25,7 +25,7 @@ do whnf_target,
                   get_local `H_tgt_eq >>= λ H_tgt_eq, replace_hyp H_tgt_eq H_tgt_eq_new_type pr,
                   get_local `H_tgt_eq >>= subst,
                   to_expr e >>= apply,
-                  all_goals (cgsimp >> try prove_is_mvn_integrable >> try T.prove_preconditions))
+                  all_goals (cgsimp >> try prove_is_mvn_integrable >> try prove_preconditions))
               idx
 
 #print "proving integrate_kl_sound..."

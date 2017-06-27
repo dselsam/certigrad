@@ -184,16 +184,27 @@ assertv H_eloss_nin_nodes : (eloss, []) ∉ map node.ref nodes := not_mem_of_not
 dunfold env.get_ks,
 tactic.dget_dinsert,
 dunfold det.op.f ops.mvn_iso_kl ops.mvn_iso_kl.f dvec.head dvec.head2 dvec.head3,
+-- TODO(dhs): unbelievable that this won't unfold det.op.f
+-- I tried simp as well
+-- I copy-pasted to a new file (to avoid the 45 second delay) and all variants worked
 dsimp [det.op.f, ops.mvn_iso_kl.f, dvec.head, dvec.head2, dvec.head3],
 
 -- TODO(dhs): I think this is a bug in LEAN. (z, shape) and (eloss, []) are in the type of the last argument.
 simp only [λ (x : dvec T [shape]),
                @env.insert_insert_flip (z, shape) (eloss, [])
-                                       x^.head (T.mvn_iso_kl (env.get (μ, shape) inputs : T shape) (env.get (σ, shape) inputs : T shape)) inputs (ne.symm H_eloss_neq_z)],
+                                       x^.head (det.op.f
+                       (det.op.mk "mvn_iso_kl" [shape, shape] nil ops.mvn_iso_kl.f
+                          (λ (xs : dvec T [shape, shape]), 0 < dvec.head2 xs)
+                          ops.mvn_iso_kl.f_pb
+                          ops.mvn_iso_kl.f_odiff
+                          ops.mvn_iso_kl.f_pb_correct
+                          ops.mvn_iso_kl.f_ocont)
+                       ⟦(env.get (μ, shape) inputs : T shape), (env.get (σ, shape) inputs : T shape)⟧)  inputs (ne.symm H_eloss_neq_z)],
 
 -- Two steps:
 -- 1. Split out eloss, and prove that it equals the lookup val
 -- 2. For RHS, use eloss not appearing to remove them both
+dunfold det.op.f ops.mvn_iso_kl ops.mvn_iso_kl.f dvec.head dvec.head2 dvec.head3,
 dunfold sum_costs map sumr,
 
 -- Step 1
@@ -209,7 +220,7 @@ assert H_lhs_kint₁ : ∀ (x : dvec T [shape]), is_gintegrable (λ m, ⟦k₁ m
  { dsimp [is_gintegrable, integrate_mvn_iso_kl, dvec.head] at H_kl_gint, dsimp, intro x,
    cases x with xx x xxx xnil, cases xnil,
    simp only [λ a1 a2 a3, @env.insert_insert_flip (eloss, []) (z, shape) a1 a2 a3 H_eloss_neq_z],
-   simp only [det.op.f, det.special.f, dvec.head, env.get_ks, sum_costs] at H_kl_gint,
+   simp only [det.op.f, ops.mvn_iso_kl, ops.mvn_iso_kl.f, dvec.head, env.get_ks, sum_costs] at H_kl_gint,
    dunfold sumr map at H_kl_gint,
    exact (iff.mpr (is_gintegrable_k_add _ _ _ _) (H_kl_gint^.right x))^.left
   },
@@ -218,7 +229,7 @@ assert H_lhs_kint₂ : ∀ (x : dvec T [shape]), is_gintegrable (λ m, ⟦k₂ m
  { dsimp [is_gintegrable, integrate_mvn_iso_kl, dvec.head] at H_kl_gint, dsimp, intro x,
    cases x with xx x xxx xnil, cases xnil,
    simp only [λ a1 a2 a3, @env.insert_insert_flip (eloss, []) (z, shape) a1 a2 a3 H_eloss_neq_z],
-   simp only [det.op.f, det.special.f, dvec.head, env.get_ks, sum_costs] at H_kl_gint,
+   simp only [det.op.f, ops.mvn_iso_kl, ops.mvn_iso_kl.f, dvec.head, env.get_ks, sum_costs] at H_kl_gint,
    dunfold sumr map at H_kl_gint,
    exact (iff.mpr (is_gintegrable_k_add _ _ _ _) (H_kl_gint^.right x))^.right },
 
@@ -233,7 +244,7 @@ definev m_rhs_k_add : dvec T [shape] → env := λ x, env.insert (eloss, @nil �
 assert H_rhs_kint₁ : ∀ (x : dvec T [shape]), is_gintegrable (λ m, ⟦k₁ m⟧) (m_rhs_k_add x) nodes dvec.head,
  { dsimp [is_gintegrable, integrate_mvn_iso_kl, dvec.head] at H_gint, dsimp, intro x,
    cases x with xx x xxx xnil, cases xnil,
-   simp only [det.op.f, det.special.f, dvec.head, env.get_ks, sum_costs, det.function.mvn_iso_empirical_kl] at H_gint,
+   simp only [det.op.f, dvec.head, env.get_ks, sum_costs] at H_gint,
    tactic.dget_dinsert_at `H_gint,
    dunfold sumr map dvec.head dvec.head2 dvec.head3 at H_gint,
    exact (iff.mpr (is_gintegrable_k_add _ _ _ _) (H_gint^.right x))^.left },
@@ -241,7 +252,7 @@ assert H_rhs_kint₁ : ∀ (x : dvec T [shape]), is_gintegrable (λ m, ⟦k₁ m
 assert H_rhs_kint₂ : ∀ (x : dvec T [shape]), is_gintegrable (λ m, ⟦k₂ m⟧) (m_rhs_k_add x) nodes dvec.head,
  { dsimp [is_gintegrable, integrate_mvn_iso_kl, dvec.head] at H_gint, dsimp, intro x,
    cases x with xx x xxx xnil, cases xnil,
-   simp only [det.op.f, det.special.f, dvec.head, env.get_ks, sum_costs, det.function.mvn_iso_empirical_kl] at H_gint,
+   simp only [det.op.f, dvec.head, env.get_ks, sum_costs] at H_gint,
    tactic.dget_dinsert_at `H_gint,
    dunfold sumr map dvec.head dvec.head2 dvec.head3 at H_gint,
    exact (iff.mpr (is_gintegrable_k_add _ _ _ _) (H_gint^.right x))^.right },
@@ -281,9 +292,9 @@ assert H_lhs_eint₁ : E.is_eintegrable d_base lhs_f₁,
 dsimp [E.is_eintegrable, dvec.head],
 dsimp [integrate_mvn_iso_kl, is_gintegrable] at H_kl_gint,
 simp only [λ a1 a2 a3, @env.insert_insert_flip (eloss, []) (z, shape) a1 a2 a3 H_eloss_neq_z],
-simp only [det.op.f, det.special.f, dvec.head, env.get_ks, sum_costs, det.function.mvn_iso_kl] at H_kl_gint,
+simp only [det.op.f, ops.mvn_iso_kl, ops.mvn_iso_kl.f, dvec.head, env.get_ks, sum_costs] at H_kl_gint,
 tactic.dget_dinsert_at `H_kl_gint,
-dunfold sumr map dvec.head dvec.head2 dvec.head3 at H_kl_gint,
+dunfold det.op.f ops.mvn_iso_kl ops.mvn_iso_kl.f sumr map dvec.head dvec.head2 dvec.head3 at H_kl_gint,
 simp only [H_E_kl_add] at H_kl_gint,
 exact (iff.mpr (T.is_integrable_add_middle _ _ _) H_kl_gint^.left)^.left
 },
@@ -293,7 +304,7 @@ assert H_lhs_eint₂ : E.is_eintegrable d_base lhs_f₂,
 dsimp [E.is_eintegrable, dvec.head],
 dsimp [integrate_mvn_iso_kl, is_gintegrable] at H_kl_gint,
 simp only [λ a1 a2 a3, @env.insert_insert_flip (eloss, []) (z, shape) a1 a2 a3 H_eloss_neq_z],
-simp only [det.op.f, det.special.f, dvec.head, env.get_ks, sum_costs, det.function.mvn_iso_kl] at H_kl_gint,
+simp only [det.op.f, ops.mvn_iso_kl, ops.mvn_iso_kl.f, dvec.head, env.get_ks, sum_costs] at H_kl_gint,
 tactic.dget_dinsert_at `H_kl_gint,
 dunfold sumr map dvec.head dvec.head2 dvec.head3 at H_kl_gint,
 simp only [H_E_kl_add] at H_kl_gint,
@@ -306,7 +317,7 @@ pose rhs_f₁ := λ x, E (graph.to_dist (λ (m : env), ⟦k₁ m⟧) (m_rhs_k_ad
 pose rhs_f₂ := λ x, E (graph.to_dist (λ (m : env), ⟦k₂ m⟧) (m_rhs_k_add x) nodes) dvec.head,
 
 dsimp [graph.to_dist, operator.to_dist, is_gintegrable, integrate_mvn_iso_kl, dvec.head] at H_gint,
-simp only [E.E_bind, E.E_ret, det.op.f, det.special.f, dvec.head, env.get_ks, sum_costs, det.function.mvn_iso_empirical_kl] at H_gint,
+simp only [E.E_bind, E.E_ret, det.op.f, dvec.head, env.get_ks, sum_costs] at H_gint,
 tactic.dget_dinsert_at `H_gint,
 
 assert H_E_add : ∀ x,

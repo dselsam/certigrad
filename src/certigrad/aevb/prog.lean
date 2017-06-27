@@ -5,7 +5,7 @@ Author: Daniel Selsam
 
 Certigrad code for a naive variational autoencoder.
 -/
-import ..program ..prove_model_ok .util
+import ..program .util
 
 namespace certigrad
 namespace aevb
@@ -13,7 +13,10 @@ namespace aevb
 section program
 open certigrad.program certigrad.program.statement certigrad.program.term certigrad.program.rterm list label
 
-def naive_aevb : Π (a : arch) (x_data : T [a^.n_in, a^.n_x]), graph | a x_data :=
+#print "Defining naive_aevb..."
+set_option profiler true
+
+def naive_aevb (a : arch) (x_data : T [a^.n_in, a^.n_x]) : graph :=
 program_to_graph
 [
 input x               [a^.n_in, a^.bs],
@@ -39,6 +42,8 @@ cost decoding_loss
 ]
 
 end program
+
+#print "Defined naive_aevb."
 
 end aevb
 end certigrad

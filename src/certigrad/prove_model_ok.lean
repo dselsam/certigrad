@@ -7,6 +7,8 @@ Tactics to prove specific models satisfy the preconditions of backprop_correct.
 -/
 import data.list.set .tfacts .graph .predicates .expected_value .reparam .kl .tactics .program .mvn .tactics
 
+#print "compiling prove_model_ok..."
+
 namespace certigrad
 open T tactic
 
@@ -231,20 +233,7 @@ attribute [cgsimp] det.op.pre ops.neg.f_pre ops.exp.f_pre ops.log.f_pre ops.sqrt
 attribute [cgsimp] det.op.pb ops.neg.f_pb ops.exp.f_pb ops.log.f_pb ops.sqrt.f_pb ops.add.f_pb ops.sub.f_pb ops.mul.f_pb ops.div.f_pb ops.sum.f_pb
                    ops.gemm.f_pb ops.sigmoid.f_pb ops.softplus.f_pb ops.scale.f_pb ops.mul_add.f_pb ops.mvn_iso_kl.f_pb ops.bernoulli_neglogpdf.f_pb
 
-attribute [cgsimp] det.op.is_odiff ops.neg.f_odiff ops.exp.f_odiff ops.log.f_odiff ops.sqrt.f_odiff ops.add.f_odiff
-                   ops.sub.f_odiff ops.mul.f_odiff ops.div.f_odiff ops.sum.f_odiff
-                   ops.gemm.f_odiff ops.sigmoid.f_odiff ops.softplus.f_odiff ops.scale.f_odiff ops.mul_add.f_odiff
-                   ops.mvn_iso_kl.f_odiff ops.bernoulli_neglogpdf.f_odiff
-
-attribute [cgsimp] det.op.pb_correct ops.neg.f_pb_correct ops.exp.f_pb_correct ops.log.f_pb_correct ops.sqrt.f_pb_correct ops.add.f_pb_correct
-                   ops.sub.f_pb_correct ops.mul.f_pb_correct ops.div.f_pb_correct ops.sum.f_pb_correct
-                   ops.gemm.f_pb_correct ops.sigmoid.f_pb_correct ops.softplus.f_pb_correct ops.scale.f_pb_correct ops.mul_add.f_pb_correct
-                   ops.mvn_iso_kl.f_pb_correct ops.bernoulli_neglogpdf.f_pb_correct
-
-attribute [cgsimp] det.op.is_ocont ops.neg.f_ocont ops.exp.f_ocont ops.log.f_ocont ops.sqrt.f_ocont ops.add.f_ocont
-                   ops.sub.f_ocont ops.mul.f_ocont ops.div.f_ocont ops.sum.f_ocont
-                   ops.gemm.f_ocont ops.sigmoid.f_ocont ops.softplus.f_ocont ops.scale.f_ocont ops.mul_add.f_ocont
-                   ops.mvn_iso_kl.f_ocont ops.bernoulli_neglogpdf.f_ocont
+attribute [cgsimp] det.op.is_odiff det.op.pb_correct det.op.is_ocont
 
 attribute [cgsimp] rand.op.pdf rand.pdf.mvn_iso rand.pdf.mvn_iso_std
                    rand.op.pre rand.op.mvn_iso rand.op.mvn_iso_std rand.pre.mvn_iso rand.pre.mvn_iso_std

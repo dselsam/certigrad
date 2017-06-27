@@ -17,6 +17,8 @@ section nodes
 
 open det rand.op label tactic certigrad.tactic
 
+#print "Defining graph_naive..."
+
 def graph_naive : Π (a : arch) (x_data : T [a^.n_in, a^.n_x]), graph
 | a x_data :=
 graph.mk [⟨(ID.nat 0, [a^.ne, a^.bs]), [(ID.str W_encode₁, [a^.ne, a^.n_in]), (ID.str x, [a^.n_in, a^.bs])], operator.det $ ops.gemm _ _ _⟩,

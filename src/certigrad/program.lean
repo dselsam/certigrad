@@ -7,6 +7,8 @@ A term language for conveniently constructing stochastic computation graphs.
 -/
 import .tensor .graph .tactics .ops data.hash_map
 
+#print "compiling program..."
+
 namespace certigrad
 namespace program
 open list

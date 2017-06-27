@@ -68,11 +68,11 @@ def unary_to_op (shape : S) : unary_op → det.op [shape] shape
 | unary_op.softplus := ops.softplus shape
 | unary_op.sigmoid  := ops.sigmoid shape
 
-def binary_to_cwise2 (shape : S) : binary_op → det.op [shape, shape] shape
-| binary_op.add     := det.cwise2.add shape
-| binary_op.mul     := det.cwise2.mul shape
-| binary_op.sub     := det.cwise2.sub shape
-| binary_op.div     := det.cwise2.div shape
+def binary_to_op (shape : S) : binary_op → det.op [shape, shape] shape
+| binary_op.add     := ops.add shape
+| binary_op.mul     := ops.mul shape
+| binary_op.sub     := ops.sub shape
+| binary_op.div     := ops.div shape
 
 def get_id (next_id : ℕ) : option ID → ID
 | none := ID.nat next_id
@@ -85,7 +85,7 @@ def process_term : term → state → option ID → reference × state
     | ((p₁, shape), ⟨next_id, shapes, nodes, costs, targets, inputs⟩) :=
       ((ID.nat $ next_id, shape),
         ⟨next_id+1, shapes,
-         concat nodes ⟨(get_id next_id ident, shape), [(p₁, shape)], operator.det (det.op.unary $ unary_to_cwise1 shape f)⟩,
+         concat nodes ⟨(get_id next_id ident, shape), [(p₁, shape)], operator.det (unary_to_op shape f)⟩,
          costs, targets, inputs⟩)
     end
 
@@ -96,7 +96,7 @@ def process_term : term → state → option ID → reference × state
     | ((p₂, shape), ⟨next_id, shapes, nodes, costs, targets, inputs⟩) :=
       ((get_id next_id ident, shape),
        ⟨next_id+1, shapes,
-        concat nodes ⟨(get_id next_id ident, shape), [(p₁, shape), (p₂, shape)], operator.det (det.op.binary $ binary_to_cwise2 shape f)⟩,
+        concat nodes ⟨(get_id next_id ident, shape), [(p₁, shape), (p₂, shape)], operator.det (binary_to_op shape f)⟩,
                costs, targets, inputs⟩)
     end
     end
@@ -106,7 +106,7 @@ def process_term : term → state → option ID → reference × state
     | ((p₁, shape), ⟨next_id, shapes, nodes, costs, targets, inputs⟩) :=
       ((get_id next_id ident, []),
         ⟨next_id+1, shapes,
-         concat nodes ⟨(get_id next_id ident, []), [(p₁, shape)], operator.det (det.op.special (det.special.sum shape))⟩,
+         concat nodes ⟨(get_id next_id ident, []), [(p₁, shape)], operator.det (ops.sum shape)⟩,
          costs, targets, inputs⟩)
     end
 
@@ -115,7 +115,7 @@ def process_term : term → state → option ID → reference × state
     | ((p₁, shape), ⟨next_id, shapes, nodes, costs, targets, inputs⟩) :=
       ((get_id next_id ident, shape),
        ⟨next_id+1, shapes,
-       concat nodes ⟨(get_id next_id ident, shape), [(p₁, shape)], operator.det (det.op.unary (det.cwise1.scale α))⟩,
+       concat nodes ⟨(get_id next_id ident, shape), [(p₁, shape)], operator.det (ops.scale α shape)⟩,
        costs, targets, inputs⟩)
     end
 
@@ -127,7 +127,7 @@ def process_term : term → state → option ID → reference × state
       let m := shape₁.head, n := shape₂.head, p := shape₂.tail.head in
       ((get_id next_id ident, [m, p]),
        ⟨next_id+1, shapes,
-        concat nodes ⟨(get_id next_id ident, [m, p]), [(p₁, [m, n]), (p₂, [n, p])], operator.det (det.op.special (det.special.gemm _ _ _))⟩,
+        concat nodes ⟨(get_id next_id ident, [m, p]), [(p₁, [m, n]), (p₂, [n, p])], operator.det (ops.gemm _ _ _)⟩,
         costs, targets, inputs⟩)
     end
     end
@@ -138,7 +138,7 @@ def process_term : term → state → option ID → reference × state
     match process_term t₂ st' none with
     | ((p₂, shape), ⟨next_id, shapes, nodes, costs, targets, inputs⟩) :=
       ((get_id next_id ident, []), ⟨next_id+1, shapes,
-        concat nodes ⟨(get_id next_id ident, []), [(p₁, shape), (p₂, shape)], operator.det (det.op.special $ det.special.mvn_iso_kl shape)⟩,
+        concat nodes ⟨(get_id next_id ident, []), [(p₁, shape), (p₂, shape)], operator.det (ops.mvn_iso_kl shape)⟩,
         costs, targets, inputs⟩)
     end
     end
@@ -164,21 +164,8 @@ def process_term : term → state → option ID → reference × state
     | ((p₂, shape), ⟨next_id, shapes, nodes, costs, targets, inputs⟩) :=
       ((get_id next_id ident, []),
         ⟨next_id+1, shapes,
-         concat nodes ⟨(get_id next_id ident, []), [(p₁, shape), (p₂, shape)], operator.det (det.op.special $ det.special.bernoulli_neglogpdf shape)⟩,
+         concat nodes ⟨(get_id next_id ident, []), [(p₁, shape), (p₂, shape)], operator.det (ops.bernoulli_neglogpdf shape)⟩,
          costs, targets, inputs⟩)
-    end
-    end
-
-| (term.get_col_range t₁ t₂ ncols) st ident :=
-    match process_term t₁ st none with
-    | ((p₁, shape), st') :=
-    match process_term t₂ st' none with
-    | ((p₂, shape'), ⟨next_id, shapes, nodes, costs, targets, inputs⟩) :=
-      let m := shape.head, n := shape.tail.head in
-      ((get_id next_id ident, [m, ncols]),
-       ⟨next_id+1, shapes,
-       concat nodes ⟨(get_id next_id ident, [m, ncols]), [(p₁, [m, n]), (p₂, [])], operator.det (det.op.special $ det.special.get_col_range m n ncols)⟩,
-       costs, targets, inputs⟩)
     end
     end
 

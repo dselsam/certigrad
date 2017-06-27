@@ -219,27 +219,29 @@ attribute [cgsimp] graph.to_dist operator.to_dist sum_costs compute_grad_slow
 
 attribute [cgsimp] E.E_bind E.E_ret
 
-attribute [cgsimp] det.op.f det.special.f det.cwise1.f det.cwise2.f
-                  det.function.neg det.function.exp det.function.log det.function.sqrt det.function.scale det.function.softplus det.function.sigmoid
-                  det.function.add det.function.sub det.function.mul det.function.div
-                  det.function.sum det.function.gemv det.function.gemm det.function.mul_add det.function.get_col_range
-                  det.function.mvn_iso_kl det.function.mvn_iso_empirical_kl det.function.bernoulli_neglogpdf
+attribute [cgsimp] det.op.f ops.neg.f ops.exp.f ops.log.f ops.sqrt.f ops.add.f ops.sub.f ops.mul.f ops.div.f ops.sum.f
+                   ops.gemm.f ops.sigmoid.f ops.softplus.f ops.scale.f ops.mul_add.f ops.mvn_iso_kl.f ops.bernoulli_neglogpdf.f
 
-attribute [cgsimp] det.op.pre det.special.pre det.cwise1.pre det.cwise2.pre
-                   det.preconditions.predicates.top det.preconditions.predicates.bot det.preconditions.predicates.pos
-                   det.preconditions.neg det.preconditions.exp det.preconditions.log det.preconditions.sqrt det.preconditions.scale
-                   det.preconditions.softplus det.preconditions.sigmoid
-                   det.preconditions.add det.preconditions.sub det.preconditions.mul det.preconditions.div
-                   det.preconditions.sum det.preconditions.gemv det.preconditions.gemm
-                   det.preconditions.replicate_col det.preconditions.mul_add det.preconditions.mvn_iso_kl det.preconditions.mvn_iso_empirical_kl
-                   det.preconditions.bernoulli_neglogpdf
+attribute [cgsimp] det.op.pre ops.neg.f_pre ops.exp.f_pre ops.log.f_pre ops.sqrt.f_pre ops.add.f_pre ops.sub.f_pre ops.mul.f_pre ops.div.f_pre ops.sum.f_pre
+                   ops.gemm.f_pre ops.sigmoid.f_pre ops.softplus.f_pre ops.scale.f_pre ops.mul_add.f_pre ops.mvn_iso_kl.f_pre ops.bernoulli_neglogpdf.f_pre
 
-attribute [cgsimp] det.op.pb det.cwise1.pb det.cwise2.pb det.special.pb
-                   det.pullback.dummy
-                   det.pullback.neg det.pullback.exp det.pullback.log det.pullback.sqrt det.pullback.scale
-                   det.pullback.softplus det.pullback.sigmoid det.pullback.add det.pullback.sub det.pullback.mul det.pullback.div
-                   det.pullback.sum det.pullback.gemm det.pullback.replicate_col det.pullback.mul_add
-                   det.pullback.mvn_iso_kl det.pullback.mvn_iso_empirical_kl det.pullback.bernoulli_neglogpdf
+attribute [cgsimp] det.op.pb ops.neg.f_pb ops.exp.f_pb ops.log.f_pb ops.sqrt.f_pb ops.add.f_pb ops.sub.f_pb ops.mul.f_pb ops.div.f_pb ops.sum.f_pb
+                   ops.gemm.f_pb ops.sigmoid.f_pb ops.softplus.f_pb ops.scale.f_pb ops.mul_add.f_pb ops.mvn_iso_kl.f_pb ops.bernoulli_neglogpdf.f_pb
+
+attribute [cgsimp] det.op.is_odiff ops.neg.f_odiff ops.exp.f_odiff ops.log.f_odiff ops.sqrt.f_odiff ops.add.f_odiff
+                   ops.sub.f_odiff ops.mul.f_odiff ops.div.f_odiff ops.sum.f_odiff
+                   ops.gemm.f_odiff ops.sigmoid.f_odiff ops.softplus.f_odiff ops.scale.f_odiff ops.mul_add.f_odiff
+                   ops.mvn_iso_kl.f_odiff ops.bernoulli_neglogpdf.f_odiff
+
+attribute [cgsimp] det.op.pb_correct ops.neg.f_pb_correct ops.exp.f_pb_correct ops.log.f_pb_correct ops.sqrt.f_pb_correct ops.add.f_pb_correct
+                   ops.sub.f_pb_correct ops.mul.f_pb_correct ops.div.f_pb_correct ops.sum.f_pb_correct
+                   ops.gemm.f_pb_correct ops.sigmoid.f_pb_correct ops.softplus.f_pb_correct ops.scale.f_pb_correct ops.mul_add.f_pb_correct
+                   ops.mvn_iso_kl.f_pb_correct ops.bernoulli_neglogpdf.f_pb_correct
+
+attribute [cgsimp] det.op.is_ocont ops.neg.f_ocont ops.exp.f_ocont ops.log.f_ocont ops.sqrt.f_ocont ops.add.f_ocont
+                   ops.sub.f_ocont ops.mul.f_ocont ops.div.f_ocont ops.sum.f_ocont
+                   ops.gemm.f_ocont ops.sigmoid.f_ocont ops.softplus.f_ocont ops.scale.f_ocont ops.mul_add.f_ocont
+                   ops.mvn_iso_kl.f_ocont ops.bernoulli_neglogpdf.f_ocont
 
 attribute [cgsimp] rand.op.pdf rand.pdf.mvn_iso rand.pdf.mvn_iso_std
                    rand.op.pre rand.op.mvn_iso rand.op.mvn_iso_std rand.pre.mvn_iso rand.pre.mvn_iso_std
@@ -248,8 +250,8 @@ attribute [cgsimp] env.get_ks env.insert_all env.get_insert_same env.get_insert_
 
 attribute [cgsimp] list.insertion_sort list.ordered_insert
 
-attribute [cgsimp] program_to_graph program.program_to_graph_core
-                  program.unary_to_cwise1 program.binary_to_cwise2 program.get_id
+attribute [cgsimp] program_to_graph program.program_to_graph_core program.get_id
+--                  program.unary_to_cwise1 program.binary_to_cwise2
                   program.process_term program.empty_state program.process_rterm
                   program_to_graph._match_1
                   program.program_to_graph_core._match_1
@@ -258,12 +260,11 @@ attribute [cgsimp] program_to_graph program.program_to_graph_core
                   program.process_term._match_6
                   program.process_term._match_10
                   program.process_term._match_13
-                  program.process_term._match_16
-                  program.process_term._match_17
+--                  program.process_term._match_16
+--                  program.process_term._match_17
                   program.exp program.log program.sqrt program.softplus program.sigmoid
 
 @[cgsimp] lemma lift_t_label_to_term (x : label) : (lift_t x : program.term) = (program.term.id x) := rfl
-@[cgsimp] lemma lift_t_tensor_to_term (shape : S) (x : T shape) : (lift_t x : program.term) = (program.term.const x) := rfl
 
 namespace tactic
 open tactic

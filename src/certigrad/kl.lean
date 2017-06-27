@@ -5,7 +5,7 @@ Author: Daniel Selsam
 
 Certified graph transformation that integrates out a specific KL divergence term.
 -/
-import .util .tensor .compute_grad .graph .tactics .predicates .lemmas .env .expected_value
+import .util .tensor .compute_grad .graph .tactics .predicates .lemmas .env .expected_value .ops
 
 namespace certigrad
 open list
@@ -16,11 +16,11 @@ def integrate_mvn_iso_kl (eloss : ID) : list node → list node
 | (⟨(z, .(shape)), [(μ, .(shape)), (σ, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
  ::⟨(el, []), [(μ', .(shape')), (σ', .(shape')), (z', .(shape'))], operator.det (det.op.mvn_iso_empirical_kl shape')⟩
  ::nodes) :=
- (⟨(el, []), [⟨μ, shape⟩, ⟨σ, shape⟩], operator.det (det.op.special (det.special.mvn_iso_kl shape))⟩
+ (⟨(el, []), [⟨μ, shape⟩, ⟨σ, shape⟩], operator.det (ops.mvn_iso_kl shape)⟩
 ::⟨(z, shape), [⟨μ, shape⟩, ⟨σ, shape⟩], operator.rand (rand.op.mvn_iso shape)⟩
 ::nodes)
 
-| (⟨(z, .(shape)), [(μ, .(shape)), (σ, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩ ::nodes) :=
+| (⟨(z, .(shape)), [(μ, .(shape)), (σ, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩ :: nodes) :=
 ⟨(z, shape), [(μ, shape), (σ, shape)], operator.rand (rand.op.mvn_iso shape)⟩ :: integrate_mvn_iso_kl nodes
 
 | (n::nodes) := n :: integrate_mvn_iso_kl nodes
@@ -54,7 +54,7 @@ integrate_mvn_iso_kl_pre nodes (env.insert (rname, rshape) (op^.f (env.get_ks [(
   ::⟨(rname₂, []), [(pname₃, shape₃), (pname₄, shape₄)], op⟩::nodes) inputs := false
 -- EQ9
 | (⟨(rname, .(shape)), [(pname₁, .(shape)), (pname₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
-  ::⟨(rname₂, []), [(pname₃, shape₃), (pname₄, shape₄), (pname₅, shape₅)], operator.det (det.op.special op)⟩::nodes) inputs := false
+  ::⟨(rname₂, []), [(pname₃, .(shape₃)), (pname₄, .(shape₄)), (pname₅, .(shape₅))], operator.det (det.op.mk _ [shape₃, shape₄, shape₅] [] _ _ _ _ _ _)⟩::nodes) inputs := false
 -- EQ10
 | (⟨(z, .(shape)), [(μ, .(shape)), (σ, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
  ::⟨(el, []), [(μ', .(shape')), (σ', .(shape')), (z', .(shape'))], operator.det (det.op.mvn_iso_empirical_kl shape')⟩
@@ -148,8 +148,8 @@ end
 
 -- EQ9
 | (⟨(rname, .(shape)), [(pname₁, .(shape)), (pname₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
-  ::⟨(rname₂, []), [(pname₃, shape₃), (pname₄, shape₄), (pname₅, shape₅)], operator.det (det.op.special op)⟩::nodes) inputs H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint :=
-false.rec _ H_pre
+  ::⟨(rname₂, []), [(pname₃, .(shape₃)), (pname₄, .(shape₄)), (pname₅, .(shape₅))], operator.det (det.op.mk _ [shape₃, shape₄, shape₅] [] _ _ _ _ _ _)⟩::nodes) inputs
+H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
 
 -- EQ10
 | (⟨(z, .(shape)), [(μ, .(shape)), (σ, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
@@ -183,10 +183,8 @@ assertv H_eloss_nin_nodes : (eloss, []) ∉ map node.ref nodes := not_mem_of_not
 
 dunfold env.get_ks,
 tactic.dget_dinsert,
-
-erw [det.op.f.equations._eqn_5],--, det.special.f.equations._eqn_10],
-erw [det.op.f.equations._eqn_4, det.special.f.equations._eqn_10],
-dunfold det.function.mvn_iso_kl det.function.mvn_iso_empirical_kl dvec.head dvec.head2 dvec.head3,
+dunfold det.op.f ops.mvn_iso_kl ops.mvn_iso_kl.f dvec.head dvec.head2 dvec.head3,
+dsimp [det.op.f, ops.mvn_iso_kl.f, dvec.head, dvec.head2, dvec.head3],
 
 -- TODO(dhs): I think this is a bug in LEAN. (z, shape) and (eloss, []) are in the type of the last argument.
 simp only [λ (x : dvec T [shape]),

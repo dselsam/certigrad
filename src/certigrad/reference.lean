@@ -22,8 +22,11 @@ end reference
 section tactics
 open tactic
 
+
 meta def prove_refs_neq : tactic unit :=
-do applyc `pair_neq_of_neq₁, prove_ids_neq
+do
+
+applyc `pair_neq_of_neq₁, prove_ids_neq
 
 end tactics
 

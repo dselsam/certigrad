@@ -204,6 +204,7 @@ attribute [cgsimp] force_ok
 
 attribute [cgsimp] list.sumr list.map list.concat list.head list.tail list.riota list.filter list.length list.dnth
                    list.sublist.refl list.nil_subset list.sublist_cons list.cons_append list.append_nil list.nil_append
+                   list.p1 list.p2
 
 attribute [cgsimp] hash_map.find_insert_eq hash_map.find_insert_ne
 

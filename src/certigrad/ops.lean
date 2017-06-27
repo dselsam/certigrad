@@ -89,7 +89,8 @@ end scale
 
 section open scale
 def scale (α : ℝ) (shape : S) : det.op [shape] shape :=
-det.op.mk "scale" [shape] shape (f α) f_pre (f_pb α) (f_odiff α) (f_pb_correct α) (f_ocont α)
+det.op.mk "scale" (f α) f_pre (f_pb α) (f_odiff α) (f_pb_correct α) (f_ocont α)
+
 end
 
 namespace neg
@@ -116,7 +117,7 @@ end neg
 
 section open neg
 def neg (shape : S) : det.op [shape] shape :=
-det.op.mk "neg" [shape] shape f f_pre f_pb f_odiff f_pb_correct f_ocont
+det.op.mk "neg" f f_pre f_pb f_odiff f_pb_correct f_ocont
 end
 
 namespace exp
@@ -143,7 +144,7 @@ end exp
 
 section open exp
 def exp (shape : S) : det.op [shape] shape :=
-det.op.mk "exp" [shape] shape f f_pre f_pb f_odiff f_pb_correct f_ocont
+det.op.mk "exp" f f_pre f_pb f_odiff f_pb_correct f_ocont
 end
 
 namespace log
@@ -170,13 +171,13 @@ end log
 
 section open log
 def log (shape : S) : det.op [shape] shape :=
-det.op.mk "log" [shape] shape f f_pre f_pb f_odiff f_pb_correct f_ocont
+det.op.mk "log" f f_pre f_pb f_odiff f_pb_correct f_ocont
 end
 
 namespace sqrt
 
 def f {shape : S} (xs : dvec T [shape]) : T shape := sqrt xs^.head
-def f_pre {shape : S} : precondition [shape] := λ xs, xs^.head > 0
+def f_pre {shape : S} : precondition [shape] := λ xs, 0 < xs^.head
 def f_pb {shape : S} (xs : dvec T [shape]) (y gy : T shape) (idx : ℕ) (fshape : S) : T fshape := force (gy / (2 * y)) fshape
 
 attribute [simp] f f_pre f_pb
@@ -197,7 +198,7 @@ end sqrt
 
 section open sqrt
 def sqrt (shape : S) : det.op [shape] shape :=
-det.op.mk "sqrt" [shape] shape f f_pre f_pb f_odiff f_pb_correct f_ocont
+det.op.mk "sqrt" f f_pre f_pb f_odiff f_pb_correct f_ocont
 end
 
 namespace sigmoid
@@ -225,7 +226,7 @@ end sigmoid
 
 section open sigmoid
 def sigmoid (shape : S) : det.op [shape] shape :=
-det.op.mk "sigmoid" [shape] shape f f_pre f_pb f_odiff f_pb_correct f_ocont
+det.op.mk "sigmoid" f f_pre f_pb f_odiff f_pb_correct f_ocont
 end
 
 namespace softplus
@@ -253,7 +254,7 @@ end softplus
 
 section open softplus
 def softplus (shape : S) : det.op [shape] shape :=
-det.op.mk "softplus" [shape] shape f f_pre f_pb f_odiff f_pb_correct f_ocont
+det.op.mk "softplus" f f_pre f_pb f_odiff f_pb_correct f_ocont
 end
 
 namespace add
@@ -283,7 +284,7 @@ end add
 
 section open add
 def add (shape : S) : det.op [shape, shape] shape :=
-det.op.mk "add" [shape, shape] shape f f_pre f_pb f_odiff f_pb_correct f_ocont
+det.op.mk "add" f f_pre f_pb f_odiff f_pb_correct f_ocont
 end
 
 namespace mul
@@ -317,7 +318,7 @@ end mul
 
 section open mul
 def mul (shape : S) : det.op [shape, shape] shape :=
-det.op.mk "mul" [shape, shape] shape f f_pre f_pb f_odiff f_pb_correct f_ocont
+det.op.mk "mul" f f_pre f_pb f_odiff f_pb_correct f_ocont
 end
 
 namespace sub
@@ -351,7 +352,7 @@ end sub
 
 section open sub
 def sub (shape : S) : det.op [shape, shape] shape :=
-det.op.mk "sub" [shape, shape] shape f f_pre f_pb f_odiff f_pb_correct f_ocont
+det.op.mk "sub" f f_pre f_pb f_odiff f_pb_correct f_ocont
 end
 
 namespace div
@@ -385,7 +386,7 @@ end div
 
 section open div
 def div (shape : S) : det.op [shape, shape] shape :=
-det.op.mk "div" [shape, shape] shape f f_pre f_pb f_odiff f_pb_correct f_ocont
+det.op.mk "div" f f_pre f_pb f_odiff f_pb_correct f_ocont
 end
 
 namespace sum
@@ -429,7 +430,7 @@ end sum
 section open sum
 -- TODO(dhs): why won't it find `f` without `sum.`? Bug in Lean?
 def sum (shape : S) : det.op [shape] [] :=
-det.op.mk "sum" [shape] [] sum.f sum.f_pre sum.f_pb sum.f_odiff sum.f_pb_correct sum.f_ocont
+det.op.mk "sum" sum.f sum.f_pre sum.f_pb sum.f_odiff sum.f_pb_correct sum.f_ocont
 end
 
 namespace gemm
@@ -488,7 +489,7 @@ end gemm
 
 section open gemm
 def gemm (m n p : ℕ) : det.op [[m, n], [n, p]] [m, p] :=
-det.op.mk "gemm" [[m, n], [n, p]] [m, p] f f_pre f_pb f_odiff f_pb_correct f_ocont
+det.op.mk "gemm" f f_pre f_pb f_odiff f_pb_correct f_ocont
 end
 
 namespace mvn_iso_kl
@@ -572,7 +573,7 @@ end mvn_iso_kl
 
 section open mvn_iso_kl
 def mvn_iso_kl (shape : S) : det.op [shape, shape] [] :=
-det.op.mk "mvn_iso_kl" [shape, shape] [] f f_pre f_pb f_odiff f_pb_correct f_ocont
+det.op.mk "mvn_iso_kl" f f_pre f_pb f_odiff f_pb_correct f_ocont
 end
 
 -- Seems silly but saves some fresh-name tracking in reparam
@@ -639,7 +640,7 @@ end mul_add
 
 section open mul_add
 def mul_add (shape : S) : det.op [shape, shape, shape] shape :=
-det.op.mk "mul_add" [shape, shape, shape] shape f f_pre f_pb f_odiff f_pb_correct f_ocont
+det.op.mk "mul_add" f f_pre f_pb f_odiff f_pb_correct f_ocont
 end
 
 namespace bernoulli_neglogpdf
@@ -727,7 +728,7 @@ end bernoulli_neglogpdf
 section
 open bernoulli_neglogpdf
 def bernoulli_neglogpdf (shape : S) : det.op [shape, shape] [] :=
-det.op.mk "bernoulli_neglogpdf" [shape, shape] [] f f_pre f_pb f_odiff f_pb_correct f_ocont
+det.op.mk "bernoulli_neglogpdf" f f_pre f_pb f_odiff f_pb_correct f_ocont
 end
 
 end ops

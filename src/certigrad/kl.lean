@@ -54,7 +54,7 @@ integrate_mvn_iso_kl_pre nodes (env.insert (rname, rshape) (op^.f (env.get_ks [(
   ::⟨(rname₂, []), [(pname₃, shape₃), (pname₄, shape₄)], op⟩::nodes) inputs := false
 -- EQ9
 | (⟨(rname, .(shape)), [(pname₁, .(shape)), (pname₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
-  ::⟨(rname₂, []), [(pname₃, .(shape₃)), (pname₄, .(shape₄)), (pname₅, .(shape₅))], operator.det (det.op.mk _ [shape₃, shape₄, shape₅] [] _ _ _ _ _ _)⟩::nodes) inputs := false
+  ::⟨(rname₂, []), [(pname₃, shape₃), (pname₄, shape₄), (pname₅, shape₅)], operator.det (det.op.mk _ _ _ _ _ _ _)⟩::nodes) inputs := false
 -- EQ10
 | (⟨(z, .(shape)), [(μ, .(shape)), (σ, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
  ::⟨(el, []), [(μ', .(shape')), (σ', .(shape')), (z', .(shape'))], operator.det (det.op.mvn_iso_empirical_kl shape')⟩
@@ -148,7 +148,7 @@ end
 
 -- EQ9
 | (⟨(rname, .(shape)), [(pname₁, .(shape)), (pname₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩
-  ::⟨(rname₂, []), [(pname₃, .(shape₃)), (pname₄, .(shape₄)), (pname₅, .(shape₅))], operator.det (det.op.mk _ [shape₃, shape₄, shape₅] [] _ _ _ _ _ _)⟩::nodes) inputs
+  ::⟨(rname₂, []), [(pname₃, shape₃), (pname₄, shape₄), (pname₅, shape₅)], operator.det (det.op.mk _ _ _ _ _ _ _)⟩::nodes) inputs
 H_eloss_not_cost H_pre H_uids H_ps_in_env H_pdfs_exist_at H_kl_gint H_gint := false.rec _ H_pre
 
 -- EQ10
@@ -191,15 +191,9 @@ dsimp [det.op.f, ops.mvn_iso_kl.f, dvec.head, dvec.head2, dvec.head3],
 
 -- TODO(dhs): I think this is a bug in LEAN. (z, shape) and (eloss, []) are in the type of the last argument.
 simp only [λ (x : dvec T [shape]),
-               @env.insert_insert_flip (z, shape) (eloss, [])
-                                       x^.head (det.op.f
-                       (det.op.mk "mvn_iso_kl" [shape, shape] nil ops.mvn_iso_kl.f
-                          (λ (xs : dvec T [shape, shape]), 0 < dvec.head2 xs)
-                          ops.mvn_iso_kl.f_pb
-                          ops.mvn_iso_kl.f_odiff
-                          ops.mvn_iso_kl.f_pb_correct
-                          ops.mvn_iso_kl.f_ocont)
-                       ⟦(env.get (μ, shape) inputs : T shape), (env.get (σ, shape) inputs : T shape)⟧)  inputs (ne.symm H_eloss_neq_z)],
+               @env.insert_insert_flip (z, shape) (eloss, []) x^.head
+                                       (T.mvn_iso_kl (env.get (μ, shape) inputs : T shape) (env.get (σ, shape) inputs : T shape))
+                                       inputs (ne.symm H_eloss_neq_z)],
 
 -- Two steps:
 -- 1. Split out eloss, and prove that it equals the lookup val

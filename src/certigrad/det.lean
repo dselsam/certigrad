@@ -37,7 +37,7 @@ noncomputable def is_ocontinuous {ishapes : list S} {oshape : S} (f : dvec T ish
       f_pre xs → T.is_continuous (λ θ₀, f (dvec.update_at θ₀ xs idx)) (dvec.get ishape xs idx)
 
 inductive op : Π (ishapes : list S) (oshape : S),  Type
-| mk : ∀ (id : string) (ishapes : list S) (oshape : S)
+| mk : ∀ {ishapes : list S} {oshape : S} (id : string)
          (f :function ishapes oshape) (f_pre : precondition ishapes) (f_pb : pullback ishapes oshape),
          is_odifferentiable f f_pre → pullback_correct f f_pre f_pb → is_ocontinuous f f_pre →
          op ishapes oshape

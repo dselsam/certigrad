@@ -265,15 +265,36 @@ meta def dcgsimp : tactic unit := do
   s ← join_user_simp_lemmas tt [`cgsimp],
   dsimp_core s
 
+meta def gsimpt_core : Π (tac : tactic unit) (s : simp_lemmas) (e : expr), tactic (expr × expr) := λ tac s e,
+do (a, new_tgt, pf) ← ext_simplify_core () {} s
+
+(λ u, failed)
+--pre
+(λ a s r p e,
+if e^.is_napp_of `list.map 4
+then do
+  last_arg ← return (expr.app_arg e),
+  ⟨new_last_arg, pf₁⟩ ← gsimpt_core tac s last_arg,
+  p₁ ← mk_congr_arg e^.app_fn pf₁,
+  ⟨a, new_e, opf₂⟩ ← conv.apply_lemmas s r (expr.app (expr.app_fn e) new_last_arg),
+  pf ← match opf₂ with
+       | none := return p₁
+       | some pf₂ := mk_eq_trans p₁ pf₂
+       end,
+  return ((), new_e, pf, tt)
+else
+  failed)
+--post
+(λ a s r p e, do ⟨u, new_e, pr⟩ ← conv.apply_lemmas_core reducible s tac r e,
+                 return ((), new_e, pr, tt))
+`eq e,
+
+  return (new_tgt, pf)
+
 meta def gsimpt (tac : tactic unit) : tactic unit := do
   s ← join_user_simp_lemmas tt [`cgsimp],
   tgt ← target,
-  (a, new_tgt, pf) ← ext_simplify_core () {} s
-                                     (λ u, failed)
-                                     (λ a s r p e, failed)
-                                     (λ a s r p e, do ⟨u, new_e, pr⟩ ← conv.apply_lemmas_core reducible s tac r e,
-                                                      return ((), new_e, pr, tt))
-                                     `eq tgt,
+  (new_tgt, pf) ← gsimpt_core tac s tgt,
   replace_target new_tgt pf
 
 meta def cgsimpt (tac : tactic unit) : tactic unit := do

@@ -119,6 +119,10 @@ There are also many kinds of possible errors for which Certigrad has no way of p
 
 Lastly, Certigrad is designed to be a _proof-of-concept_, not a production system. There are many features that would need to be added to make it useful as an artifact. Over the course of development, we encountered many problems that will need to be solved to make our methodology economical, and we are much more interested in addressing those challenges than in extending and maintaining Certigrad as an end in itself.
 
+## For more information
+
+A paper describing the ideas behind Certigrad can be found at <https://arxiv.org/abs/1706.08605> and will appear at ICML 2017.
+
 ## Team
 
 * Daniel Selsam, Stanford University

@@ -109,8 +109,7 @@ Until then:
 2. Download Eigen (http://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2) and install it. You may need to change https://github.com/dselsam/lean/blob/certigrad/src/CMakeLists.txt#L285 depending on where you install it.
 3. Download this repository, and in the main directory execute `leanpkg --build`.
 
-Note: we are still working on some performance issues in Lean when proving certain (large) Certigrad theorems and checking the resulting proofs.
-Building Certigrad currently takes a long time (~90 minutes) and at its peak consumes around 30 GB of memory. We hope to get these numbers way down in the near future.
+Note: building Certigrad currently takes ~20 minutes and consumes ~16 GB of memory.
 
 ## Warning
 

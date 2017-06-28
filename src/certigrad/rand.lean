@@ -135,7 +135,7 @@ subst H_ishape_eq,
 dsimp [dvec.update_at, dvec.get],
 simp,
 assert H : ∀ (θ₀ : T ishape), T.log (pdf.mvn_iso ishape ⟦θ₀, σ⟧ x) = T.mvn_iso_logpdf θ₀ σ x,
-{ intro θ₀, simp [pdf.mvn_iso, T.mvn_iso_logpdf_correct] },
+{ intro θ₀, simp [pdf.mvn_iso, T.mvn_iso_logpdf_correct θ₀ σ x H_pre] },
 rw (funext H), clear H,
 erw T.mvn_iso_grad_logpdf_μ_correct _ _ _ H_pre,
 simp [glogpdf.mvn_iso, dvec.head2]
@@ -149,9 +149,11 @@ dsimp [list.dnth] at H_ishape_eq,
 subst H_ishape_eq,
 dsimp [dvec.update_at, dvec.get],
 simp,
-assert H : ∀ (θ₀ : T ishape), T.log (pdf.mvn_iso ishape ⟦μ, θ₀⟧ x) = T.mvn_iso_logpdf μ θ₀ x,
-{ intro θ₀, simp [pdf.mvn_iso, T.mvn_iso_logpdf_correct] },
-rw (funext H), clear H,
+assert H : ∀ (θ₀ : T ishape), θ₀ > 0 → T.log (pdf.mvn_iso ishape ⟦μ, θ₀⟧ x) = T.mvn_iso_logpdf μ θ₀ x,
+{ intros θ₀ H_θ₀, simp [pdf.mvn_iso, T.mvn_iso_logpdf_correct μ θ₀ x H_θ₀] },
+
+erw T.grad_congr_pos _ _ _ H_pre H,
+clear H,
 erw T.mvn_iso_grad_logpdf_σ_correct _ _ _ H_pre,
 simp [glogpdf.mvn_iso, dvec.head2]
 end

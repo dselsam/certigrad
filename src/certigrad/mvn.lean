@@ -149,12 +149,18 @@ calc  ∫ (λ (x : T shape), T.mvn_iso_pdf μ σ x ⬝ ((x - μ) / σ))
 -- Exercise for the reader: prove
 axiom mvn_iso_csmoment₂ {shape : S} (μ σ : T shape) (H_σ : σ > 0) : ∫ (λ (x : T shape), T.mvn_iso_pdf μ σ x ⬝ square ((x - μ) / σ)) = (1 : T shape)
 
-lemma mvn_iso_logpdf_correct {shape : S} (μ σ x : T shape) : log (mvn_iso_pdf μ σ x) = mvn_iso_logpdf μ σ x :=
+lemma mvn_iso_logpdf_correct {shape : S} (μ σ x : T shape) (H_σ : σ > 0) : log (mvn_iso_pdf μ σ x) = mvn_iso_logpdf μ σ x :=
+have H_σ₂ : square σ > 0, from square_pos_of_pos H_σ,
+have H_mul : (2 * pi shape) * square σ > 0, from mul_pos_of_pos_pos two_pi_pos H_σ₂,
+have H_sqrt : (sqrt ((2 * pi shape) * square σ))⁻¹ > 0, from inv_pos (sqrt_pos H_mul),
+have H_exp : exp ((- 2⁻¹) * (square $ (x - μ) / σ)) > 0, from exp_pos,
+have H_mul₂ : (sqrt ((2 * pi shape) * square σ))⁻¹ * exp ((- 2⁻¹) * (square $ (x - μ) / σ)) > 0,
+from mul_pos_of_pos_pos H_sqrt H_exp,
 calc  log (mvn_iso_pdf μ σ x)
     = log (prod ((sqrt ((2 * pi shape) * square σ))⁻¹ * exp ((- 2⁻¹) * (square $ (x - μ) / σ)))) : rfl
-... = sum (log ((sqrt ((2 * pi shape) * square σ))⁻¹) + ((- 2⁻¹) * (square $ (x - μ) / σ))) : by simp only [log_prod, log_mul, log_exp]
+... = sum (log ((sqrt ((2 * pi shape) * square σ))⁻¹) + ((- 2⁻¹) * (square $ (x - μ) / σ))) : by simp only [log_prod H_mul₂, log_mul H_sqrt H_exp, log_exp]
 ... = sum ((- 2⁻¹) * log ((2 * pi shape) * square σ) + ((- 2⁻¹) * (square $ (x - μ) / σ))) : by simp [log_inv, log_sqrt]
-... = sum ((- 2⁻¹) * (log (2 * pi shape) + log (square σ)) + (- 2⁻¹) * (square $ (x - μ) / σ)) : by simp only [log_mul]
+... = sum ((- 2⁻¹) * (log (2 * pi shape) + log (square σ)) + (- 2⁻¹) * (square $ (x - μ) / σ)) : by simp only [log_mul two_pi_pos H_σ₂]
 ... = sum ((- 2⁻¹) * (log (2 * pi shape) + log (square σ) + (square $ (x - μ) / σ))) : by simp only [left_distrib]
 ... = sum ((- (2 : ℝ)⁻¹) ⬝ (log (2 * pi shape) + log (square σ) + (square $ (x - μ) / σ))) : by simp only [smul.def, const_neg, const_inv, const_bit0, const_one]
 ... = (- 2⁻¹) * sum (square ((x - μ) / σ) + log (2 * pi shape) + log (square σ)) : by simp [sum_smul]

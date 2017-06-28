@@ -191,6 +191,10 @@ axiom grad_gemm₁ {m p : ℕ} (k : T [m, p] → ℝ) (n : ℕ) (M : T [m, n]) (
 axiom grad_gemm₂ {m p : ℕ} (k : T [m, p] → ℝ) (n : ℕ) (M : T [m, n]) (N : T [n, p]) :
 ∇ (λ N, k (gemm M N)) N = gemm (transpose M) (∇ k (gemm M N))
 
+-- Congruences
+axiom grad_congr_pos {shape : S} (f g : T shape → ℝ) (θ : T shape) :
+  θ > 0 → (∀ (θ₀ : T shape), θ₀ > 0 → f θ₀ = g θ₀) → ∇ f θ = ∇ g θ
+
 -- Compound
 lemma grad_softplus {shape : S} (k : T shape → ℝ) (θ : T shape) :
   ∇ (λ θ, k (softplus θ)) θ = ∇ k (softplus θ) / (1 + exp (- θ)) :=

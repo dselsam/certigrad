@@ -37,7 +37,7 @@ https://github.com/dselsam/certigrad/blob/master/src/certigrad/reparam.lean#L70-
 
 Certigrad also includes a front-end syntax for constructing stochastic computation graphs. Here is an example program that describes a naive variational autoencoder:
 
-https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/prog.lean#L16-L40
+https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/prog.lean#L16-L38
 
 We prove that the two certified optimizations mentioned above are sound to apply in sequence to the naive autoencoder:
 
@@ -66,7 +66,7 @@ Provable correctness need not come at the expense of computational efficiency: p
 
 We include a script to train an AEVB on MNIST using ADAM:
 
-https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/mnist.lean#L42-L59
+https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/mnist.lean#L44-L66
 
 ## Benefits of the methodology
 
@@ -114,7 +114,7 @@ Building Certigrad currently takes a long time (~90 minutes) and at its peak con
 
 ## Warning
 
-We have formally proved that Certigrad is correct (modulo the impurities mentioned above), **but this does not imply that Certigrad does what you expect**. All it means is that the theorems linked to above are true, given the assumptions. Here is an example of a "gotcha" that we left in to stress the point: the `gemv` operator computes an incorrect gradient. If a user writes a stochastic computation graph in which a `gemv` operator needs to be differentiated through, Certigrad will compute the wrong result. How can this undesired behavior not contradict the theorem that the gradients are always correct? The main correctness theorem (https://github.com/dselsam/certigrad/blob/master/src/certigrad/backprop_correct.lean#L13-L25 requires the assumption that the preconditions of each of the operators that need to be differentiable are satisfied. The precondition of the `gemv` operator is `false` and so can never be satisfied. Note that the graph-specific theorem (the analogue of https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/grads_correct.lean#L18-24) will not be provable, exactly because the precondition of `gemv` cannot be established. In other words, the math never said that the gradients would be correct on that particular graph. Note that this particular issue could be avoided by requiring the precondition for each operator to be true whenever the function it computes is differentiable.
+We have formally proved that Certigrad is correct (modulo the impurities mentioned above), **but this does not imply that Certigrad does what you expect**. All it means is that the theorems linked to above are true, given the assumptions. Here is an example of a "gotcha" that we left in to stress the point: the `gemv` operator computes an incorrect gradient. If a user writes a stochastic computation graph in which a `gemv` operator needs to be differentiated through, Certigrad will compute the wrong result. How can this undesired behavior not contradict the theorem that the gradients are always correct? The main correctness theorem (https://github.com/dselsam/certigrad/blob/master/src/certigrad/backprop_correct.lean#L13-L25 requires the assumption that the preconditions of each of the operators that need to be differentiable are satisfied. The precondition of the `gemv` operator is `false` and so can never be satisfied. Note that the graph-specific theorem (the analogue of https://github.com/dselsam/certigrad/blob/master/src/certigrad/aevb/grads_correct.lean#L20-L27) will not be provable, exactly because the precondition of `gemv` cannot be established. In other words, the math never said that the gradients would be correct on that particular graph. Note that this particular issue could be avoided by requiring the precondition for each operator to be true whenever the function it computes is differentiable.
 
 There are also many kinds of possible errors for which Certigrad has no way of protecting you from. For example, if you write a stochastic computation graph but you accidently enter `-` instead of `+` somewhere, Certigrad will take your instructions at face value and optimize over the graph you gave it. That said, Certigrad can mitigate this particular problem in some cases by allowing you to write a simpler version of the desired graph, and then prove that your more complicated version is equivalent to the simpler one. Such a proof would not go through unless both graphs had the same exact error.
 

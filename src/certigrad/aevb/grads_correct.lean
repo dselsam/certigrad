@@ -17,12 +17,6 @@ set_option profiler true
 
 #print "proving backprop_correct_on_aevb..."
 
---set_option trace.simp_lemmas.rewrite.failure true
---set_option trace.type_context.is_def_eq true
---set_option trace.type_context.is_def_eq_detail true
-
-set_option pp.implicit true
-
 theorem backprop_correct_on_aevb (a : arch) (ws : weights a) (x_data : T [a^.n_in, a^.n_x]) :
 let g : graph := reparam (integrate_kl $ naive_aevb a x_data) in
 let fdict : env := mk_input_dict ws x_data g in

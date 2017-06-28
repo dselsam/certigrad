@@ -13,11 +13,7 @@ namespace aevb
 section program
 open certigrad.program certigrad.program.statement certigrad.program.term certigrad.program.rterm list label
 
-#print "Defining naive_aevb..."
-set_option profiler true
-
-def naive_aevb (a : arch) (x_data : T [a^.n_in, a^.n_x]) : graph :=
-program_to_graph
+def naive_aevb (a : arch) (x_data : T [a^.n_in, a^.n_x]) : graph := program_to_graph
 [
 input x               [a^.n_in, a^.bs],
 param W_encode₁       [a^.ne, a^.n_in],
@@ -42,8 +38,6 @@ cost decoding_loss
 ]
 
 end program
-
-#print "Defined naive_aevb."
 
 end aevb
 end certigrad

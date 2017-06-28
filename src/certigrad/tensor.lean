@@ -5,7 +5,7 @@ Author: Daniel Selsam
 
 Tensors and basic tensor operations.
 -/
-import .util .rng .dvec .id .real
+import .util .rng .dvec .id
 
 run_cmd mk_simp_attr `cgsimp
 

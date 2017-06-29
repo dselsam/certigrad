@@ -106,10 +106,10 @@ Lean is still under development, and there are several efforts in progress that 
 
 Until then:
 1. Download our fork of Lean from https://github.com/dselsam/lean/tree/certigrad and build/install it using the instructions at https://github.com/leanprover/lean.
-2. Download Eigen (http://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2) and install it. You may need to change https://github.com/dselsam/lean/blob/certigrad/src/CMakeLists.txt#L285 depending on where you install it.
+2. Download Eigen (http://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2) and install it.
 3. Download this repository, and in the main directory execute `leanpkg --build`.
 
-Note: building Certigrad currently takes ~20 minutes and consumes ~16 GB of memory.
+Note: building Certigrad currently takes ~20 minutes and consumes ~16 GB of memory. We are still working on getting the memory usage down.
 
 ## Warning
 

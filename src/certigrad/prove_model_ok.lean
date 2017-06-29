@@ -192,6 +192,82 @@ end
 @[cgsimp] lemma simp_has_key_empty (ref : reference) : env.has_key ref env.mk = false :=
 begin apply pextf, apply env.not_has_key_empty end
 
+
+def is_not_used_downstream (tgt : reference) : list node → Prop
+| [] := true
+| (⟨ref, parents, op⟩ :: nodes) := if tgt ≠ ref then is_not_used_downstream nodes else false
+
+def is_used_downstream (tgt : reference) : list node → Prop
+| [] := false
+| (⟨ref, parents, op⟩ :: nodes) := tgt = ref ∨ is_used_downstream nodes
+
+attribute [cgsimp] is_not_used_downstream is_used_downstream
+
+meta def prove_not_used_downstream : tactic unit := solve1 $
+do dunfold [`certigrad.is_not_used_downstream],
+   repeat (split <|> prove_refs_neq <|> triv)
+
+
+--meta def prove_used_downstream : tactic unit :=
+--do repeat (split <|> reflexivity <|> triv)
+
+@[cgsimp] lemma can_diff_det_not_used (costs : list ID)
+  :  ∀ (ref : reference) (parents : list reference) (op : det.op parents^.p2 ref^.2) (nodes : list node) (m : env) (tgt : reference),
+is_not_used_downstream tgt nodes →
+can_differentiate_under_integrals costs (⟨ref, parents, operator.det op⟩ :: nodes) m tgt
+=
+(tgt ∈ parents → can_differentiate_under_integrals costs nodes (env.insert ref (op^.f (env.get_ks parents m)) m) ref) := sorry
+
+@[cgsimp] lemma can_diff_det_used (costs : list ID)
+  :  ∀ (ref : reference) (parents : list reference) (op : det.op parents^.p2 ref^.2) (nodes : list node) (m : env) (tgt : reference),
+is_used_downstream tgt nodes →
+can_differentiate_under_integrals costs (⟨ref, parents, operator.det op⟩ :: nodes) m tgt
+=
+(can_differentiate_under_integrals costs nodes (env.insert ref (op^.f (env.get_ks parents m)) m) tgt
+∧
+(tgt ∈ parents → can_differentiate_under_integrals costs nodes (env.insert ref (op^.f (env.get_ks parents m)) m) ref)) := sorry
+
+attribute [cgsimp] can_differentiate_under_integrals.equations._eqn_1 can_differentiate_under_integrals.equations._eqn_3
+
+/-
+lemma can_diff_rand_not_used (costs : list ID) (ishapes : list S) (oshape : S)
+  :  ∀ (ref : reference) (parents : list reference) (op : rand.op parents^.p2 ref^.2) (nodes : list node) (m : env) (tgt : reference),
+is_not_used_downstream tgt nodes →
+can_differentiate_under_integrals costs (⟨ref, parents, operator.rand op⟩ :: nodes) m tgt
+=
+  let θ : T tgt.2 := env.get tgt m in
+  let g : T ref.2 → T tgt.2 → ℝ :=
+  (λ (x : T ref.2) (θ₀ : T tgt.2),
+      E (graph.to_dist (λ (m : env), ⟦sum_costs m costs⟧)
+                       (env.insert ref x (env.insert tgt θ₀ m))
+                       nodes)
+        dvec.head) in
+  let next_m := (λ (y : T ref.2), env.insert ref y m) in
+ ( (T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), rand.op.pdf op (env.get_ks parents (env.insert tgt θ₀ m)) x ⬝ g x θ₀) θ
+    ∧ T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), rand.op.pdf op (env.get_ks parents (env.insert tgt θ m)) x ⬝ g x θ₀) θ)
+
+    ∧ (T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), ∇ (λ (θ₁ : T (tgt.snd)), rand.op.pdf op (env.get_ks parents (env.insert tgt θ₁ m)) x ⬝ g x θ₁) θ₀) θ
+       ∧ T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), ∇ (λ (θ₁ : T (tgt.snd)), rand.op.pdf op (env.get_ks parents (env.insert tgt θ m)) x ⬝ g x θ₁) θ₀) θ)
+
+    ∧ (∀ (idx : ℕ), list.at_idx parents idx tgt →
+    T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), rand.op.pdf op (dvec.update_at θ₀ (env.get_ks parents (env.insert tgt θ m)) idx) x ⬝ g x θ) θ)
+   ∧ (∀ (idx : ℕ),  list.at_idx parents idx tgt →
+    T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)),
+                                         ∇ (λ (θ₀ : T (tgt.snd)), rand.op.pdf op (dvec.update_at θ₀ (env.get_ks parents (env.insert tgt θ m)) idx) x ⬝ g x θ) θ₀) θ)) := sorry
+-/
+
+
+/-
+
+noncomputable def can_differentiate_under_integrals (costs : list ID) : list node → env → reference → Prop
+| [] _ _ := true
+
+| (⟨ref, parents, operator.det op⟩ :: nodes) inputs tgt  :=
+  let inputs' := env.insert ref (op^.f (env.get_ks parents inputs)) inputs in
+  can_differentiate_under_integrals nodes inputs' tgt
+  ∧ (tgt ∈ parents → can_differentiate_under_integrals nodes (env.insert ref (op^.f (env.get_ks parents inputs)) inputs) ref)
+-/
+
 attribute [cgsimp] T.smul_zero T.one_smul
 
 attribute [cgsimp] if_pos if_neg if_true if_false
@@ -216,7 +292,7 @@ attribute [cgsimp] integrate_kl integrate_mvn_iso_kl integrate_kl_pre integrate_
 attribute [cgsimp] reparam reparameterize reparameterize_pre
 
 attribute [cgsimp] all_parents_in_env all_costs_scalars grads_exist_at pdfs_exist_at uniq_ids
-                   is_gintegrable is_nabla_gintegrable is_gdifferentiable can_differentiate_under_integrals
+                   is_gintegrable is_nabla_gintegrable is_gdifferentiable /- can_differentiate_under_integrals -/
 
 attribute [cgsimp] graph.to_dist operator.to_dist sum_costs compute_grad_slow
 
@@ -300,7 +376,7 @@ meta def gsimpt (tac : tactic unit) : tactic unit := do
 
 meta def cgsimpt (tac : tactic unit) : tactic unit := do
   s ← join_user_simp_lemmas tt [`cgsimp],
-  repeat $ first [gsimpt tac, prove_refs_neq, prove_ids_neq, triv]
+  repeat $ first [gsimpt tac, prove_refs_neq, prove_ids_neq, prove_not_used_downstream, triv]
 
 meta def cgsimpn : ℕ → tactic unit
 | 0 := cgsimpt skip
@@ -313,7 +389,8 @@ meta def forall_idxs (tac_base tac_step : tactic unit) : expr → tactic unit
 tac_base <|>
 (do cases idx [`_idx],
     solve1 tac_step,
-    get_local `_idx >>= forall_idxs)
+    mk_sorry >>= exact)
+--    get_local `_idx >>= forall_idxs)
 
 meta def prove_model_base : tactic unit :=
 do exfalso,
@@ -330,17 +407,23 @@ do H_at_idx ← get_local `H_at_idx,
    get_local `H_tgt_eq >>= subst,
    applyc `certigrad.backprop_correct,
    trace "nodup tgts nodes",
-     solve1 cgsimp,
+--     solve1 cgsimp,
+     mk_sorry >>= exact,
    trace "at_idx...",
-     solve1 cgsimp,
+--     solve1 cgsimp,
+     mk_sorry >>= exact,
    trace "well_formed_at...",
-     solve1 (constructor >> all_goals cgsimp),
+--     solve1 (constructor >> all_goals cgsimp),
+     mk_sorry >>= exact,
    trace "grads_exist_at...",
-     solve1 (cgsimp),
+--     solve1 (cgsimp),
+     mk_sorry >>= exact,
    trace "pdfs_exist_at...",
-     solve1 cgsimp,
+--     solve1 cgsimp,
+     mk_sorry >>= exact,
    trace "is_gintegrable...",
-     solve1 (cgsimp >> prove_is_mvn_integrable),
+--     solve1 (cgsimp >> prove_is_mvn_integrable),
+     mk_sorry >>= exact,
    trace "can_diff_under_ints...",
      solve1 (cgsimp >> prove_is_mvn_uintegrable),
    trace "prove_for_tgt done"

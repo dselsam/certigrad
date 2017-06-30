@@ -288,7 +288,7 @@ def rcons {α : Type*} (a : α) : list α → list α
 
 def dnth_all {A : Type} [inhabited A] (idxs : list ℕ) (xs : list A) : list A := map (λ idx, dnth xs idx) idxs
 
-lemma mem_not_mem_neq {X : Type} {x₁ x₂ : X} {xs : list X} : x₁ ∈ xs → x₂ ∉ xs → x₁ ≠ x₂ :=
+lemma mem_not_mem_neq {X : Type*} {x₁ x₂ : X} {xs : list X} : x₁ ∈ xs → x₂ ∉ xs → x₁ ≠ x₂ :=
 begin
 intros H_in H_nin,
 intro H_eq,
@@ -389,6 +389,33 @@ cases H_px_em,
   exact H y (mem_cons_of_mem _ H_y_in_xs) H_py }
 end
 
+lemma filter_congr {α : Type*} {p q : α → Prop} [decidable_pred p] [decidable_pred q] :
+  ∀ {xs : list α}, (∀ x, x ∈ xs → (p x ↔ q x)) → filter p xs = filter q xs
+| [] H := rfl
+
+| (y::ys) H :=
+begin
+dunfold filter,
+simp [H y mem_of_cons_same],
+cases (decidable.em (q y)) with Hq Hq,
+{
+simp [Hq],
+rw filter_congr,
+intros x H_in_ys,
+apply H,
+apply mem_cons_of_mem,
+exact H_in_ys
+},
+{
+simp [Hq],
+rw filter_congr,
+intros x H_in_ys,
+apply H,
+apply mem_cons_of_mem,
+exact H_in_ys
+}
+end
+
 lemma in_riota_cons : ∀ (idx m : ℕ), idx + 1 ∈ riota (m + 1) → idx ∈ riota m
 | 0       0 :=
 begin
@@ -418,23 +445,84 @@ dunfold riota,
 exact dec_trivial
 end
 
-lemma nin_neq_dnth {α : Type*} [inhabited α] [decidable_eq α] (x : α) : ∀ xs, x ∉ xs → ∀ idx, idx ∈ riota (list.length xs) → x ≠ dnth xs idx
-| []      H idx H_in := begin exfalso, exact not_mem_nil _ H_in end
+lemma in_riota_self (idx : ℕ) : idx ∈ riota (idx + 1) := by { dunfold riota, apply mem_of_cons_same }
 
-| (y::ys) H 0       H_in :=
+lemma nin_neq_dnth {α : Type*} [inhabited α] [decidable_eq α] (x : α) : ∀ xs, x ∉ xs → ∀ idx, idx ∈ riota (list.length xs) → x ≠ dnth xs idx
+| []      H_nin idx H_in := begin exfalso, exact not_mem_nil _ H_in end
+
+| (y::ys) H_nin 0       H_in :=
 begin
 dunfold dnth,
-exact ne_of_not_mem_cons H
+exact ne_of_not_mem_cons H_nin
 end
 
-| (y::ys) H (idx+1) H_in :=
+| (y::ys) H_nin (idx+1) H_in :=
 begin
 dunfold dnth,
 apply nin_neq_dnth,
-exact list.not_mem_of_not_mem_cons H,
+exact list.not_mem_of_not_mem_cons H_nin,
 dunfold riota length at H_in,
 apply in_riota_cons,
 exact H_in
+end
+
+lemma lt_length_of_in_riota {α : Type*} : Π (xs : list α) (idx : ℕ), idx ∈ riota (length xs) → idx < length xs
+| [] idx H_in := begin exfalso, exact list.not_mem_nil _ H_in end
+
+| (x::xs) 0 H_in :=
+begin
+dunfold riota length at H_in,
+exact dec_trivial
+end
+
+| (x::xs) (idx+1) H_in :=
+begin
+dunfold riota length at H_in,
+apply nat.succ_lt_succ,
+apply lt_length_of_in_riota,
+exact in_riota_cons _ _ H_in
+end
+
+lemma dnth_mem_of_lt_length {α : Type*} [inhabited α] : Π (xs : list α) (idx : ℕ), idx < length xs → dnth xs idx ∈ xs
+| [] idx H_lt := begin exfalso, exact nat.not_lt_zero _ H_lt end
+
+| (x::xs) 0 H_lt := mem_of_cons_same
+
+| (x::xs) (idx+1) H_lt :=
+begin
+dunfold dnth,
+apply list.mem_cons_of_mem,
+apply dnth_mem_of_lt_length,
+apply nat.lt_of_succ_lt_succ,
+exact H_lt
+end
+
+lemma filter_false {α : Type*} [decidable_eq α] [inhabited α] : Π (xs : list α), filter (λ x, false) xs = nil
+| [] := rfl
+| (x::xs) := begin dunfold filter, simp [filter_false] end
+
+lemma not_in_filter_of_match_riota {α : Type*} [decidable_eq α] [inhabited α] (x : α) :
+  ∀ (xs : list α), x ∉ xs → filter (λ (idx : ℕ), x = dnth xs idx) (riota (length xs)) = nil :=
+assume xs H_nin,
+have H : filter (λ (idx : ℕ), x = dnth xs idx) (riota (length xs)) = filter (λ idx : ℕ, false) (riota (length xs)),
+begin
+apply filter_congr,
+intros idx H_in,
+split,
+intro H_eq,
+subst H_eq,
+assert H_x_in : dnth xs idx ∈ xs,
+apply dnth_mem_of_lt_length,
+apply lt_length_of_in_riota,
+exact H_in,
+exact H_nin H_x_in,
+intro Hf,
+exfalso,
+exact Hf
+end,
+begin
+rw H,
+rw filter_false
 end
 
 end list

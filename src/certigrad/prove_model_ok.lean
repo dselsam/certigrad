@@ -216,45 +216,27 @@ lemma costs_helper : Π (costs : list ID) (tgt : reference) (m : env),
 | (c::cs) tgt m H_nin :=
 begin
 dunfold compute_grad_slow,
-assert H : (tgt = (c, [])) = false, exact sorry,
+assert H : (tgt ≠ (c, [])),
+{
+cases tgt with tgt_1 tgt_2,
+dsimp at H_nin,
+apply pair_neq_of_neq₁,
+exact list.ne_of_not_mem_cons H_nin
+},
 simph,
 dunfold list.sumr,
 rw zero_add,
 exact costs_helper cs tgt m (list.not_mem_of_not_mem_cons H_nin)
 end
 
---list.filter (λ (idx : ℕ), tgt = list.dnth [parent] idx) (list.riota (list.length [parent])) = list.nil
-
-lemma cg_helper (costs : list ID) :
-  Π (ref : reference) (parents : list reference) (op : det.op parents^.p2 ref^.2) (nodes : list node) (tgt : reference) (m : env),
-  tgt ∉ parents → is_not_used_downstream tgt nodes → tgt.1 ∉ costs →
-list.sumr
-  (list.map (λ (idx : ℕ), det.op.pb op (env.get_ks parents m) (env.get ref m) (compute_grad_slow costs nodes m ref) idx (tgt.snd))
-            (list.filter (λ (idx : ℕ), tgt = list.dnth parents idx) (list.riota (list.length parents))))
-=
-0
-| ref []                op nodes tgt m H_tgt_nin_parents H_not_used H_tgt_nin_costs := rfl
-| ref (parent::parents) op nodes tgt m H_tgt_nin_parents H_not_used H_tgt_nin_costs :=
-have H : list.filter (λ (idx : ℕ), tgt = list.dnth (parent :: parents) idx)
-                     (list.riota (list.length (parent :: parents))) = [],
-begin
-induction parents with parent₂ parents IH,
-assert H_tgt_neq_parent : tgt ≠ parent, exact sorry,
-simp [H_tgt_neq_parent, list.filter, list.riota, list.length, list.dnth],
-simp only [list.filter, list.riota, list.length, list.dnth],
-
---induction
-end,
-
-begin
-simp only [H],
-reflexivity
-end
 
 lemma compute_grad_slow_det_not_used_helper (costs : list ID) : Π (nodes : list node) (m : env) (tgt : reference),
 is_not_used_downstream tgt nodes → tgt.1 ∉ costs →
 compute_grad_slow costs nodes m tgt = 0
-| [] m tgt H_not_used H_tgt_nin_costs := by { apply costs_helper, all_goals { assumption } }
+| [] m tgt H_not_used H_tgt_nin_costs :=
+begin
+apply costs_helper, all_goals { assumption }
+end
 
 | (⟨ref, parents, operator.det op⟩::nodes) m tgt H_not_used H_tgt_nin_costs :=
 begin
@@ -262,12 +244,22 @@ dunfold compute_grad_slow,
 dunfold is_not_used_downstream at H_not_used,
 rw compute_grad_slow_det_not_used_helper nodes _ tgt H_not_used^.right H_tgt_nin_costs,
 rw zero_add,
-
+rw list.not_in_filter_of_match_riota,
+reflexivity,
+exact H_not_used^.left
 end
 
 | (⟨ref, parents, operator.rand op⟩::nodes) m tgt H_not_used H_tgt_nin_costs :=
 begin
-exact sorry
+dunfold compute_grad_slow,
+dunfold is_not_used_downstream at H_not_used,
+rw compute_grad_slow_det_not_used_helper,
+rw zero_add,
+rw list.not_in_filter_of_match_riota,
+reflexivity,
+exact H_not_used^.left,
+exact H_not_used^.right,
+exact H_tgt_nin_costs
 end
 
 
@@ -288,8 +280,8 @@ dunfold_occs compute_grad_slow [1],
 rw [compute_grad_slow_det_not_used_helper _ _ _ _ H_not_used H_tgt_nin_costs, zero_add]
 end
 
-@[cgsimp] lemma compute_grad_slow_det_used (costs : list ID)
-  :  ∀ (ref : reference) (parents : list reference) (op : det.op parents^.p2 ref^.2) (nodes : list node) (m : env) (tgt : reference),
+@[cgsimp] lemma compute_grad_slow_det_used (costs : list ID) (ref : reference) (parents : list reference) (op : det.op parents^.p2 ref^.2)
+  : Π (nodes : list node) (m : env) (tgt : reference),
 is_used_downstream tgt nodes ∨ tgt.1 ∈ costs →
 compute_grad_slow costs (⟨ref, parents, operator.det op⟩ :: nodes) m tgt
 =
@@ -299,26 +291,37 @@ list.sumr (list.map (λ (idx : ℕ), op^.pb (env.get_ks parents m)
                                         (compute_grad_slow costs nodes m ref)
                                         idx
                                         tgt.2)
-                    (list.filter (λ idx, tgt = list.dnth parents idx) (list.riota $ list.length parents))) := sorry
+                    (list.filter (λ idx, tgt = list.dnth parents idx) (list.riota $ list.length parents))) :=
+begin
+intros nodes m tgt H_is_used_or_cost,
+reflexivity
+end
 
-attribute [cgsimp] compute_grad_slow.equations._eqn_1 compute_grad_slow.equations._eqn_3
-
-@[cgsimp] lemma compute_grad_slow_rand_used (costs : list ID)
-  :  ∀ (ref : reference) (parents : list reference) (op : rand.op parents^.p2 ref^.2) (nodes : list node) (m : env) (tgt : reference),
-is_not_used_downstream tgt nodes ∨ tgt.1 ∈ costs →
+@[cgsimp] lemma compute_grad_slow_rand_not_used (costs : list ID) (ref : reference) (parents : list reference) (op : rand.op parents^.p2 ref^.2)
+  : Π (nodes : list node) (m : env) (tgt : reference),
+is_not_used_downstream tgt nodes → tgt.1 ∉ costs →
 compute_grad_slow costs (⟨ref, parents, operator.rand op⟩ :: nodes) m tgt
 =
 list.sumr (list.map (λ (idx : ℕ), sum_downstream_costs nodes costs ref m ⬝ op^.glogpdf (env.get_ks parents m) (env.get ref m) idx tgt.2)
-                   (list.filter (λ idx, tgt = list.dnth parents idx) (list.riota $ list.length parents))) := sorry
+                   (list.filter (λ idx, tgt = list.dnth parents idx) (list.riota $ list.length parents))) :=
+begin
+intros nodes m tgt H_not_used H_tgt_nin_costs,
+dunfold_occs compute_grad_slow [1],
+rw [compute_grad_slow_det_not_used_helper _ _ _ _ H_not_used H_tgt_nin_costs, zero_add]
+end
 
-@[cgsimp] lemma compute_grad_slow_rand_used (costs : list ID)
-  :  ∀ (ref : reference) (parents : list reference) (op : rand.op parents^.p2 ref^.2) (nodes : list node) (m : env) (tgt : reference),
+@[cgsimp] lemma compute_grad_slow_rand_used (costs : list ID) (ref : reference) (parents : list reference) (op : rand.op parents^.p2 ref^.2)
+  : Π (nodes : list node) (m : env) (tgt : reference),
 is_used_downstream tgt nodes ∨ tgt.1 ∈ costs →
 compute_grad_slow costs (⟨ref, parents, operator.rand op⟩ :: nodes) m tgt
 =
 compute_grad_slow costs nodes m tgt +
 list.sumr (list.map (λ (idx : ℕ), sum_downstream_costs nodes costs ref m ⬝ op^.glogpdf (env.get_ks parents m) (env.get ref m) idx tgt.2)
-                   (list.filter (λ idx, tgt = list.dnth parents idx) (list.riota $ list.length parents))) := sorry
+                   (list.filter (λ idx, tgt = list.dnth parents idx) (list.riota $ list.length parents))) :=
+begin
+intros nodes m tgt H_used_or_cost,
+reflexivity
+end
 
 attribute [cgsimp] compute_grad_slow.equations._eqn_1
 

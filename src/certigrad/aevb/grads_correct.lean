@@ -17,7 +17,7 @@ set_option profiler true
 
 #print "proving backprop_correct_on_aevb..."
 
-set_option trace.simp_lemmas.rewrite.failure.prove true
+--set_option trace.simp_lemmas.rewrite.failure.prove true
 
 theorem backprop_correct_on_aevb (a : arch) (ws : weights a) (x_data : T [a^.n_in, a^.n_x]) :
 let g : graph := reparam (integrate_kl $ naive_aevb a x_data) in

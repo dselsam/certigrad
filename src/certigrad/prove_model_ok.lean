@@ -33,6 +33,14 @@ begin apply propext, split, intro H, injection H, intro H, rw H end
 
 @[cgsimp] lemma and_true_left {P : Prop} : (true ∧ P) = P := propext (true_and _)
 @[cgsimp] lemma and_true_right {P : Prop} : (P ∧ true) = P := propext (and_true _)
+@[cgsimp] lemma and_false_left {P : Prop} : (false ∧ P) = false := propext (false_and _)
+@[cgsimp] lemma and_false_right {P : Prop} : (P ∧ false) = false := propext (and_false _)
+
+@[cgsimp] lemma or_false_left {P : Prop} : (false ∨ P) = P := propext (false_or _)
+@[cgsimp] lemma or_false_right {P : Prop} : (P ∨ false) = P := propext (or_false _)
+@[cgsimp] lemma or_true_left {P : Prop} : (true ∨ P) = true := propext (true_or _)
+@[cgsimp] lemma or_true_right {P : Prop} : (P ∨ true) = true := propext (or_true _)
+
 @[cgsimp] lemma true_of_imp_true {α : Sort*} : (α → true) = true := propext (iff.intro (λ H, trivial) (λ H x, trivial))
 
 @[cgsimp] lemma simp_nodup_nil {α : Type*} : @list.nodup α [] = true := pextt list.nodup_nil
@@ -192,24 +200,102 @@ end
 @[cgsimp] lemma simp_has_key_empty (ref : reference) : env.has_key ref env.mk = false :=
 begin apply pextf, apply env.not_has_key_empty end
 
-
 def is_not_used_downstream (tgt : reference) : list node → Prop
 | [] := true
-| (⟨ref, parents, op⟩ :: nodes) := if tgt ≠ ref then is_not_used_downstream nodes else false
+| (⟨ref, parents, op⟩ :: nodes) := tgt ∉ parents ∧ is_not_used_downstream nodes
 
 def is_used_downstream (tgt : reference) : list node → Prop
 | [] := false
-| (⟨ref, parents, op⟩ :: nodes) := tgt = ref ∨ is_used_downstream nodes
+| (⟨ref, parents, op⟩ :: nodes) := tgt ∈ parents ∨ is_used_downstream nodes
 
 attribute [cgsimp] is_not_used_downstream is_used_downstream
 
-meta def prove_not_used_downstream : tactic unit := solve1 $
-do dunfold [`certigrad.is_not_used_downstream],
-   repeat (split <|> prove_refs_neq <|> triv)
+lemma costs_helper : Π (costs : list ID) (tgt : reference) (m : env),
+  tgt.1 ∉ costs → compute_grad_slow costs [] m tgt = 0
+| []      tgt m H_nin := rfl
+| (c::cs) tgt m H_nin :=
+begin
+dunfold compute_grad_slow,
+assert H : (tgt = (c, [])) = false, exact sorry,
+simph,
+dunfold list.sumr,
+rw zero_add,
+exact costs_helper cs tgt m (list.not_mem_of_not_mem_cons H_nin)
+end
+
+lemma compute_grad_slow_det_not_used_helper (costs : list ID) : Π (nodes : list node) (m : env) (tgt : reference),
+is_not_used_downstream tgt nodes → tgt.1 ∉ costs →
+compute_grad_slow costs nodes m tgt = 0
+| [] m tgt H_not_used H_tgt_nin_costs :=
+begin
+---apply costs_helper, all_goals { assumption }
+exact sorry
+end
+
+| (⟨ref, parents, operator.det op⟩::nodes) m tgt H_not_used H_tgt_nin_costs :=
+begin
+dunfold compute_grad_slow,
+dunfold is_not_used_downstream at H_not_used,
+exact sorry
+--rw compute_grad_slow_det_not_used_helper nodes _ tgt H_not_used^.right H_tgt_nin_costs,
+end
+
+| (⟨ref, parents, operator.rand op⟩::nodes) m tgt H_not_used H_tgt_nin_costs :=
+begin
+exact sorry
+end
 
 
---meta def prove_used_downstream : tactic unit :=
---do repeat (split <|> reflexivity <|> triv)
+@[cgsimp] lemma compute_grad_slow_det_not_used (costs : list ID) (ref : reference) (parents : list reference) (op : det.op parents^.p2 ref^.2)
+  : Π (nodes : list node) (m : env) (tgt : reference),
+is_not_used_downstream tgt nodes → tgt.1 ∉ costs →
+compute_grad_slow costs (⟨ref, parents, operator.det op⟩ :: nodes) m tgt
+=
+list.sumr (list.map (λ (idx : ℕ), op^.pb (env.get_ks parents m)
+                                        (env.get ref m)
+                                        (compute_grad_slow costs nodes m ref)
+                                        idx
+                                        tgt.2)
+                    (list.filter (λ idx, tgt = list.dnth parents idx) (list.riota $ list.length parents))) :=
+begin
+intros nodes m tgt H_not_used H_tgt_nin_costs,
+dunfold_occs compute_grad_slow [1],
+rw [compute_grad_slow_det_not_used_helper _ _ _ _ H_not_used H_tgt_nin_costs, zero_add]
+end
+
+@[cgsimp] lemma compute_grad_slow_det_used (costs : list ID)
+  :  ∀ (ref : reference) (parents : list reference) (op : det.op parents^.p2 ref^.2) (nodes : list node) (m : env) (tgt : reference),
+is_used_downstream tgt nodes ∨ tgt.1 ∈ costs →
+compute_grad_slow costs (⟨ref, parents, operator.det op⟩ :: nodes) m tgt
+=
+compute_grad_slow costs nodes m tgt +
+list.sumr (list.map (λ (idx : ℕ), op^.pb (env.get_ks parents m)
+                                        (env.get ref m)
+                                        (compute_grad_slow costs nodes m ref)
+                                        idx
+                                        tgt.2)
+                    (list.filter (λ idx, tgt = list.dnth parents idx) (list.riota $ list.length parents))) := sorry
+
+attribute [cgsimp] compute_grad_slow.equations._eqn_1 compute_grad_slow.equations._eqn_3
+
+@[cgsimp] lemma grads_exist_at_det_not_used
+  :  ∀ (ref : reference) (parents : list reference) (op : det.op parents^.p2 ref^.2) (nodes : list node) (m : env) (tgt : reference),
+is_not_used_downstream tgt nodes →
+grads_exist_at (⟨ref, parents, operator.det op⟩ :: nodes) m tgt
+=
+let m' := env.insert ref (op^.f (env.get_ks parents m)) m in
+(tgt ∈ parents → op^.pre (env.get_ks parents m) ∧ grads_exist_at nodes (env.insert ref (op^.f (env.get_ks parents m)) m) ref) := sorry
+
+@[cgsimp] lemma grads_exist_at_det_used
+  :  ∀ (ref : reference) (parents : list reference) (op : det.op parents^.p2 ref^.2) (nodes : list node) (m : env) (tgt : reference),
+is_used_downstream tgt nodes →
+grads_exist_at (⟨ref, parents, operator.det op⟩ :: nodes) m tgt
+=
+let m' := env.insert ref (op^.f (env.get_ks parents m)) m in
+grads_exist_at nodes m' tgt ∧
+(tgt ∈ parents → op^.pre (env.get_ks parents m) ∧ grads_exist_at nodes (env.insert ref (op^.f (env.get_ks parents m)) m) ref) := sorry
+
+attribute [cgsimp] grads_exist_at.equations._eqn_1 grads_exist_at.equations._eqn_3
 
 @[cgsimp] lemma can_diff_det_not_used (costs : list ID)
   :  ∀ (ref : reference) (parents : list reference) (op : det.op parents^.p2 ref^.2) (nodes : list node) (m : env) (tgt : reference),
@@ -291,10 +377,10 @@ attribute [cgsimp] dvec.head dvec.head2 dvec.head3
 attribute [cgsimp] integrate_kl integrate_mvn_iso_kl integrate_kl_pre integrate_mvn_iso_kl_pre reparameterize
 attribute [cgsimp] reparam reparameterize reparameterize_pre
 
-attribute [cgsimp] all_parents_in_env all_costs_scalars grads_exist_at pdfs_exist_at uniq_ids
+attribute [cgsimp] all_parents_in_env all_costs_scalars /- grads_exist_at -/ pdfs_exist_at uniq_ids
                    is_gintegrable is_nabla_gintegrable is_gdifferentiable /- can_differentiate_under_integrals -/
 
-attribute [cgsimp] graph.to_dist operator.to_dist sum_costs compute_grad_slow
+attribute [cgsimp] graph.to_dist operator.to_dist sum_costs /- compute_grad_slow -/
 
 attribute [cgsimp] E.E_bind E.E_ret
 
@@ -347,6 +433,8 @@ do (a, new_tgt, pf) ← ext_simplify_core () {} s
 
 (λ u, failed)
 --pre
+--(λ a s r p e, failed)
+
 (λ a s r p e,
 if e^.is_napp_of `list.map 4
 then do
@@ -375,22 +463,21 @@ meta def gsimpt (tac : tactic unit) : tactic unit := do
   replace_target new_tgt pf
 
 meta def cgsimpt (tac : tactic unit) : tactic unit := do
-  s ← join_user_simp_lemmas tt [`cgsimp],
-  repeat $ first [gsimpt tac, prove_refs_neq, prove_ids_neq, prove_not_used_downstream, triv]
+  repeat $ first [gsimpt tac, prove_refs_neq, prove_ids_neq, triv]
 
 meta def cgsimpn : ℕ → tactic unit
 | 0 := cgsimpt skip
 | (n+1) := cgsimpt (cgsimpn n)
 
-meta def cgsimp : tactic unit := cgsimpn 50
+meta def cgsimp : tactic unit := cgsimpn 100
 
 meta def forall_idxs (tac_base tac_step : tactic unit) : expr → tactic unit
 | idx :=
 tac_base <|>
 (do cases idx [`_idx],
     solve1 tac_step,
-    mk_sorry >>= exact)
---    get_local `_idx >>= forall_idxs)
+--    mk_sorry >>= exact)
+    get_local `_idx >>= forall_idxs)
 
 meta def prove_model_base : tactic unit :=
 do exfalso,
@@ -407,25 +494,25 @@ do H_at_idx ← get_local `H_at_idx,
    get_local `H_tgt_eq >>= subst,
    applyc `certigrad.backprop_correct,
    trace "nodup tgts nodes",
---     solve1 cgsimp,
-     mk_sorry >>= exact,
+     solve1 cgsimp,
+--     mk_sorry >>= exact,
    trace "at_idx...",
---     solve1 cgsimp,
-     mk_sorry >>= exact,
+     solve1 cgsimp,
+--     mk_sorry >>= exact,
    trace "well_formed_at...",
---     solve1 (constructor >> all_goals cgsimp),
-     mk_sorry >>= exact,
+     solve1 (constructor >> all_goals cgsimp),
+--     mk_sorry >>= exact,
    trace "grads_exist_at...",
---     solve1 (cgsimp),
-     mk_sorry >>= exact,
+     solve1 (cgsimp),
    trace "pdfs_exist_at...",
---     solve1 cgsimp,
-     mk_sorry >>= exact,
+     solve1 (cgsimp),
+--     mk_sorry >>= exact,
    trace "is_gintegrable...",
---     solve1 (cgsimp >> prove_is_mvn_integrable),
-     mk_sorry >>= exact,
+     solve1 (cgsimp >> prove_is_mvn_integrable),
+--     mk_sorry >>= exact,
    trace "can_diff_under_ints...",
      solve1 (cgsimp >> prove_is_mvn_uintegrable),
+--     mk_sorry >>= exact,
    trace "prove_for_tgt done"
 
 meta def prove_model_ok : tactic unit :=

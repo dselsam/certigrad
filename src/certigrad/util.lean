@@ -389,6 +389,54 @@ cases H_px_em,
   exact H y (mem_cons_of_mem _ H_y_in_xs) H_py }
 end
 
+lemma in_riota_cons : ∀ (idx m : ℕ), idx + 1 ∈ riota (m + 1) → idx ∈ riota m
+| 0       0 :=
+begin
+rw zero_add,
+dunfold riota,
+exact dec_trivial
+end
+
+| idx       (m+1) :=
+begin
+dunfold riota,
+intro H,
+cases eq_or_mem_of_mem_cons H with H_in H_in,
+{
+assert H_idx_eq_m : idx = m, exact add_right_cancel H_in,
+subst H_idx_eq_m,
+simp,
+},
+apply list.mem_cons_of_mem,
+apply in_riota_cons,
+exact H_in
+end
+
+| idx 0 :=
+begin
+dunfold riota,
+exact dec_trivial
+end
+
+lemma nin_neq_dnth {α : Type*} [inhabited α] [decidable_eq α] (x : α) : ∀ xs, x ∉ xs → ∀ idx, idx ∈ riota (list.length xs) → x ≠ dnth xs idx
+| []      H idx H_in := begin exfalso, exact not_mem_nil _ H_in end
+
+| (y::ys) H 0       H_in :=
+begin
+dunfold dnth,
+exact ne_of_not_mem_cons H
+end
+
+| (y::ys) H (idx+1) H_in :=
+begin
+dunfold dnth,
+apply nin_neq_dnth,
+exact list.not_mem_of_not_mem_cons H,
+dunfold riota length at H_in,
+apply in_riota_cons,
+exact H_in
+end
+
 end list
 
 namespace monad

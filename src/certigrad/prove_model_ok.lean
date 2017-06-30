@@ -223,6 +223,8 @@ rw zero_add,
 exact costs_helper cs tgt m (list.not_mem_of_not_mem_cons H_nin)
 end
 
+--list.filter (λ (idx : ℕ), tgt = list.dnth [parent] idx) (list.riota (list.length [parent])) = list.nil
+
 lemma cg_helper (costs : list ID) :
   Π (ref : reference) (parents : list reference) (op : det.op parents^.p2 ref^.2) (nodes : list node) (tgt : reference) (m : env),
   tgt ∉ parents → is_not_used_downstream tgt nodes → tgt.1 ∉ costs →

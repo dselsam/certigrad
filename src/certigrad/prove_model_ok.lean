@@ -278,6 +278,25 @@ list.sumr (list.map (λ (idx : ℕ), op^.pb (env.get_ks parents m)
 
 attribute [cgsimp] compute_grad_slow.equations._eqn_1 compute_grad_slow.equations._eqn_3
 
+@[cgsimp] lemma compute_grad_slow_rand_used (costs : list ID)
+  :  ∀ (ref : reference) (parents : list reference) (op : rand.op parents^.p2 ref^.2) (nodes : list node) (m : env) (tgt : reference),
+is_not_used_downstream tgt nodes ∨ tgt.1 ∈ costs →
+compute_grad_slow costs (⟨ref, parents, operator.rand op⟩ :: nodes) m tgt
+=
+list.sumr (list.map (λ (idx : ℕ), sum_downstream_costs nodes costs ref m ⬝ op^.glogpdf (env.get_ks parents m) (env.get ref m) idx tgt.2)
+                   (list.filter (λ idx, tgt = list.dnth parents idx) (list.riota $ list.length parents))) := sorry
+
+@[cgsimp] lemma compute_grad_slow_rand_used (costs : list ID)
+  :  ∀ (ref : reference) (parents : list reference) (op : rand.op parents^.p2 ref^.2) (nodes : list node) (m : env) (tgt : reference),
+is_used_downstream tgt nodes ∨ tgt.1 ∈ costs →
+compute_grad_slow costs (⟨ref, parents, operator.rand op⟩ :: nodes) m tgt
+=
+compute_grad_slow costs nodes m tgt +
+list.sumr (list.map (λ (idx : ℕ), sum_downstream_costs nodes costs ref m ⬝ op^.glogpdf (env.get_ks parents m) (env.get ref m) idx tgt.2)
+                   (list.filter (λ idx, tgt = list.dnth parents idx) (list.riota $ list.length parents))) := sorry
+
+attribute [cgsimp] compute_grad_slow.equations._eqn_1
+
 @[cgsimp] lemma grads_exist_at_det_not_used
   :  ∀ (ref : reference) (parents : list reference) (op : det.op parents^.p2 ref^.2) (nodes : list node) (m : env) (tgt : reference),
 is_not_used_downstream tgt nodes →
@@ -314,45 +333,6 @@ can_differentiate_under_integrals costs (⟨ref, parents, operator.det op⟩ :: 
 (tgt ∈ parents → can_differentiate_under_integrals costs nodes (env.insert ref (op^.f (env.get_ks parents m)) m) ref)) := sorry
 
 attribute [cgsimp] can_differentiate_under_integrals.equations._eqn_1 can_differentiate_under_integrals.equations._eqn_3
-
-/-
-lemma can_diff_rand_not_used (costs : list ID) (ishapes : list S) (oshape : S)
-  :  ∀ (ref : reference) (parents : list reference) (op : rand.op parents^.p2 ref^.2) (nodes : list node) (m : env) (tgt : reference),
-is_not_used_downstream tgt nodes →
-can_differentiate_under_integrals costs (⟨ref, parents, operator.rand op⟩ :: nodes) m tgt
-=
-  let θ : T tgt.2 := env.get tgt m in
-  let g : T ref.2 → T tgt.2 → ℝ :=
-  (λ (x : T ref.2) (θ₀ : T tgt.2),
-      E (graph.to_dist (λ (m : env), ⟦sum_costs m costs⟧)
-                       (env.insert ref x (env.insert tgt θ₀ m))
-                       nodes)
-        dvec.head) in
-  let next_m := (λ (y : T ref.2), env.insert ref y m) in
- ( (T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), rand.op.pdf op (env.get_ks parents (env.insert tgt θ₀ m)) x ⬝ g x θ₀) θ
-    ∧ T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), rand.op.pdf op (env.get_ks parents (env.insert tgt θ m)) x ⬝ g x θ₀) θ)
-
-    ∧ (T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), ∇ (λ (θ₁ : T (tgt.snd)), rand.op.pdf op (env.get_ks parents (env.insert tgt θ₁ m)) x ⬝ g x θ₁) θ₀) θ
-       ∧ T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), ∇ (λ (θ₁ : T (tgt.snd)), rand.op.pdf op (env.get_ks parents (env.insert tgt θ m)) x ⬝ g x θ₁) θ₀) θ)
-
-    ∧ (∀ (idx : ℕ), list.at_idx parents idx tgt →
-    T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), rand.op.pdf op (dvec.update_at θ₀ (env.get_ks parents (env.insert tgt θ m)) idx) x ⬝ g x θ) θ)
-   ∧ (∀ (idx : ℕ),  list.at_idx parents idx tgt →
-    T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)),
-                                         ∇ (λ (θ₀ : T (tgt.snd)), rand.op.pdf op (dvec.update_at θ₀ (env.get_ks parents (env.insert tgt θ m)) idx) x ⬝ g x θ) θ₀) θ)) := sorry
--/
-
-
-/-
-
-noncomputable def can_differentiate_under_integrals (costs : list ID) : list node → env → reference → Prop
-| [] _ _ := true
-
-| (⟨ref, parents, operator.det op⟩ :: nodes) inputs tgt  :=
-  let inputs' := env.insert ref (op^.f (env.get_ks parents inputs)) inputs in
-  can_differentiate_under_integrals nodes inputs' tgt
-  ∧ (tgt ∈ parents → can_differentiate_under_integrals nodes (env.insert ref (op^.f (env.get_ks parents inputs)) inputs) ref)
--/
 
 attribute [cgsimp] T.smul_zero T.one_smul
 
@@ -433,22 +413,7 @@ do (a, new_tgt, pf) ← ext_simplify_core () {} s
 
 (λ u, failed)
 --pre
---(λ a s r p e, failed)
-
-(λ a s r p e,
-if e^.is_napp_of `list.map 4
-then do
-  last_arg ← return (expr.app_arg e),
-  ⟨new_last_arg, pf₁⟩ ← gsimpt_core tac s last_arg,
-  p₁ ← mk_congr_arg e^.app_fn pf₁,
-  ⟨a, new_e, opf₂⟩ ← conv.apply_lemmas s r (expr.app (expr.app_fn e) new_last_arg),
-  pf ← match opf₂ with
-       | none := return p₁
-       | some pf₂ := mk_eq_trans p₁ pf₂
-       end,
-  return ((), new_e, pf, tt)
-else
-  failed)
+(λ a s r p e, failed)
 --post
 (λ a s r p e, do ⟨u, new_e, pr⟩ ← conv.apply_lemmas_core reducible s tac r e,
                  return ((), new_e, pr, tt))
@@ -504,6 +469,7 @@ do H_at_idx ← get_local `H_at_idx,
 --     mk_sorry >>= exact,
    trace "grads_exist_at...",
      solve1 (cgsimp),
+--     mk_sorry >>= exact,
    trace "pdfs_exist_at...",
      solve1 (cgsimp),
 --     mk_sorry >>= exact,

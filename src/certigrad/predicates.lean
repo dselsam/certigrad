@@ -52,7 +52,7 @@ def grads_exist_at : list node → env → reference → Prop
 | (⟨ref, parents, operator.det op⟩ :: nodes) m tgt  :=
   let m' := env.insert ref (op^.f (env.get_ks parents m)) m in
   grads_exist_at nodes m' tgt
-  ∧ (tgt ∈ parents → op^.pre (env.get_ks parents m) ∧ grads_exist_at nodes (env.insert ref (op^.f (env.get_ks parents m)) m) ref)
+  ∧ (tgt ∈ parents → op^.pre (env.get_ks parents m) ∧ grads_exist_at nodes m' ref)
 
 | (⟨ref, parents, operator.rand op⟩ :: nodes) m tgt  :=
   let m' := (λ (y : T ref.2), env.insert ref y m) in

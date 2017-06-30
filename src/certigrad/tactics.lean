@@ -82,7 +82,6 @@ meta def dget_dinsert_at (n : name) : tactic unit := do
                                                         `eq e,
                      return (new_e, pf))
 
-
 meta def contra_nats_eq : expr → tactic unit
 | H := do xs ← injection H | failed,
           match xs with

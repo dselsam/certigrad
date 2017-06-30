@@ -10,7 +10,7 @@ import data.list.set .tfacts .graph .predicates .expected_value .reparam .kl .ta
 #print "compiling prove_model_ok..."
 
 namespace certigrad
-open T tactic
+open T tactic list
 
 def pextt {P : Prop} : P → (P = true) := λ Hp, propext (iff_true_intro Hp)
 def pextf {P : Prop} : ¬ P → (P = false) := λ Hnp, propext (iff.intro (λ Hp, Hnp Hp) (λ Hf, false.rec _ Hf))
@@ -381,23 +381,70 @@ end
 
 attribute [cgsimp] grads_exist_at.equations._eqn_1 grads_exist_at.equations._eqn_3
 
-@[cgsimp] lemma can_diff_det_not_used (costs : list ID)
-  :  ∀ (ref : reference) (parents : list reference) (op : det.op parents^.p2 ref^.2) (nodes : list node) (m : env) (tgt : reference),
-is_not_used_downstream tgt nodes →
-can_differentiate_under_integrals costs (⟨ref, parents, operator.det op⟩ :: nodes) m tgt
+-- TODO(dhs): use this to prove something useful about can_diff_under_ints
+lemma E_0_of_not_used (costs : list ID) : Π (nodes : list node) (m : env) (tgt : reference) (x : T tgt.2),
+is_not_used_downstream tgt nodes → tgt.1 ∉ costs →
+E (graph.to_dist (λ (m : env), ⟦sum_costs m costs⟧) (env.insert tgt x m) nodes) dvec.head
 =
-(tgt ∈ parents → can_differentiate_under_integrals costs nodes (env.insert ref (op^.f (env.get_ks parents m)) m) ref) := sorry
+E (graph.to_dist (λ (m : env), ⟦sum_costs m costs⟧) m nodes) dvec.head
+| [] m tgt x H_not_used H_not_cost :=
+begin
+clear E_0_of_not_used,
+dunfold graph.to_dist E dvec.head,
+dunfold sum_costs,
+induction costs with cost costs IH_cost,
+-- case 1
+reflexivity,
+-- case 2
+dunfold map sumr,
 
-@[cgsimp] lemma can_diff_det_used (costs : list ID)
-  :  ∀ (ref : reference) (parents : list reference) (op : det.op parents^.p2 ref^.2) (nodes : list node) (m : env) (tgt : reference),
-is_used_downstream tgt nodes →
-can_differentiate_under_integrals costs (⟨ref, parents, operator.det op⟩ :: nodes) m tgt
-=
-(can_differentiate_under_integrals costs nodes (env.insert ref (op^.f (env.get_ks parents m)) m) tgt
-∧
-(tgt ∈ parents → can_differentiate_under_integrals costs nodes (env.insert ref (op^.f (env.get_ks parents m)) m) ref)) := sorry
+assertv H_neq : (cost, []) ≠ tgt :=
+begin
+intro H_contra,
+cases tgt with fid fshape,
+injection H_contra with H_cost H_ignore,
+dsimp at H_not_cost,
+rw H_cost at H_not_cost,
+exact (ne_of_not_mem_cons H_not_cost rfl)
+end,
 
-attribute [cgsimp] can_differentiate_under_integrals.equations._eqn_1 can_differentiate_under_integrals.equations._eqn_3
+assertv H_notin : tgt.1 ∉ costs := not_mem_of_not_mem_cons H_not_cost,
+simp [λ x m, env.get_insert_diff x m H_neq],
+rw IH_cost H_notin
+end
+
+| (⟨ref, parents, operator.det op⟩ :: nodes) m tgt x H_not_used H_not_cost :=
+begin
+dunfold graph.to_dist operator.to_dist,
+simp [E.E_bind, E.E_ret],
+assertv H_tgt_notin_parents : tgt ∉ parents := H_not_used^.left,
+assert H_tgt_neq_ref : tgt ≠ ref,
+{
+
+},
+rw env.get_ks_insert_diff H_fref_notin_parents,
+rw env.insert_insert_flip _ _ _ (ne.symm H_fref_neq_ref),
+dsimp,
+apply E_0_of_not_used nodes (env.insert ref (det.op.f op (env.get_ks parents m)) m) tgt x H_not_used^.right H_not_cost
+end
+
+| (⟨ref, parents, operator.rand op⟩ :: nodes) m tgt x H_not_used H_not_cost :=
+begin
+dunfold graph.to_dist operator.to_dist,
+simp [E.E_bind, E.E_ret],
+assertv H_fref_notin_parents : tgt ∉ parents := H_not_used^.left,
+assertv H_fref_neq_ref : tgt ≠ ref := sorry,
+rw env.get_ks_insert_diff H_fref_notin_parents,
+
+apply congr_arg,
+apply funext,
+intro y,
+
+rw env.insert_insert_flip _ _ _ (ne.symm H_fref_neq_ref),
+apply E_0_of_not_used nodes (env.insert ref y^.head m) tgt x H_not_used^.right H_not_cost
+end
+
+attribute [cgsimp] can_differentiate_under_integrals
 
 attribute [cgsimp] T.smul_zero T.one_smul
 

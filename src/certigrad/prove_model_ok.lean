@@ -229,7 +229,6 @@ rw zero_add,
 exact costs_helper cs tgt m (list.not_mem_of_not_mem_cons H_nin)
 end
 
-
 lemma compute_grad_slow_det_not_used_helper (costs : list ID) : Π (nodes : list node) (m : env) (tgt : reference),
 is_not_used_downstream tgt nodes → tgt.1 ∉ costs →
 compute_grad_slow costs nodes m tgt = 0
@@ -261,7 +260,6 @@ exact H_not_used^.left,
 exact H_not_used^.right,
 exact H_tgt_nin_costs
 end
-
 
 @[cgsimp] lemma compute_grad_slow_det_not_used (costs : list ID) (ref : reference) (parents : list reference) (op : det.op parents^.p2 ref^.2)
   : Π (nodes : list node) (m : env) (tgt : reference),
@@ -325,22 +323,61 @@ end
 
 attribute [cgsimp] compute_grad_slow.equations._eqn_1
 
-@[cgsimp] lemma grads_exist_at_det_not_used
-  :  ∀ (ref : reference) (parents : list reference) (op : det.op parents^.p2 ref^.2) (nodes : list node) (m : env) (tgt : reference),
+lemma grads_exist_at_simp_helper : Π (nodes : list node) (m : env) (tgt : reference),
+  is_not_used_downstream tgt nodes → grads_exist_at nodes m tgt
+| [] m tgt H_not_used := trivial
+
+| (⟨ref, parents, operator.det op⟩::nodes) m tgt H_not_used :=
+begin
+dunfold grads_exist_at,
+dunfold is_not_used_downstream at H_not_used,
+dsimp,
+split,
+apply grads_exist_at_simp_helper nodes _ tgt H_not_used^.right,
+intro H_in_parents,
+exfalso,
+exact H_not_used^.left H_in_parents
+end
+
+| (⟨ref, parents, operator.rand op⟩::nodes) m tgt H_not_used :=
+begin
+dunfold grads_exist_at,
+dunfold is_not_used_downstream at H_not_used,
+dsimp,
+split,
+intro H_in_parents,
+exfalso,
+exact H_not_used^.left H_in_parents,
+intro y,
+apply grads_exist_at_simp_helper nodes _ tgt H_not_used^.right
+end
+
+@[cgsimp] lemma grads_exist_at_det_not_used (ref : reference) (parents : list reference) (op : det.op parents^.p2 ref^.2)
+  : Π (nodes : list node) (m : env) (tgt : reference),
 is_not_used_downstream tgt nodes →
 grads_exist_at (⟨ref, parents, operator.det op⟩ :: nodes) m tgt
 =
 let m' := env.insert ref (op^.f (env.get_ks parents m)) m in
-(tgt ∈ parents → op^.pre (env.get_ks parents m) ∧ grads_exist_at nodes (env.insert ref (op^.f (env.get_ks parents m)) m) ref) := sorry
+(tgt ∈ parents → op^.pre (env.get_ks parents m) ∧ grads_exist_at nodes (env.insert ref (op^.f (env.get_ks parents m)) m) ref) :=
+begin
+intros nodes m tgt H_not_used,
+dunfold grads_exist_at,
+dsimp,
+rw (pextt (grads_exist_at_simp_helper _ _ _ H_not_used)),
+simp
+end
 
-@[cgsimp] lemma grads_exist_at_det_used
-  :  ∀ (ref : reference) (parents : list reference) (op : det.op parents^.p2 ref^.2) (nodes : list node) (m : env) (tgt : reference),
+@[cgsimp] lemma grads_exist_at_det_used (ref : reference) (parents : list reference) (op : det.op parents^.p2 ref^.2)
+  : Π (nodes : list node) (m : env) (tgt : reference),
 is_used_downstream tgt nodes →
 grads_exist_at (⟨ref, parents, operator.det op⟩ :: nodes) m tgt
 =
 let m' := env.insert ref (op^.f (env.get_ks parents m)) m in
 grads_exist_at nodes m' tgt ∧
-(tgt ∈ parents → op^.pre (env.get_ks parents m) ∧ grads_exist_at nodes (env.insert ref (op^.f (env.get_ks parents m)) m) ref) := sorry
+(tgt ∈ parents → op^.pre (env.get_ks parents m) ∧ grads_exist_at nodes (env.insert ref (op^.f (env.get_ks parents m)) m) ref) :=
+begin
+intros nodes m tgt H, reflexivity
+end
 
 attribute [cgsimp] grads_exist_at.equations._eqn_1 grads_exist_at.equations._eqn_3
 

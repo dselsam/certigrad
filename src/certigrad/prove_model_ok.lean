@@ -223,21 +223,44 @@ rw zero_add,
 exact costs_helper cs tgt m (list.not_mem_of_not_mem_cons H_nin)
 end
 
+lemma cg_helper (costs : list ID) :
+  Π (ref : reference) (parents : list reference) (op : det.op parents^.p2 ref^.2) (nodes : list node) (tgt : reference) (m : env),
+  tgt ∉ parents → is_not_used_downstream tgt nodes → tgt.1 ∉ costs →
+list.sumr
+  (list.map (λ (idx : ℕ), det.op.pb op (env.get_ks parents m) (env.get ref m) (compute_grad_slow costs nodes m ref) idx (tgt.snd))
+            (list.filter (λ (idx : ℕ), tgt = list.dnth parents idx) (list.riota (list.length parents))))
+=
+0
+| ref []                op nodes tgt m H_tgt_nin_parents H_not_used H_tgt_nin_costs := rfl
+| ref (parent::parents) op nodes tgt m H_tgt_nin_parents H_not_used H_tgt_nin_costs :=
+have H : list.filter (λ (idx : ℕ), tgt = list.dnth (parent :: parents) idx)
+                     (list.riota (list.length (parent :: parents))) = [],
+begin
+induction parents with parent₂ parents IH,
+assert H_tgt_neq_parent : tgt ≠ parent, exact sorry,
+simp [H_tgt_neq_parent, list.filter, list.riota, list.length, list.dnth],
+simp only [list.filter, list.riota, list.length, list.dnth],
+
+--induction
+end,
+
+begin
+simp only [H],
+reflexivity
+end
+
 lemma compute_grad_slow_det_not_used_helper (costs : list ID) : Π (nodes : list node) (m : env) (tgt : reference),
 is_not_used_downstream tgt nodes → tgt.1 ∉ costs →
 compute_grad_slow costs nodes m tgt = 0
-| [] m tgt H_not_used H_tgt_nin_costs :=
-begin
----apply costs_helper, all_goals { assumption }
-exact sorry
-end
+| [] m tgt H_not_used H_tgt_nin_costs := by { apply costs_helper, all_goals { assumption } }
 
 | (⟨ref, parents, operator.det op⟩::nodes) m tgt H_not_used H_tgt_nin_costs :=
 begin
 dunfold compute_grad_slow,
 dunfold is_not_used_downstream at H_not_used,
-exact sorry
---rw compute_grad_slow_det_not_used_helper nodes _ tgt H_not_used^.right H_tgt_nin_costs,
+rw compute_grad_slow_det_not_used_helper nodes _ tgt H_not_used^.right H_tgt_nin_costs,
+rw zero_add,
+
 end
 
 | (⟨ref, parents, operator.rand op⟩::nodes) m tgt H_not_used H_tgt_nin_costs :=

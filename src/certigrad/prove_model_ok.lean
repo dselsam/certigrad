@@ -510,16 +510,23 @@ attribute [cgsimp] program_to_graph program.program_to_graph_core program.get_id
 namespace tactic
 open tactic
 
+run_cmd mk_simp_attr `pcgsimp
+
+attribute [pcgsimp] to_dist_congr_insert
+
 meta def dcgsimp : tactic unit := do
   s ← join_user_simp_lemmas tt [`cgsimp],
   dsimp_core s
 
-meta def gsimpt_core : Π (tac : tactic unit) (s : simp_lemmas) (e : expr), tactic (expr × expr) := λ tac s e,
-do (a, new_tgt, pf) ← ext_simplify_core () {} s
+meta def gsimpt_core : Π (tac : tactic unit) (s_pre s_post : simp_lemmas) (e : expr), tactic (expr × expr) := λ tac s_pre s_post e,
+do (a, new_tgt, pf) ← ext_simplify_core () {} s_post
 
 (λ u, failed)
 --pre
-(λ a s r p e, failed)
+--(λ a s r p e, failed)
+(λ a s r p e, do ⟨u, new_e, pr⟩ ← conv.apply_lemmas_core reducible s_pre tac r e,
+                 return ((), new_e, pr, tt))
+
 --post
 (λ a s r p e, do ⟨u, new_e, pr⟩ ← conv.apply_lemmas_core reducible s tac r e,
                  return ((), new_e, pr, tt))
@@ -528,9 +535,10 @@ do (a, new_tgt, pf) ← ext_simplify_core () {} s
   return (new_tgt, pf)
 
 meta def gsimpt (tac : tactic unit) : tactic unit := do
-  s ← join_user_simp_lemmas tt [`cgsimp],
+  s_pre ← join_user_simp_lemmas tt [`pcgsimp],
+  s_post ← join_user_simp_lemmas tt [`cgsimp],
   tgt ← target,
-  (new_tgt, pf) ← gsimpt_core tac s tgt,
+  (new_tgt, pf) ← gsimpt_core tac s_pre s_post tgt,
   replace_target new_tgt pf
 
 ---------------

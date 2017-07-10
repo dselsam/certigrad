@@ -98,4 +98,40 @@ noncomputable def can_differentiate_under_integrals (costs : list ID) : list nod
                                          ∇ (λ (θ₀ : T (tgt.snd)), rand.op.pdf op (dvec.update_at θ₀ (env.get_ks parents (env.insert tgt θ inputs)) idx) x ⬝ g x θ) θ₀) θ))
 ∧ (∀ y, can_differentiate_under_integrals nodes (next_inputs y) tgt)
 
+def all_pdfs_std : Π (nodes : list node), Prop
+| [] := true
+| (⟨ref, parents, operator.det op⟩ :: nodes) := all_pdfs_std nodes
+| (⟨(ref, .(shape)), [], operator.rand (rand.op.mvn_iso_std shape)⟩ :: nodes) := all_pdfs_std nodes
+| (⟨(ref, .(shape)), [(parent₁, .(shape)), (parent₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩ :: nodes) := false
+
+lemma all_pdfs_std_det : Π (ref : reference) (parents : list reference) (op : det.op parents^.p2 ref.2) (nodes : list node),
+  all_pdfs_std (⟨ref, parents, operator.det op⟩ :: nodes) = all_pdfs_std nodes
+| (i, s) [] op nodes := rfl
+| (i, s) [(i', s')] op nodes := rfl
+| (i, s) [(i', s'), (i'', s'')] op nodes := rfl
+| (i, s) ((i', s') :: (i'', s'') :: a :: iss) op nodes := rfl
+
+noncomputable def can_diff_under_ints_pdfs_std (costs : list ID) : Π (nodes : list node) (m : env) (tgt : reference), Prop
+| [] _ _ := true
+
+| (⟨ref, parents, operator.det op⟩ :: nodes) inputs tgt  :=
+  let inputs' := env.insert ref (op^.f (env.get_ks parents inputs)) inputs in
+  can_diff_under_ints_pdfs_std nodes inputs' tgt
+  ∧ (tgt ∈ parents → can_diff_under_ints_pdfs_std nodes (env.insert ref (op^.f (env.get_ks parents inputs)) inputs) ref)
+
+| (⟨ref, parents, operator.rand op⟩ :: nodes) inputs tgt  :=
+  let θ : T tgt.2 := env.get tgt inputs in
+  let g : T ref.2 → T tgt.2 → ℝ :=
+  (λ (x : T ref.2) (θ₀ : T tgt.2),
+      E (graph.to_dist (λ (inputs : env), ⟦sum_costs inputs costs⟧)
+                       (env.insert ref x (env.insert tgt θ₀ inputs))
+                       nodes)
+        dvec.head) in
+  let next_inputs := (λ (y : T ref.2), env.insert ref y inputs) in
+
+ (T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), T.mvn_iso_pdf 0 1 x ⬝ g x θ₀) θ
+    ∧ (T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), ∇ (λ (θ₁ : T (tgt.snd)), T.mvn_iso_pdf 0 1 x ⬝ g x θ₁) θ₀) θ
+       ∧ T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), ∇ (λ (θ₁ : T (tgt.snd)), T.mvn_iso_pdf 0 1 x ⬝ g x θ₁) θ₀) θ))
+∧ (∀ y, can_diff_under_ints_pdfs_std nodes (next_inputs y) tgt)
+
 end certigrad

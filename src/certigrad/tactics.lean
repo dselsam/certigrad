@@ -5,6 +5,7 @@ Author: Daniel Selsam
 
 Miscellaneous tactics.
 -/
+import .util
 
 namespace tactic
 
@@ -82,23 +83,17 @@ meta def dget_dinsert_at (n : name) : tactic unit := do
                                                         `eq e,
                      return (new_e, pf))
 
-/-
-#check @bit0
+run_cmd mk_simp_attr `natne
 
-meta def prove_nats_neq_core : expr → expr → tactic expr
-| `(@bit0 _ _ %%k₁) `(@bit0 _ _ %%k₂) :=
+attribute [natne] nat.bit0_inj_eq nat.bit1_inj_eq nat.zero_ne_bit0_eq nat.bit0_ne_zero_eq nat.one_ne_bit1_eq nat.bit1_ne_one_eq
 
-meta def prove_nats_neq : tactic unit :=
-do (lhs, rhs) ← target >>= match_ne,
-   prove_nats_neq_core lhs rhs >>= exact
--/
+attribute [natne] nat.bit1_ne_bit0 nat.bit0_ne_bit1 nat.bit0_inj_eq nat.bit1_inj_eq nat.zero_ne_one_eq nat.one_ne_zero_eq
+                  nat.zero_ne_bit1 nat.bit1_ne_zero nat.one_ne_bit0 nat.bit0_ne_one
 
 meta def prove_nats_neq : tactic unit :=
-do (lhs, rhs) ← target >>= match_ne,
-   if lhs = rhs then fail "not ne" else mk_sorry >>= exact
-
-meta def contra_nats_eq (H : expr) : tactic unit :=
-do (lhs, rhs) ← infer_type H >>= match_eq,
-   if lhs = rhs then fail "not ne" else mk_sorry >>= exact
+do s ← join_user_simp_lemmas tt [`natne],
+   tgt ← target,
+   (new_tgt, pf) ← simplify s tgt,
+   replace_target new_tgt pf
 
 end tactic

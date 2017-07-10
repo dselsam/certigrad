@@ -47,19 +47,6 @@ end ID
 section tactics
 open tactic
 
-meta def prove_ids_neq : tactic unit :=
-do H ← intro `H,
-   Hs ← injection H,
-   match Hs with
-   | [] := done
-   | [H'] := contra_nats_eq H' <|>
-             (do H''_ty ← mk_app `certigrad.label.label_eq_of_to_nat [H'],
-                 note `H'' none H''_ty,
-                 get_local `H'' >>= contra_nats_eq)
-   | (x::y::xs) := fail "injection produced multiple hyps"
-   end
-
-
 end tactics
 
 end certigrad

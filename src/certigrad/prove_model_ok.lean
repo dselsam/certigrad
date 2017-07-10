@@ -441,7 +441,7 @@ apply E_0_of_not_used nodes (env.insert ref y^.head m) tgt x H_not_used^.right H
 end
 -/
 
-attribute [cgsimp] can_differentiate_under_integrals
+attribute [cgsimp] all_pdfs_std can_diff_under_ints_pdfs_std
 
 attribute [cgsimp] T.smul_zero T.one_smul
 
@@ -536,6 +536,28 @@ meta def gsimpt (tac : tactic unit) : tactic unit := do
   (new_tgt, pf) ← gsimpt_core tac s tgt,
   replace_target new_tgt pf
 
+---------------
+
+run_cmd mk_simp_attr `idne
+
+@[idne] lemma id_str_ne_nat (x : label) (n : ℕ) : (ID.str x ≠ ID.nat n) ↔ true := sorry
+@[idne] lemma id_nat_ne_str (x : label) (n : ℕ) : (ID.nat n ≠ ID.str x) ↔ true := sorry
+@[idne] lemma id_str_ne_str (x₁ x₂ : label) : (ID.str x₁ ≠ ID.str x₂) ↔ (x₁ ≠ x₂) := sorry
+@[idne] lemma id_nat_ne_nat (n₁ n₂ : ℕ) : (ID.nat n₁ ≠ ID.nat n₂) ↔ (n₁ ≠ n₂) := sorry
+
+@[idne] lemma label_neq_of_to_nat {x y : label} : (x ≠ y) ↔ (x^.to_nat ≠ y^.to_nat) := sorry -- propext
+attribute [idne] label.to_nat
+
+meta def prove_ids_neq : tactic unit :=
+do s ← join_user_simp_lemmas tt [`idne, `natne],
+   tgt ← target,
+   (new_tgt, pf) ← simplify_core {} s `iff tgt,
+   replace_target new_tgt pf,
+   triv
+
+meta def prove_refs_neq : tactic unit :=
+do applyc `pair_neq_of_neq₁, prove_ids_neq
+
 meta def cgsimpt (tac : tactic unit) : tactic unit := do
   repeat $ first [gsimpt tac, prove_refs_neq, prove_ids_neq, triv]
 
@@ -579,7 +601,7 @@ do H_at_idx ← get_local `H_at_idx,
    trace "is_gintegrable...",
      solve1 (cgsimp >> prove_is_mvn_integrable),
    trace "can_diff_under_ints...",
-     solve1 (cgsimp >> prove_is_mvn_uintegrable),
+     solve1 (applyc `certigrad.can_diff_under_ints_of_all_pdfs_std >> cgsimp >> prove_is_mvn_uintegrable),
    trace "prove_for_tgt done"
 
 meta def prove_model_ok : tactic unit :=

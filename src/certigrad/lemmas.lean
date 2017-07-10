@@ -962,4 +962,55 @@ end
 
 end
 
+lemma can_diff_under_ints_of_all_pdfs_std (costs : list ID) : Π (nodes : list node) (m : env) (tgt : reference),
+  all_pdfs_std nodes
+  → can_diff_under_ints_pdfs_std costs nodes m tgt
+  → can_differentiate_under_integrals costs nodes m tgt
+| [] m tgt H_std H_cdi := trivial
+
+| (⟨ref, parents, operator.det op⟩ :: nodes) m tgt H_std H_cdi :=
+begin
+simp [all_pdfs_std_det] at H_std,
+dsimp [can_diff_under_ints_pdfs_std] at H_cdi,
+dsimp [can_differentiate_under_integrals],
+split,
+apply can_diff_under_ints_of_all_pdfs_std,
+exact H_std,
+exact H_cdi^.left,
+intro H_in,
+apply can_diff_under_ints_of_all_pdfs_std,
+exact H_std,
+exact H_cdi^.right H_in
+end
+
+| (⟨(ref, .(shape)), [], operator.rand (rand.op.mvn_iso_std shape)⟩ :: nodes) m tgt H_std H_cdi :=
+begin
+dsimp [all_pdfs_std] at H_std,
+dsimp [can_diff_under_ints_pdfs_std] at H_cdi,
+dsimp [can_differentiate_under_integrals],
+split,
+split,
+exact H_cdi^.left^.left,
+split,
+exact H_cdi^.left^.right,
+split,
+intros H H_contra,
+exfalso,
+exact list.at_idx_over H_contra (nat.not_lt_zero _),
+intros H H_contra,
+exfalso,
+exact list.at_idx_over H_contra (nat.not_lt_zero _),
+intro y,
+apply can_diff_under_ints_of_all_pdfs_std,
+exact H_std,
+exact H_cdi^.right y
+end
+
+| (⟨(ref, .(shape)), [(parent₁, .(shape)), (parent₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩ :: nodes) m tgt H_std H_cdi :=
+begin
+dsimp [all_pdfs_std] at H_std,
+exfalso,
+exact H_std
+end
+
 end certigrad

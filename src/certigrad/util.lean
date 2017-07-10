@@ -6,6 +6,22 @@ class has_smul (α β : Type) := (smul : α → β → β)
 def smul {α β : Type} [has_smul α β] : α → β → β := has_smul.smul
 infixl ` ⬝ ` := smul
 
+namespace nat
+
+lemma bit0_inj_eq : ∀ {n m : ℕ}, (bit0 n ≠ bit0 m) = (n ≠ m) := sorry
+lemma bit1_inj_eq : ∀ {n m : ℕ}, (bit1 n ≠ bit1 m) = (n ≠ m) := sorry
+
+lemma zero_ne_bit0_eq {n : ℕ} : (0 ≠ bit0 n) = (n ≠ 0) := sorry
+lemma bit0_ne_zero_eq {n : ℕ} : (bit0 n ≠ 0) = (n ≠ 0) := sorry
+
+lemma one_ne_bit1_eq {n : ℕ} : (1 ≠ bit1 n) = (n ≠ 0) := sorry
+lemma bit1_ne_one_eq {n : ℕ} : (bit1 n ≠ 1) = (n ≠ 0) := sorry
+
+lemma zero_ne_one_eq : (0 ≠ 1) ↔ true := sorry
+lemma one_ne_zero_eq : (1 ≠ 0) ↔ true := sorry
+
+end nat
+
 namespace prod
 section lt
 universes u v

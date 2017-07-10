@@ -82,17 +82,35 @@ meta def prove_neq_case_core : tactic unit :=
 do H ← intro `H,
    dunfold_at [`certigrad.label.to_nat] H,
    H ← get_local `H,
-   ty ← infer_type H,
-   nty ← return $ expr.app (expr.const `not []) ty,
+   (lhs, rhs) ← infer_type H >>= match_eq,
+   nty ← mk_app `ne [lhs, rhs],
    assert `H_not nty,
-   prove_nats_neq,
+   solve1 prove_nats_neq,
    exfalso,
    get_local `H_not >>= λ H_not, exact (expr.app H_not H)
 
-lemma label_eq_of_to_nat {x y : label} : x = y → to_nat x = to_nat y :=
+lemma eq_of_to_nat_eq {x y : label} : x = y → to_nat x = to_nat y :=
 begin
 intro H,
 subst H,
+end
+
+lemma to_nat_eq_of_eq {x y : label} : to_nat x = to_nat y → x = y :=
+begin
+cases x,
+all_goals { cases y },
+any_goals { intros, reflexivity },
+all_goals { prove_neq_case_core }
+end
+
+lemma neq_of_to_nat {x y : label} : (x ≠ y) = (x^.to_nat ≠ y^.to_nat) :=
+begin
+apply propext,
+split,
+intros H_ne H_eq,
+exact H_ne (to_nat_eq_of_eq H_eq),
+intros H_ne H_eq,
+exact H_ne (eq_of_to_nat_eq H_eq)
 end
 
 end proofs

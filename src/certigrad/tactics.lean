@@ -93,6 +93,7 @@ meta def prove_nats_neq : tactic unit :=
 do s ← join_user_simp_lemmas tt [`natne],
    tgt ← target,
    (new_tgt, pf) ← simplify s tgt,
-   replace_target new_tgt pf
+   replace_target new_tgt pf,
+   triv
 
 end tactic

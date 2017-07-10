@@ -44,9 +44,34 @@ instance decidable_less_than : Π (x y : ID), decidable (x < y)
 
 end ID
 
-section tactics
-open tactic
+lemma id_str_ne_nat (x : label) (n : ℕ) : (ID.str x ≠ ID.nat n) = true :=
+begin apply pextt, intro H, injection H end
 
-end tactics
+lemma id_nat_ne_str (x : label) (n : ℕ) : (ID.nat n ≠ ID.str x) = true :=
+begin apply pextt, intro H, injection H end
+
+lemma id_str_ne_str (x₁ x₂ : label) : (ID.str x₁ ≠ ID.str x₂) = (x₁ ≠ x₂) :=
+begin
+apply propext,
+split,
+intros H_ne H_eq,
+subst H_eq,
+exact H_ne rfl,
+intros H_ne H_eq,
+injection H_eq with H,
+exact H_ne H
+end
+
+lemma id_nat_ne_nat (n₁ n₂ : ℕ) : (ID.nat n₁ ≠ ID.nat n₂) = (n₁ ≠ n₂) :=
+begin
+apply propext,
+split,
+intros H_ne H_eq,
+subst H_eq,
+exact H_ne rfl,
+intros H_ne H_eq,
+injection H_eq with H,
+exact H_ne H
+end
 
 end certigrad

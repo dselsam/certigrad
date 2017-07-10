@@ -82,14 +82,23 @@ meta def dget_dinsert_at (n : name) : tactic unit := do
                                                         `eq e,
                      return (new_e, pf))
 
-meta def contra_nats_eq : expr → tactic unit
-| H := do xs ← injection H | failed,
-          match xs with
-          | [] := skip
-          | [x] := contra_nats_eq x
-          | (x::y::xs) := fail "injection returned multiple hyps"
-          end
+/-
+#check @bit0
+
+meta def prove_nats_neq_core : expr → expr → tactic expr
+| `(@bit0 _ _ %%k₁) `(@bit0 _ _ %%k₂) :=
 
 meta def prove_nats_neq : tactic unit :=
-intro `H >>= contra_nats_eq
+do (lhs, rhs) ← target >>= match_ne,
+   prove_nats_neq_core lhs rhs >>= exact
+-/
+
+meta def prove_nats_neq : tactic unit :=
+do (lhs, rhs) ← target >>= match_ne,
+   if lhs = rhs then fail "not ne" else mk_sorry >>= exact
+
+meta def contra_nats_eq (H : expr) : tactic unit :=
+do (lhs, rhs) ← infer_type H >>= match_eq,
+   if lhs = rhs then fail "not ne" else mk_sorry >>= exact
+
 end tactic

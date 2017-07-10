@@ -339,7 +339,7 @@ begin
 end,
 
 assertv H_g_uint : T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), rand.op.pdf op (env.get_ks parents (env.insert tgt θ inputs)) x ⬝ g x θ₀) θ :=
-  H_diff_under_int^.left^.left^.right,
+  can_diff_under_ints_alt1 H_diff_under_int,
 
 assertv H_g_grad_uint : T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), ∇ (λ (θ₁ : T (tgt.snd)), rand.op.pdf op (env.get_ks parents (env.insert tgt θ inputs)) x ⬝ g x θ₁) θ₀) θ :=
   H_diff_under_int^.left^.right^.left^.right,

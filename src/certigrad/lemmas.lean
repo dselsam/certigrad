@@ -65,13 +65,33 @@ assertv H_wf_ref : well_formed_at costs nodes next_inputs ref :=
 exact ⟨H_wf_tgt, H_wf_ref⟩
 end
 
-/-
-lemma ref_notin_parents_alt : ∀ {n : node} {nodes : list node} {ref₀ : reference} {m : env},
-  all_parents_in_env m (n::nodes) → ref₀ ∉ (env.keys m ++ map node.ref (n::nodes)) → ref₀ ∉ n^.parents
-| ⟨ref, parents, op⟩ nodes ref₀ m H_ps_in_env H_ref₀_notin H_ref₀_in_parents :=
-have H_ref₀_in : ref₀ ∈ env.keys m, from env.has_key_mem_keys (H_ps_in_env^.left _ H_ref₀_in_parents),
-not_mem_of_not_mem_append_left H_ref₀_notin H_ref₀_in
--/
+lemma can_diff_under_ints_alt1 {costs : list ID}
+  {ref : reference} {parents : list reference} {op : rand.op parents^.p2 ref.2} {nodes : list node} {inputs : env} {tgt : reference} :
+  let θ : T tgt.2 := env.get tgt inputs in
+  let g : T ref.2 → T tgt.2 → ℝ :=
+  (λ (x : T ref.2) (θ₀ : T tgt.2),
+      E (graph.to_dist (λ (inputs : env), ⟦sum_costs inputs costs⟧)
+                       (env.insert ref x (env.insert tgt θ₀ inputs))
+                       nodes)
+        dvec.head) in
+  let next_inputs := (λ (y : T ref.2), env.insert ref y inputs) in
+
+can_differentiate_under_integrals costs (⟨ref, parents, operator.rand op⟩ :: nodes) inputs tgt
+→
+T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), rand.op.pdf op (env.get_ks parents (env.insert tgt θ inputs)) x ⬝ g x θ₀) θ :=
+begin
+dsimp [can_differentiate_under_integrals],
+intro H_cdi,
+note H := H_cdi^.left^.left,
+clear H_cdi,
+apply T.uint_right (λ θ₁ θ₂ x,
+rand.op.pdf op (env.get_ks parents (env.insert tgt θ₁ inputs)) x ⬝
+         E
+           (graph.to_dist (λ (inputs : env), ⟦sum_costs inputs costs⟧)
+              (env.insert ref x (env.insert tgt θ₂ inputs))
+              nodes)
+           dvec.head) _ H
+end
 
 lemma pdfs_exist_at_ignore {ref₀ : reference} {x₁ x₂ : T ref₀.2} :
   ∀ {nodes : list node} {inputs : env},
@@ -696,7 +716,7 @@ have H_g_uint : T.is_uniformly_integrable_around
             (env.insert ref x (env.insert tgt θ₀ inputs))
             nodes)
          dvec.head)
-    (env.get tgt inputs), from H_diff_under_int^.left^.left^.left,
+    (env.get tgt inputs), from H_diff_under_int^.left^.left,
 
 have H_g_grad_uint : T.is_uniformly_integrable_around
     (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)),
@@ -890,7 +910,7 @@ split, tactic.rotate 1, split, tactic.rotate 2,
 begin
 dunfold E T.dintegral,
 
-note H_g_uint := H_diff_under_int^.left^.left^.right,
+note H_g_uint := can_diff_under_ints_alt1 H_diff_under_int,
 note H_g_grad_uint := H_diff_under_int^.left^.right^.left^.right,
 apply T.is_cdifferentiable_integral _ _ _ H_g_uint H_g_grad_uint,
 

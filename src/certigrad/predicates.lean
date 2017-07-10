@@ -86,8 +86,7 @@ noncomputable def can_differentiate_under_integrals (costs : list ID) : list nod
         dvec.head) in
   let next_inputs := (λ (y : T ref.2), env.insert ref y inputs) in
 -- Note: these conditions are redundant, but it is convenient to collect all the variations we need in one place
- ( (T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), rand.op.pdf op (env.get_ks parents (env.insert tgt θ₀ inputs)) x ⬝ g x θ₀) θ
-    ∧ T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), rand.op.pdf op (env.get_ks parents (env.insert tgt θ inputs)) x ⬝ g x θ₀) θ)
+ (T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), rand.op.pdf op (env.get_ks parents (env.insert tgt θ₀ inputs)) x ⬝ g x θ₀) θ
 
     ∧ (T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), ∇ (λ (θ₁ : T (tgt.snd)), rand.op.pdf op (env.get_ks parents (env.insert tgt θ₁ inputs)) x ⬝ g x θ₁) θ₀) θ
        ∧ T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), ∇ (λ (θ₁ : T (tgt.snd)), rand.op.pdf op (env.get_ks parents (env.insert tgt θ inputs)) x ⬝ g x θ₁) θ₀) θ)

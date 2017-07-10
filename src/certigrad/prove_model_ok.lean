@@ -12,9 +12,6 @@ import data.list.set .tfacts .graph .predicates .expected_value .reparam .kl .ta
 namespace certigrad
 open T tactic list
 
-def pextt {P : Prop} : P → (P = true) := λ Hp, propext (iff_true_intro Hp)
-def pextf {P : Prop} : ¬ P → (P = false) := λ Hnp, propext (iff.intro (λ Hp, Hnp Hp) (λ Hf, false.rec _ Hf))
-
 lemma mem_of_ne_mem_cons {α : Type*} {xs : list α} {x y : α} : x ∈ y :: xs → x ≠ y → x ∈ xs :=
 begin
 intros H_in H_neq,
@@ -540,18 +537,18 @@ meta def gsimpt (tac : tactic unit) : tactic unit := do
 
 run_cmd mk_simp_attr `idne
 
-@[idne] lemma id_str_ne_nat (x : label) (n : ℕ) : (ID.str x ≠ ID.nat n) ↔ true := sorry
-@[idne] lemma id_nat_ne_str (x : label) (n : ℕ) : (ID.nat n ≠ ID.str x) ↔ true := sorry
-@[idne] lemma id_str_ne_str (x₁ x₂ : label) : (ID.str x₁ ≠ ID.str x₂) ↔ (x₁ ≠ x₂) := sorry
-@[idne] lemma id_nat_ne_nat (n₁ n₂ : ℕ) : (ID.nat n₁ ≠ ID.nat n₂) ↔ (n₁ ≠ n₂) := sorry
+@[idne] lemma id_str_ne_nat (x : label) (n : ℕ) : (ID.str x ≠ ID.nat n) = true := sorry
+@[idne] lemma id_nat_ne_str (x : label) (n : ℕ) : (ID.nat n ≠ ID.str x) = true := sorry
+@[idne] lemma id_str_ne_str (x₁ x₂ : label) : (ID.str x₁ ≠ ID.str x₂) = (x₁ ≠ x₂) := sorry
+@[idne] lemma id_nat_ne_nat (n₁ n₂ : ℕ) : (ID.nat n₁ ≠ ID.nat n₂) = (n₁ ≠ n₂) := sorry
 
-@[idne] lemma label_neq_of_to_nat {x y : label} : (x ≠ y) ↔ (x^.to_nat ≠ y^.to_nat) := sorry -- propext
+@[idne] lemma label_neq_of_to_nat {x y : label} : (x ≠ y) = (x^.to_nat ≠ y^.to_nat) := sorry -- propext
 attribute [idne] label.to_nat
 
 meta def prove_ids_neq : tactic unit :=
 do s ← join_user_simp_lemmas tt [`idne, `natne],
    tgt ← target,
-   (new_tgt, pf) ← simplify_core {} s `iff tgt,
+   (new_tgt, pf) ← simplify s tgt,
    replace_target new_tgt pf,
    triv
 

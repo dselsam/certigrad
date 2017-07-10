@@ -86,9 +86,8 @@ meta def dget_dinsert_at (n : name) : tactic unit := do
 run_cmd mk_simp_attr `natne
 
 attribute [natne] nat.bit0_inj_eq nat.bit1_inj_eq nat.zero_ne_bit0_eq nat.bit0_ne_zero_eq nat.one_ne_bit1_eq nat.bit1_ne_one_eq
-
-attribute [natne] nat.bit1_ne_bit0 nat.bit0_ne_bit1 nat.bit0_inj_eq nat.bit1_inj_eq nat.zero_ne_one_eq nat.one_ne_zero_eq
-                  nat.zero_ne_bit1 nat.bit1_ne_zero nat.one_ne_bit0 nat.bit0_ne_one
+                  nat.bit1_ne_bit0_eq nat.bit0_ne_bit1_eq nat.bit0_inj_eq nat.bit1_inj_eq nat.zero_ne_one_eq nat.one_ne_zero_eq
+                  nat.zero_ne_bit1_eq nat.bit1_ne_zero_eq nat.one_ne_bit0_eq nat.bit0_ne_one_eq
 
 meta def prove_nats_neq : tactic unit :=
 do s ← join_user_simp_lemmas tt [`natne],

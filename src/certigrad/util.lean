@@ -6,19 +6,84 @@ class has_smul (α β : Type) := (smul : α → β → β)
 def smul {α β : Type} [has_smul α β] : α → β → β := has_smul.smul
 infixl ` ⬝ ` := smul
 
+def pextt {P : Prop} : P → (P = true) := λ Hp, propext (iff_true_intro Hp)
+def pextf {P : Prop} : ¬ P → (P = false) := λ Hnp, propext (iff.intro (λ Hp, Hnp Hp) (λ Hf, false.rec _ Hf))
+
 namespace nat
 
-lemma bit0_inj_eq : ∀ {n m : ℕ}, (bit0 n ≠ bit0 m) = (n ≠ m) := sorry
-lemma bit1_inj_eq : ∀ {n m : ℕ}, (bit1 n ≠ bit1 m) = (n ≠ m) := sorry
+lemma bit1_ne_bit0_eq {n m : ℕ} : (bit1 n ≠ bit0 m) = true := pextt (nat.bit1_ne_bit0 _ _)
+lemma bit0_ne_bit1_eq {n m : ℕ} : (bit0 n ≠ bit1 m) = true := pextt (nat.bit0_ne_bit1 _ _)
 
-lemma zero_ne_bit0_eq {n : ℕ} : (0 ≠ bit0 n) = (n ≠ 0) := sorry
-lemma bit0_ne_zero_eq {n : ℕ} : (bit0 n ≠ 0) = (n ≠ 0) := sorry
+lemma bit0_inj_eq {n m : ℕ} : (bit0 n ≠ bit0 m) = (n ≠ m) :=
+begin
+apply propext,
+split,
+intros H_ne H_eq,
+subst H_eq,
+exact H_ne rfl,
+intros H_ne H_eq,
+exact H_ne (nat.bit0_inj H_eq)
+end
 
-lemma one_ne_bit1_eq {n : ℕ} : (1 ≠ bit1 n) = (n ≠ 0) := sorry
-lemma bit1_ne_one_eq {n : ℕ} : (bit1 n ≠ 1) = (n ≠ 0) := sorry
+lemma bit1_inj_eq {n m : ℕ} : (bit1 n ≠ bit1 m) = (n ≠ m) :=
+begin
+apply propext,
+split,
+intros H_ne H_eq,
+subst H_eq,
+exact H_ne rfl,
+intros H_ne H_eq,
+exact H_ne (nat.bit1_inj H_eq)
+end
 
-lemma zero_ne_one_eq : (0 ≠ 1) ↔ true := sorry
-lemma one_ne_zero_eq : (1 ≠ 0) ↔ true := sorry
+lemma zero_ne_bit0_eq {n : ℕ} : (0 ≠ bit0 n) = (n ≠ 0) :=
+begin
+apply propext,
+split,
+intros H_ne H_eq,
+subst H_eq,
+exact H_ne rfl,
+apply nat.zero_ne_bit0
+end
+
+lemma bit0_ne_zero_eq {n : ℕ} : (bit0 n ≠ 0) = (n ≠ 0) :=
+begin
+apply propext,
+split,
+intros H_ne H_eq,
+subst H_eq,
+exact H_ne rfl,
+apply nat.bit0_ne_zero
+end
+
+lemma one_ne_bit1_eq {n : ℕ} : (1 ≠ bit1 n) = (n ≠ 0) :=
+begin
+apply propext,
+split,
+intros H_ne H_eq,
+subst H_eq,
+exact H_ne rfl,
+apply nat.one_ne_bit1
+end
+
+lemma bit1_ne_one_eq {n : ℕ} : (bit1 n ≠ 1) = (n ≠ 0) :=
+begin
+apply propext,
+split,
+intros H_ne H_eq,
+subst H_eq,
+exact H_ne rfl,
+apply nat.bit1_ne_one
+end
+
+lemma one_ne_bit0_eq (n : ℕ) : (1 ≠ bit0 n) = true := pextt (nat.one_ne_bit0 _)
+lemma bit0_ne_one_eq (n : ℕ) : (bit0 n ≠ 1) = true := pextt (nat.bit0_ne_one _)
+
+lemma zero_ne_bit1_eq (n : ℕ) : (0 ≠ bit1 n) = true := pextt (nat.zero_ne_bit1 _)
+lemma bit1_ne_zero_eq (n : ℕ) : (bit1 n ≠ 0) = true := pextt (nat.bit1_ne_zero _)
+
+lemma zero_ne_one_eq : (0 ≠ 1) = true := pextt nat.zero_ne_one
+lemma one_ne_zero_eq : (1 ≠ 0) = true := pextt nat.one_ne_zero
 
 end nat
 

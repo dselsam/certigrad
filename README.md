@@ -109,7 +109,7 @@ Until then:
 2. Download Eigen (http://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2) and install it.
 3. Download this repository, and in the main directory execute `leanpkg --build`.
 
-Note: building Certigrad currently takes ~20 minutes and consumes ~16 GB of memory. We are still working on getting the memory usage down.
+Note: building Certigrad currently takes ~15 minutes and consumes ~7 GB of memory.
 
 ## Warning
 

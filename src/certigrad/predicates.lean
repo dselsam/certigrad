@@ -130,8 +130,7 @@ noncomputable def can_diff_under_ints_pdfs_std (costs : list ID) : Π (nodes : l
   let next_inputs := (λ (y : T ref.2), env.insert ref y inputs) in
 
  (T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), T.mvn_iso_pdf 0 1 x ⬝ g x θ₀) θ
-    ∧ (T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), ∇ (λ (θ₁ : T (tgt.snd)), T.mvn_iso_pdf 0 1 x ⬝ g x θ₁) θ₀) θ
-       ∧ T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), ∇ (λ (θ₁ : T (tgt.snd)), T.mvn_iso_pdf 0 1 x ⬝ g x θ₁) θ₀) θ))
+    ∧ T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), ∇ (λ (θ₁ : T (tgt.snd)), T.mvn_iso_pdf 0 1 x ⬝ g x θ₁) θ₀) θ)
 ∧ (∀ y, can_diff_under_ints_pdfs_std nodes (next_inputs y) tgt)
 
 end certigrad

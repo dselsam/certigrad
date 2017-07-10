@@ -202,11 +202,11 @@ begin apply pextf, apply env.not_has_key_empty end
 
 def is_not_used_downstream (tgt : reference) : list node → Prop
 | [] := true
-| (⟨ref, parents, op⟩ :: nodes) := tgt ≠ ref ∧ tgt ∉ parents ∧ is_not_used_downstream nodes
+| (⟨ref, parents, op⟩ :: nodes) := tgt ∉ parents ∧ is_not_used_downstream nodes
 
 def is_used_downstream (tgt : reference) : list node → Prop
 | [] := false
-| (⟨ref, parents, op⟩ :: nodes) := tgt = ref ∨ tgt ∈ parents ∨ is_used_downstream nodes
+| (⟨ref, parents, op⟩ :: nodes) := tgt ∈ parents ∨ is_used_downstream nodes
 
 attribute [cgsimp] is_not_used_downstream is_used_downstream
 
@@ -241,11 +241,11 @@ end
 begin
 dunfold compute_grad_slow,
 dunfold is_not_used_downstream at H_not_used,
-rw compute_grad_slow_det_not_used_helper nodes _ tgt H_not_used^.right^.right H_tgt_nin_costs,
+rw compute_grad_slow_det_not_used_helper nodes _ tgt H_not_used^.right H_tgt_nin_costs,
 rw zero_add,
 rw list.not_in_filter_of_match_riota,
 reflexivity,
-exact H_not_used^.right^.left
+exact H_not_used^.left
 end
 
 | (⟨ref, parents, operator.rand op⟩::nodes) m tgt H_not_used H_tgt_nin_costs :=
@@ -256,8 +256,8 @@ rw compute_grad_slow_det_not_used_helper,
 rw zero_add,
 rw list.not_in_filter_of_match_riota,
 reflexivity,
-exact H_not_used^.right^.left,
-exact H_not_used^.right^.right,
+exact H_not_used^.left,
+exact H_not_used^.right,
 exact H_tgt_nin_costs
 end
 
@@ -333,10 +333,10 @@ dunfold grads_exist_at,
 dunfold is_not_used_downstream at H_not_used,
 dsimp,
 split,
-apply grads_exist_at_simp_helper nodes _ tgt H_not_used^.right^.right,
+apply grads_exist_at_simp_helper nodes _ tgt H_not_used^.right,
 intro H_in_parents,
 exfalso,
-exact H_not_used^.right^.left H_in_parents
+exact H_not_used^.left H_in_parents
 end
 
 | (⟨ref, parents, operator.rand op⟩::nodes) m tgt H_not_used :=
@@ -347,9 +347,9 @@ dsimp,
 split,
 intro H_in_parents,
 exfalso,
-exact H_not_used^.right^.left H_in_parents,
+exact H_not_used^.left H_in_parents,
 intro y,
-apply grads_exist_at_simp_helper nodes _ tgt H_not_used^.right^.right
+apply grads_exist_at_simp_helper nodes _ tgt H_not_used^.right
 end
 
 @[cgsimp] lemma grads_exist_at_det_not_used (ref : reference) (parents : list reference) (op : det.op parents^.p2 ref^.2)
@@ -380,7 +380,7 @@ intros nodes m tgt H, reflexivity
 end
 
 attribute [cgsimp] grads_exist_at.equations._eqn_1 grads_exist_at.equations._eqn_3
-
+/-
 lemma E_0_of_not_used (costs : list ID) : Π (nodes : list node) (m : env) (tgt : reference) (x : T tgt.2),
 is_not_used_downstream tgt nodes → tgt.1 ∉ costs →
 E (graph.to_dist (λ (m : env), ⟦sum_costs m costs⟧) (env.insert tgt x m) nodes) dvec.head
@@ -416,19 +416,19 @@ end
 begin
 dunfold graph.to_dist operator.to_dist,
 simp [E.E_bind, E.E_ret],
-assertv H_tgt_notin_parents : tgt ∉ parents := H_not_used^.right^.left,
+assertv H_tgt_notin_parents : tgt ∉ parents := H_not_used^.left,
 assertv H_tgt_neq_ref : tgt ≠ ref := H_not_used^.left,
 rw env.get_ks_insert_diff H_tgt_notin_parents,
 rw env.insert_insert_flip _ _ _ (ne.symm H_tgt_neq_ref),
 dsimp,
-apply E_0_of_not_used nodes (env.insert ref (det.op.f op (env.get_ks parents m)) m) tgt x H_not_used^.right^.right H_not_cost
+apply E_0_of_not_used nodes (env.insert ref (det.op.f op (env.get_ks parents m)) m) tgt x H_not_used^.right H_not_cost
 end
 
 | (⟨ref, parents, operator.rand op⟩ :: nodes) m tgt x H_not_used H_not_cost :=
 begin
 dunfold graph.to_dist operator.to_dist,
 simp [E.E_bind, E.E_ret],
-assertv H_tgt_notin_parents : tgt ∉ parents := H_not_used^.right^.left,
+assertv H_tgt_notin_parents : tgt ∉ parents := H_not_used^.left,
 assertv H_tgt_neq_ref : tgt ≠ ref := H_not_used^.left,
 rw env.get_ks_insert_diff H_tgt_notin_parents,
 
@@ -437,9 +437,9 @@ apply funext,
 intro y,
 
 rw env.insert_insert_flip _ _ _ (ne.symm H_tgt_neq_ref),
-apply E_0_of_not_used nodes (env.insert ref y^.head m) tgt x H_not_used^.right^.right H_not_cost
+apply E_0_of_not_used nodes (env.insert ref y^.head m) tgt x H_not_used^.right H_not_cost
 end
-
+-/
 
 attribute [cgsimp] can_differentiate_under_integrals
 

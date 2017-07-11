@@ -102,7 +102,7 @@ Our methodology may already be economical for high-assurrance systems, and yet t
 
 ## Building Certigrad
 
-Lean is still under development, and there are several efforts in progress that will make it much easier to install Certigrad. One of particular relevance to installing Certigrad is the foreign function interface (FFI). We forked Lean in order to add code to wrap Eigen inside Lean's VM but soon Lean will have a foreign function interface that lets us add to the VM without needing to rebuild Lean. We will port Certigrad to the master branch of Lean once the FFI has been released.
+Lean is still under development and the foreign function interface (FFI) has not been ported to the master branch yet. We forked Lean in order to add C++ code to wrap Eigen inside Lean's virtual machine, but we will port Certigrad to the master branch of Lean once the FFI has been released.
 
 Until then:
 1. Download our fork of Lean from https://github.com/dselsam/lean/tree/certigrad and build/install it using the instructions at https://github.com/leanprover/lean.

@@ -123,9 +123,9 @@ A paper describing the ideas behind Certigrad can be found at <https://arxiv.org
 
 ## Team
 
-* Daniel Selsam, Stanford University
-* Percy Liang, Stanford University
-* David Dill, Stanford University
+* [Daniel Selsam](https://web.stanford.edu/~dselsam/), Stanford University
+* [Percy Liang](https://cs.stanford.edu/~pliang/), Stanford University
+* [David L. Dill](http://verify.stanford.edu/dill), Stanford University
 
 ## Acknowledgments
 

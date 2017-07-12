@@ -7,7 +7,7 @@ Certigrad is a proof-of-concept for a new way to develop machine learning system
 * A formal specification of what the implementation needs to do in terms of the mathematics.
 * A machine-checkable proof that the implementation satisfies its specification.
 
-Specifically, Certigrad is a system for optimizing over stochastic computation graphs, that we debugged systematically in the Lean Theorem Prover, and ultimately proved correct in terms of the underlying mathematics.
+Specifically, Certigrad is a system for optimizing over stochastic computation graphs, that we debugged systematically in the [Lean Theorem Prover](https://leanprover.github.io/), and ultimately proved correct in terms of the underlying mathematics.
 
 ## Background: stochastic computation graphs
 

@@ -175,11 +175,11 @@ lemma continuous_bernoulli_neglogpdf₂ {shape : S} (p x : T shape) (H_p₁ : p 
 is_continuous (λ x₀, bernoulli_neglogpdf p x₀) x :=
 begin
 dunfold bernoulli_neglogpdf,
-apply continuous_binary (λ θ₁ θ₂, - T.sum (θ₁ * T.log p + (1 - θ₂) * T.log (1 + -p))),
+apply continuous_binary (λ θ₁ θ₂, - T.sum (θ₁ * T.log (eps shape + p) + (1 - θ₂) * T.log (eps shape + (1 + -p)))),
 dsimp,
 prove_continuous,
 -- TODO(dhs): not sure why this is necessary
-apply continuous_chain (λ x, 1 - x) (λ y, y * log (1 + - p)),
+apply continuous_chain (λ x, 1 - x) (λ y, y * log (eps shape + (1 + - p))),
 prove_continuous,
 end
 

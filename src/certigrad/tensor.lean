@@ -21,6 +21,7 @@ namespace T
 -- Constants that compute (excluding const, lt, le)
 
 constant const (α : ℝ) (shape : S) : T shape
+constant eps (shape : S) : T shape
 
 constant zero (shape : S) : T shape
 constant one (shape : S) : T shape
@@ -201,7 +202,7 @@ def mvn_iso_empirical_kl {shape : S} (μ σ z : T shape) : ℝ :=
   mvn_iso_logpdf μ σ z - mvn_iso_std_logpdf z
 
 def bernoulli_neglogpdf {shape : S} (p z : T shape) : ℝ :=
-  - sum (z * log p + (1 - z) * log (1 - p))
+  - sum (z * log (eps shape + p) + (1 - z) * log (eps shape + (1 - p)))
 
 def force {shape₁ : S} (x : T shape₁) (shape₂ : S) : T shape₂ :=
   if H : shape₁ = shape₂ then eq.rec_on H x else T.error ("force-failed: " ++ _root_.to_string shape₁ ++ " != " ++ _root_.to_string shape₂)

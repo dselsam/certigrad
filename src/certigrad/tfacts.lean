@@ -104,9 +104,11 @@ axiom one_pos {shape : S} : (1 : T shape) > 0
 axiom neg_of_pos {shape : S} {x : T shape} : x > 0 → - x < 0
 axiom const_pos_of_pos {shape : S} {x : ℝ} : x > 0 → const x shape > 0
 axiom mul_pos_of_pos_pos {shape : S} {x y : T shape} : x > 0 → y > 0 → x * y > 0
+axiom eps_pos {shape : S} : eps shape > 0
 axiom pi_pos {shape : S} : pi shape > 0
 axiom inv_pos {shape : S} {x : T shape} : x > 0 → x⁻¹ > 0
 axiom div_pos_pos {shape : S} {x y : T shape} : x > 0 → y > 0 → x / y > 0
+axiom add_pos_of_pos_pos {shape : S} {x y : T shape} : x > 0 → y > 0 → x + y > 0
 lemma two_pos {shape : S} : (2 : T shape) > 0 := one_plus_pos one_pos
 lemma two_pi_pos {shape : S} : 2 * pi shape > 0 := mul_pos_of_pos_pos two_pos pi_pos
 lemma msigmoid_pos {shape : S} {x : T shape} : 0 < 1 - sigmoid x := lt1_alt sigmoid_lt1
@@ -422,8 +424,10 @@ axiom is_btw_const {shape₁ shape₂ : S} (y : T shape₂) : is_btw_exp₂ (λ 
 axiom is_btw_sigmoid {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_btw_exp₂ (λ (x : T shape₁), sigmoid (f x))
 axiom is_btw_softplus {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_btw_exp₂ f → is_btw_exp₂ (λ (x : T shape₁), softplus (f x))
 axiom is_btw_sum {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_btw_exp₂ f → is_btw_exp₂ (λ (x : T shape₁), sum (f x))
-axiom is_btw_log_sigmoid {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_btw_exp₂ f → is_btw_exp₂ (λ (x : T shape₁), log (sigmoid (f x)))
-axiom is_btw_log_1msigmoid {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) : is_btw_exp₂ f → is_btw_exp₂ (λ (x : T shape₁), log (1 - sigmoid (f x)))
+axiom is_btw_log_sigmoid {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) (y : T shape₂) : y > 0 → is_btw_exp₂ f → 
+  is_btw_exp₂ (λ (x : T shape₁), log (y + sigmoid (f x)))
+axiom is_btw_log_1msigmoid {shape₁ shape₂ : S} (f : T shape₁ → T shape₂) (y : T shape₂) : y > 0 → is_btw_exp₂ f → 
+  is_btw_exp₂ (λ (x : T shape₁), log (y + (1 - sigmoid (f x))))
 
 axiom is_btw_gemm {shape : S} {m n p : ℕ} (f : T shape → T [m, n]) (g : T shape → T [n, p]) :
   is_btw_exp₂ f → is_btw_exp₂ g → is_btw_exp₂ (λ x, gemm (f x) (g x))
@@ -473,11 +477,11 @@ axiom is_bbtw_softplus {shape₁ shape₂ shape₃ : S} (f : T shape₁ → T sh
 axiom is_bbtw_sum {shape₁ shape₂ shape₃ : S} (f : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) :
   is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around (λ x θ₀, sum (f x θ₀)) θ
 
-axiom is_bbtw_log_sigmoid {shape₁ shape₂ shape₃ : S} (f : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) :
-  is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around (λ x θ₀, log (sigmoid (f x θ₀))) θ
+axiom is_bbtw_log_sigmoid {shape₁ shape₂ shape₃ : S} (f : T shape₁ → T shape₂ → T shape₃) (y : T shape₃) (θ : T shape₂) : y > 0 →
+  is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around (λ x θ₀, log (y + sigmoid (f x θ₀))) θ
 
-axiom is_bbtw_log_1msigmoid {shape₁ shape₂ shape₃ : S} (f : T shape₁ → T shape₂ → T shape₃) (θ : T shape₂) :
-  is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around (λ x θ₀, log (1 - sigmoid (f x θ₀))) θ
+axiom is_bbtw_log_1msigmoid {shape₁ shape₂ shape₃ : S} (f : T shape₁ → T shape₂ → T shape₃) (y : T shape₃) (θ : T shape₂) : y > 0 →
+  is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around (λ x θ₀, log (y + (1 - sigmoid (f x θ₀)))) θ
 
 axiom is_bbtw_gemm {shape₁ shape₂ : S} {m n p : ℕ} (f : T shape₁ → T shape₂ → T [m, n]) (g : T shape₁ → T shape₂ → T [n, p]) (θ : T shape₂) :
   is_bounded_btw_exp₂_around f θ → is_bounded_btw_exp₂_around g θ → is_bounded_btw_exp₂_around (λ x θ₀, gemm (f x θ₀) (g x θ₀)) θ
@@ -506,8 +510,8 @@ begin
 intro H,
 dunfold bernoulli_neglogpdf,
 apply is_bbtw_neg, apply is_bbtw_sum, apply is_bbtw_add,
-apply is_bbtw_mul, apply is_bbtw_of_btw, apply is_btw_const, apply is_bbtw_log_sigmoid, exact H,
-apply is_bbtw_mul, apply is_bbtw_of_btw, apply is_btw_const, apply is_bbtw_log_1msigmoid, exact H
+apply is_bbtw_mul, apply is_bbtw_of_btw, apply is_btw_const, apply is_bbtw_log_sigmoid, exact eps_pos, exact H,
+apply is_bbtw_mul, apply is_bbtw_of_btw, apply is_btw_const, apply is_bbtw_log_1msigmoid, exact eps_pos, exact H
 end
 
 -- misc
@@ -525,7 +529,8 @@ meta def prove_preconditions_core : tactic unit :=
 first (assumption :: map applyc [`certigrad.T.sqrt_pos, `certigrad.T.square_pos_of_pos, `certigrad.T.exp_pos,
                                  `certigrad.T.sigmoid_pos, `certigrad.T.sigmoid_lt1, `certigrad.T.lt1_alt, `certigrad.T.one_plus_pos,
                                  `certigrad.T.plus_one_pos, `certigrad.T.one_pos, `certigrad.T.neg_of_pos, `certigrad.T.const_pos_of_pos,
-                                 `certigrad.T.mul_pos_of_pos_pos, `certigrad.T.pi_pos,
+                                 `certigrad.T.mul_pos_of_pos_pos, `certigrad.T.add_pos_of_pos_pos,
+                                 `certigrad.T.pi_pos, `certigrad.T.eps_pos,
                                  `certigrad.T.inv_pos, `certigrad.T.div_pos_pos, `certigrad.T.two_pos, `certigrad.T.two_pi_pos])
 
 meta def prove_preconditions : tactic unit := repeat prove_preconditions_core

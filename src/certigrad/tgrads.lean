@@ -467,13 +467,13 @@ end
 
 lemma grad_bernoulli_neglogpdf₁ (k : ℝ → ℝ) (shape : S) (p z : T shape)
                                 (H_p₁ : 0 < p) (H_p₂ : 0 < 1 - p) (H_k : is_cdifferentiable k (bernoulli_neglogpdf p z)) :
-  ∇ (λ p, k (bernoulli_neglogpdf p z)) p = ∇ k (bernoulli_neglogpdf p z) ⬝ ((1 - z) / (1 - p) - z / p) :=
-have H_diff₁ : is_cdifferentiable (λ (θ₀ : T shape), k (-T.sum (z * T.log θ₀ + (1 - z) * T.log (1 - p)))) p, by prove_differentiable,
-have H_diff₂ : is_cdifferentiable (λ (θ₀ : T shape), k (-T.sum (z * T.log p + (1 - z) * T.log (1 - θ₀)))) p, by prove_differentiable,
+  ∇ (λ p, k (bernoulli_neglogpdf p z)) p = ∇ k (bernoulli_neglogpdf p z) ⬝ ((1 - z) / (eps shape + (1 - p)) - z / (eps shape + p)) :=
+have H_diff₁ : is_cdifferentiable (λ (θ₀ : T shape), k (-T.sum (z * T.log (eps shape + θ₀) + (1 - z) * T.log (eps shape + (1 - p))))) p, by prove_differentiable,
+have H_diff₂ : is_cdifferentiable (λ (θ₀ : T shape), k (-T.sum (z * T.log (eps shape + p) + (1 - z) * T.log (eps shape + (1 - θ₀))))) p, by prove_differentiable,
 
 begin
 dunfold T.bernoulli_neglogpdf,
-rw T.grad_binary (λ θ₁ θ₂, k ( - T.sum (z * T.log θ₁ + (1 - z) * T.log (1 - θ₂)))) _ H_diff₁ H_diff₂,
+rw T.grad_binary (λ θ₁ θ₂, k ( - T.sum (z * T.log (eps shape + θ₁) + (1 - z) * T.log (eps shape + (1 - θ₂))))) _ H_diff₁ H_diff₂,
 dsimp,
 simplify_grad,
 simp [T.smul.def, const_neg, T.neg_div, T.div_mul_inv, left_distrib, right_distrib],
@@ -481,13 +481,13 @@ end
 
 lemma grad_bernoulli_neglogpdf₂ (k : ℝ → ℝ) (shape : S) (p z : T shape)
                                 (H_p₁ : 0 < p) (H_p₂ : 0 < 1 - p) (H_k : is_cdifferentiable k (bernoulli_neglogpdf p z)) :
-  ∇ (λ z, k (bernoulli_neglogpdf p z)) z = ∇ k (bernoulli_neglogpdf p z) ⬝ (log (1 - p) - log p) :=
-have H_diff₁ : is_cdifferentiable (λ (θ₀ : T shape), k (-T.sum (θ₀ * T.log p + (1 - z) * T.log (1 - p)))) z, by prove_differentiable,
-have H_diff₂ : is_cdifferentiable (λ (θ₀ : T shape), k (-T.sum (z * T.log p + (1 - θ₀) * T.log (1 - p)))) z, by prove_differentiable,
+  ∇ (λ z, k (bernoulli_neglogpdf p z)) z = ∇ k (bernoulli_neglogpdf p z) ⬝ (log (eps shape + (1 - p)) - log (eps shape + p)) :=
+have H_diff₁ : is_cdifferentiable (λ (θ₀ : T shape), k (-T.sum (θ₀ * T.log (eps shape + p) + (1 - z) * T.log (eps shape + (1 - p))))) z, by prove_differentiable,
+have H_diff₂ : is_cdifferentiable (λ (θ₀ : T shape), k (-T.sum (z * T.log (eps shape + p) + (1 - θ₀) * T.log (eps shape + (1 - p))))) z, by prove_differentiable,
 
 begin
 dunfold T.bernoulli_neglogpdf,
-rw T.grad_binary (λ θ₁ θ₂, k (- T.sum (θ₁ * T.log p + (1 - θ₂) * T.log (1 - p)))) _ H_diff₁ H_diff₂,
+rw T.grad_binary (λ θ₁ θ₂, k (- T.sum (θ₁ * T.log (eps shape + p) + (1 - θ₂) * T.log (eps shape + (1 - p))))) _ H_diff₁ H_diff₂,
 dsimp,
 simplify_grad,
 simp [T.smul.def, const_neg, left_distrib, right_distrib],
@@ -519,7 +519,7 @@ lemma is_cdifferentiable_bernoulli_neglogpdf₁ (k : ℝ → ℝ) (shape : S) (p
   is_cdifferentiable k (bernoulli_neglogpdf p z) → is_cdifferentiable (λ p, k (bernoulli_neglogpdf p z)) p :=
 begin
 intro H, dunfold bernoulli_neglogpdf,
-apply is_cdifferentiable_binary (λ θ₁ θ₂, k (-T.sum (z * T.log θ₁ + (1 + -z) * T.log (1 + -θ₂)))),
+apply is_cdifferentiable_binary (λ θ₁ θ₂, k (-T.sum (z * T.log (eps shape + θ₁) + (1 + -z) * T.log (eps shape + (1 + -θ₂))))),
 { dsimp, prove_differentiable },
 { dsimp, prove_differentiable }
 end
@@ -528,7 +528,7 @@ lemma is_cdifferentiable_bernoulli_neglogpdf₂ (k : ℝ → ℝ) (shape : S) (p
   is_cdifferentiable k (bernoulli_neglogpdf p z) → is_cdifferentiable (λ z, k (bernoulli_neglogpdf p z)) z :=
 begin
 intro H, dunfold bernoulli_neglogpdf,
-apply is_cdifferentiable_binary (λ θ₁ θ₂, k (-T.sum (θ₁ * T.log p + (1 + -θ₂) * T.log (1 + -p)))),
+apply is_cdifferentiable_binary (λ θ₁ θ₂, k (-T.sum (θ₁ * T.log (eps shape + p) + (1 + -θ₂) * T.log (eps shape + (1 + -p))))),
 { dsimp, prove_differentiable },
 { dsimp, prove_differentiable }
 end

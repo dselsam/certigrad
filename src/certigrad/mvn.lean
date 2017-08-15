@@ -50,6 +50,7 @@ first [
      , applyc `certigrad.T.is_sub_quadratic_mul₁
      , applyc `certigrad.T.is_sub_quadratic_mul₂
      , applyc `certigrad.T.is_sub_quadratic_sub
+     , prove_preconditions_core
 ]
 
 meta def prove_is_mvn_integrable : tactic unit :=

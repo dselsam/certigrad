@@ -649,8 +649,8 @@ def f {shape : S} (xs : dvec T [shape, shape]) : ℝ := bernoulli_neglogpdf xs^.
 def f_pre {shape : S} : precondition [shape, shape] := λ xs, 0 < xs^.head ∧ xs^.head < 1
 
 def f_pb {shape : S} (xs : dvec T [shape, shape]) (y gy : ℝ) : Π (idx : ℕ) (fshape : S), T fshape
-| 0     fshape := force (gy ⬝ (1 - xs^.head2) / (1 - xs^.head) - gy ⬝ (xs^.head2 / xs^.head)) fshape
-| 1     fshape := force (gy ⬝ T.log (1 - xs^.head) - gy ⬝ T.log xs^.head) fshape
+| 0     fshape := force (gy ⬝ (1 - xs^.head2) / (eps shape + (1 - xs^.head)) - gy ⬝ (xs^.head2 / (eps shape + xs^.head))) fshape
+| 1     fshape := force (gy ⬝ T.log (eps shape + (1 - xs^.head)) - gy ⬝ T.log (eps shape + xs^.head)) fshape
 | (n+2) fshape := T.error "bernoulli_neglogpdf: index too large"
 
 attribute [simp] f f_pre f_pb
@@ -669,8 +669,8 @@ lemma f_pb_correct {shape : S} : pullback_correct (@f shape) (@f_pre shape) (@f_
 | ⟦p, z⟧ y H_y g_out 0 fshape H_at_idx H_pre :=
 have H_p : p > 0, from H_pre^.left,
 have H_1mp : 1 - p > 0, from lt1_alt H_pre^.right,
-have H_diff₁ : is_cdifferentiable (λ (θ₀ : T shape), g_out * -T.sum (z * T.log θ₀ + (1 - z) * T.log (1 - p))) p, by prove_differentiable,
-have H_diff₂ : is_cdifferentiable (λ (θ₀ : T shape), g_out * -T.sum (z * T.log p + (1 - z) * T.log (1 - θ₀))) p, by prove_differentiable,
+have H_diff₁ : is_cdifferentiable (λ (θ₀ : T shape), g_out * -T.sum (z * T.log (eps shape + θ₀) + (1 - z) * T.log (eps shape + (1 - p)))) p, by prove_differentiable,
+have H_diff₂ : is_cdifferentiable (λ (θ₀ : T shape), g_out * -T.sum (z * T.log (eps shape + p) + (1 - z) * T.log (eps shape + (1 - θ₀)))) p, by prove_differentiable,
 
 begin
 clear f_pb_correct,
@@ -684,7 +684,7 @@ dsimp,
 simp ,
 rw -T.grad_tmulT,
 dunfold T.bernoulli_neglogpdf,
-rw T.grad_binary (λ θ₁ θ₂, g_out * - T.sum (z * T.log θ₁ + (1 - z) * T.log (1 - θ₂))) _ H_diff₁ H_diff₂,
+rw T.grad_binary (λ θ₁ θ₂, g_out * - T.sum (z * T.log (eps shape + θ₁) + (1 - z) * T.log (eps shape + (1 - θ₂)))) _ H_diff₁ H_diff₂,
 dsimp,
 note H₁ := H_pre^.left,
 note H₂ := lt1_alt H_pre^.right,
@@ -695,8 +695,8 @@ simp [T.div_mul_inv],
 end
 
 | ⟦p, z⟧ y H_y g_out 1 fshape H_at_idx H_pre :=
-have H_diff₁ : is_cdifferentiable (λ (θ₀ : T shape), g_out * -T.sum (θ₀ * T.log p + (1 - z) * T.log (1 - p))) z, by prove_differentiable,
-have H_diff₂ : is_cdifferentiable (λ (θ₀ : T shape), g_out * -T.sum (z * T.log p + (1 - θ₀) * T.log (1 - p))) z, by prove_differentiable,
+have H_diff₁ : is_cdifferentiable (λ (θ₀ : T shape), g_out * -T.sum (θ₀ * T.log (eps shape + p) + (1 - z) * T.log (eps shape + (1 - p)))) z, by prove_differentiable,
+have H_diff₂ : is_cdifferentiable (λ (θ₀ : T shape), g_out * -T.sum (z * T.log (eps shape + p) + (1 - θ₀) * T.log (eps shape + (1 - p)))) z, by prove_differentiable,
 
 begin
 clear f_pb_correct,
@@ -710,7 +710,7 @@ dsimp,
 simp,
 rw -T.grad_tmulT,
 dunfold T.bernoulli_neglogpdf,
-rw T.grad_binary (λ θ₁ θ₂, g_out * - T.sum (θ₁ * T.log p + (1 - θ₂) * T.log (1 - p))) _ H_diff₁ H_diff₂,
+rw T.grad_binary (λ θ₁ θ₂, g_out * - T.sum (θ₁ * T.log (eps shape + p) + (1 - θ₂) * T.log (eps shape + (1 - p)))) _ H_diff₁ H_diff₂,
 dsimp,
 simplify_grad,
 simp [T.smul.def, const_neg],

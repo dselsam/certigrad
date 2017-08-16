@@ -115,7 +115,7 @@ Note: building Certigrad currently takes ~15 minutes and consumes ~7 GB of memor
 
 We have formally proved that Certigrad is correct (modulo the impurities mentioned above), **but this does not imply that Certigrad does what you expect**. All it means is that the theorems linked to above are true, given the assumptions.
 
-Certigrad is designed to be a _proof-of-concept_, not a production system. There are many features that would need to be added to make it useful as an artifact. Over the course of development, we encountered many problems that will need to be solved to make our methodology economical, and we are much more interested in addressing those challenges than in extending and maintaining Certigrad as an end in itself.
+Certigrad is designed to be a _proof-of-concept_, not a production system. There are many features that would need to be added to make it useful as an artifact. We are  more interested in addressing the barriers to adoption of our methodology than in extending and maintaining Certigrad as an end in itself.
 
 ## For more information
 

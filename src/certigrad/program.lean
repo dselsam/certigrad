@@ -25,8 +25,8 @@ inductive term : Type
 | sum : term → term
 | scale : ℝ → term → term
 | gemm : term → term → term
-| mvn_iso_kl : term → term → term
-| mvn_iso_empirical_kl : term → term → term → term
+| mvn_kl : term → term → term
+| mvn_empirical_kl : term → term → term → term
 | bernoulli_neglogpdf : term → term → term
 | id : label → term
 
@@ -46,8 +46,8 @@ def softplus : term → term := term.unary unary_op.softplus
 def sigmoid : term → term := term.unary unary_op.sigmoid
 
 inductive rterm : Type
-| mvn_iso : term → term → rterm
-| mvn_iso_std : S → rterm
+| mvn : term → term → rterm
+| mvn_std : S → rterm
 
 inductive statement : Type
 | param : label → S → statement
@@ -134,18 +134,18 @@ def process_term : term → state → option ID → reference × state
     end
     end
 
-| (term.mvn_iso_kl t₁ t₂) st ident :=
+| (term.mvn_kl t₁ t₂) st ident :=
     match process_term t₁ st none with
     | ((p₁, shape'), st') :=
     match process_term t₂ st' none with
     | ((p₂, shape), ⟨next_id, shapes, nodes, costs, targets, inputs⟩) :=
       ((get_id next_id ident, []), ⟨next_id+1, shapes,
-        concat nodes ⟨(get_id next_id ident, []), [(p₁, shape), (p₂, shape)], operator.det (ops.mvn_iso_kl shape)⟩,
+        concat nodes ⟨(get_id next_id ident, []), [(p₁, shape), (p₂, shape)], operator.det (ops.mvn_kl shape)⟩,
         costs, targets, inputs⟩)
     end
     end
 
-| (term.mvn_iso_empirical_kl t₁ t₂ t₃) st ident :=
+| (term.mvn_empirical_kl t₁ t₂ t₃) st ident :=
     match process_term t₁ st none with
     | ((p₁, shape''), st') :=
     match process_term t₂ st' none with
@@ -153,7 +153,7 @@ def process_term : term → state → option ID → reference × state
     match process_term t₃ st'' none with
     | ((p₃, shape), ⟨next_id, shapes, nodes, costs, targets, inputs⟩) :=
       ((get_id next_id ident, []), ⟨next_id+1, shapes,
-        concat nodes ⟨(get_id next_id ident, []), [(p₁, shape), (p₂, shape), (p₃, shape)], operator.det (det.op.mvn_iso_empirical_kl shape)⟩,
+        concat nodes ⟨(get_id next_id ident, []), [(p₁, shape), (p₂, shape), (p₃, shape)], operator.det (det.op.mvn_empirical_kl shape)⟩,
         costs, targets, inputs⟩)
     end
     end
@@ -178,22 +178,22 @@ def process_term : term → state → option ID → reference × state
    end
 
 def process_rterm : rterm → state → option ID → reference × state
-| (rterm.mvn_iso t₁ t₂) st ident :=
+| (rterm.mvn t₁ t₂) st ident :=
     match process_term t₁ st none with
     | ((p₁, shape'), st') :=
     match process_term t₂ st' none with
     | ((p₂, shape), ⟨next_id, shapes, nodes, costs, targets, inputs⟩) :=
       ((get_id next_id ident, shape),
         ⟨next_id+1, shapes,
-         concat nodes ⟨(get_id next_id ident, shape), [(p₁, shape), (p₂, shape)], operator.rand (rand.op.mvn_iso shape)⟩,
+         concat nodes ⟨(get_id next_id ident, shape), [(p₁, shape), (p₂, shape)], operator.rand (rand.op.mvn shape)⟩,
          costs, targets, inputs⟩)
     end
     end
 
-| (rterm.mvn_iso_std shape) ⟨next_id, shapes, nodes, costs, targets, inputs⟩ ident :=
+| (rterm.mvn_std shape) ⟨next_id, shapes, nodes, costs, targets, inputs⟩ ident :=
   ((get_id next_id ident, shape),
    ⟨next_id+1, shapes,
-    nodes ++ [⟨(get_id next_id ident, shape), [], operator.rand (rand.op.mvn_iso_std shape)⟩],
+    nodes ++ [⟨(get_id next_id ident, shape), [], operator.rand (rand.op.mvn_std shape)⟩],
     costs, targets, inputs⟩)
 
 def program_to_graph_core : list statement → state → state

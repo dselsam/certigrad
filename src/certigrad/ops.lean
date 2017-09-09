@@ -492,15 +492,15 @@ def gemm (m n p : ℕ) : det.op [[m, n], [n, p]] [m, p] :=
 det.op.mk "gemm" f f_pre f_pb f_odiff f_pb_correct f_ocont
 end
 
-namespace mvn_iso_kl
+namespace mvn_kl
 
-def f {shape : S} (xs : dvec T [shape, shape]) : ℝ := mvn_iso_kl xs^.head xs^.head2
+def f {shape : S} (xs : dvec T [shape, shape]) : ℝ := mvn_kl xs^.head xs^.head2
 def f_pre {shape : S} : precondition [shape, shape] := λ xs, 0 < xs^.head2
 
 def f_pb {shape : S} (xs : dvec T [shape, shape]) (y gy : ℝ) : Π (idx : ℕ) (fshape : S), T fshape
 | 0     fshape := force (gy ⬝ xs^.head) fshape
 | 1     fshape := force (gy ⬝ (xs^.head2 - (1 / xs^.head2))) fshape
-| (n+2) fshape := T.error "mvn_iso_kl: index too large"
+| (n+2) fshape := T.error "mvn_kl: index too large"
 
 attribute [simp] f f_pre f_pb
 
@@ -541,7 +541,7 @@ subst H_y,
 dsimp,
 simp,
 rw -T.grad_tmulT,
-dunfold T.mvn_iso_kl,
+dunfold T.mvn_kl,
 
 rw (T.grad_binary (λ θ₁ θ₂, g_out * ((- 2⁻¹) * T.sum (1 + T.log (square θ₁) - square μ - square θ₂))) _ H_diff₁ H_diff₂),
 dsimp,
@@ -565,15 +565,15 @@ end
 | ⟦μ, σ⟧ y H_y g_out (n+2) fshape H_at_idx H_pre := by idx_over
 
 lemma f_ocont {shape : S} : is_ocontinuous (@f shape) (@f_pre shape)
-| ⟦μ, σ⟧ 0     ishape H_at_idx H_pre := by { prove_ocont, apply T.continuous_mvn_iso_kl₁, exact H_pre }
+| ⟦μ, σ⟧ 0     ishape H_at_idx H_pre := by { prove_ocont, apply T.continuous_mvn_kl₁, exact H_pre }
 | ⟦μ, σ⟧ 1     ishape H_at_idx H_pre := by { prove_ocont }
 | ⟦μ, σ⟧ (n+2) ishape H_at_idx H_pre := by idx_over
 
-end mvn_iso_kl
+end mvn_kl
 
-section open mvn_iso_kl
-def mvn_iso_kl (shape : S) : det.op [shape, shape] [] :=
-det.op.mk "mvn_iso_kl" f f_pre f_pb f_odiff f_pb_correct f_ocont
+section open mvn_kl
+def mvn_kl (shape : S) : det.op [shape, shape] [] :=
+det.op.mk "mvn_kl" f f_pre f_pb f_odiff f_pb_correct f_ocont
 end
 
 -- Seems silly but saves some fresh-name tracking in reparam
@@ -735,7 +735,7 @@ end ops
 
 -- TODO(dhs): confirm I don't need this any more
 /-
-lemma mvn_iso_kl_pre {shape : S} (xs : dvec T [shape, shape]) :
-  det.op.pre (det.op.special (det.special.mvn_iso_kl shape)) xs = (dvec.head2 xs > 0) := rfl
+lemma mvn_kl_pre {shape : S} (xs : dvec T [shape, shape]) :
+  det.op.pre (det.op.special (det.special.mvn_kl shape)) xs = (dvec.head2 xs > 0) := rfl
 -/
 end certigrad

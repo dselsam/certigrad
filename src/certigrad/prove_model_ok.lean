@@ -386,7 +386,7 @@ attribute [cgsimp] if_pos if_neg if_true if_false
 
 attribute [cgsimp] dif_pos dif_neg dif_ctx_simp_congr
 
-attribute [cgsimp] mvn_iso_mvn_iso_empirical_kl_int mvn_iso_bernoulli_neglogpdf_int
+attribute [cgsimp] mvn_mvn_empirical_kl_int mvn_bernoulli_neglogpdf_int
 
 attribute [cgsimp] force_ok
 
@@ -400,7 +400,7 @@ attribute [cgsimp] zero_add add_zero
 
 attribute [cgsimp] dvec.head dvec.head2 dvec.head3
 
-attribute [cgsimp] integrate_kl integrate_mvn_iso_kl integrate_kl_pre integrate_mvn_iso_kl_pre reparameterize
+attribute [cgsimp] integrate_kl integrate_mvn_kl integrate_kl_pre integrate_mvn_kl_pre reparameterize
 attribute [cgsimp] reparam reparameterize reparameterize_pre
 
 attribute [cgsimp] all_parents_in_env all_costs_scalars /- grads_exist_at -/ pdfs_exist_at uniq_ids
@@ -411,21 +411,21 @@ attribute [cgsimp] graph.to_dist operator.to_dist sum_costs /- compute_grad_slow
 attribute [cgsimp] E.E_bind E.E_ret
 
 attribute [cgsimp] ops.neg ops.exp ops.log ops.sqrt ops.add ops.sub ops.mul ops.div ops.sum
-                   ops.gemm ops.sigmoid ops.softplus ops.scale ops.mul_add ops.mvn_iso_kl ops.bernoulli_neglogpdf
+                   ops.gemm ops.sigmoid ops.softplus ops.scale ops.mul_add ops.mvn_kl ops.bernoulli_neglogpdf
 
 attribute [cgsimp] det.op.f ops.neg.f ops.exp.f ops.log.f ops.sqrt.f ops.add.f ops.sub.f ops.mul.f ops.div.f ops.sum.f
-                   ops.gemm.f ops.sigmoid.f ops.softplus.f ops.scale.f ops.mul_add.f ops.mvn_iso_kl.f ops.bernoulli_neglogpdf.f
+                   ops.gemm.f ops.sigmoid.f ops.softplus.f ops.scale.f ops.mul_add.f ops.mvn_kl.f ops.bernoulli_neglogpdf.f
 
 attribute [cgsimp] det.op.pre ops.neg.f_pre ops.exp.f_pre ops.log.f_pre ops.sqrt.f_pre ops.add.f_pre ops.sub.f_pre ops.mul.f_pre ops.div.f_pre ops.sum.f_pre
-                   ops.gemm.f_pre ops.sigmoid.f_pre ops.softplus.f_pre ops.scale.f_pre ops.mul_add.f_pre ops.mvn_iso_kl.f_pre ops.bernoulli_neglogpdf.f_pre
+                   ops.gemm.f_pre ops.sigmoid.f_pre ops.softplus.f_pre ops.scale.f_pre ops.mul_add.f_pre ops.mvn_kl.f_pre ops.bernoulli_neglogpdf.f_pre
 
 attribute [cgsimp] det.op.pb ops.neg.f_pb ops.exp.f_pb ops.log.f_pb ops.sqrt.f_pb ops.add.f_pb ops.sub.f_pb ops.mul.f_pb ops.div.f_pb ops.sum.f_pb
-                   ops.gemm.f_pb ops.sigmoid.f_pb ops.softplus.f_pb ops.scale.f_pb ops.mul_add.f_pb ops.mvn_iso_kl.f_pb ops.bernoulli_neglogpdf.f_pb
+                   ops.gemm.f_pb ops.sigmoid.f_pb ops.softplus.f_pb ops.scale.f_pb ops.mul_add.f_pb ops.mvn_kl.f_pb ops.bernoulli_neglogpdf.f_pb
 
 attribute [cgsimp] det.op.is_odiff det.op.pb_correct det.op.is_ocont
 
-attribute [cgsimp] rand.op.pdf rand.pdf.mvn_iso rand.pdf.mvn_iso_std
-                   rand.op.pre rand.op.mvn_iso rand.op.mvn_iso_std rand.pre.mvn_iso rand.pre.mvn_iso_std
+attribute [cgsimp] rand.op.pdf rand.pdf.mvn rand.pdf.mvn_std
+                   rand.op.pre rand.op.mvn rand.op.mvn_std rand.pre.mvn rand.pre.mvn_std
 
 attribute [cgsimp] env.get_ks env.insert_all env.get_insert_same env.get_insert_diff
 

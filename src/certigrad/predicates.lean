@@ -101,8 +101,8 @@ noncomputable def can_differentiate_under_integrals (costs : list ID) : list nod
 def all_pdfs_std : Π (nodes : list node), Prop
 | [] := true
 | (⟨ref, parents, operator.det op⟩ :: nodes) := all_pdfs_std nodes
-| (⟨(ref, .(shape)), [], operator.rand (rand.op.mvn_iso_std shape)⟩ :: nodes) := all_pdfs_std nodes
-| (⟨(ref, .(shape)), [(parent₁, .(shape)), (parent₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩ :: nodes) := false
+| (⟨(ref, .(shape)), [], operator.rand (rand.op.mvn_std shape)⟩ :: nodes) := all_pdfs_std nodes
+| (⟨(ref, .(shape)), [(parent₁, .(shape)), (parent₂, .(shape))], operator.rand (rand.op.mvn shape)⟩ :: nodes) := false
 
 lemma all_pdfs_std_det : Π (ref : reference) (parents : list reference) (op : det.op parents^.p2 ref.2) (nodes : list node),
   all_pdfs_std (⟨ref, parents, operator.det op⟩ :: nodes) = all_pdfs_std nodes
@@ -129,8 +129,8 @@ noncomputable def can_diff_under_ints_pdfs_std (costs : list ID) : Π (nodes : l
         dvec.head) in
   let next_inputs := (λ (y : T ref.2), env.insert ref y inputs) in
 
- (T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), T.mvn_iso_pdf 0 1 x ⬝ g x θ₀) θ
-    ∧ T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), ∇ (λ (θ₁ : T (tgt.snd)), T.mvn_iso_pdf 0 1 x ⬝ g x θ₁) θ₀) θ)
+ (T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), T.mvn_pdf 0 1 x ⬝ g x θ₀) θ
+    ∧ T.is_uniformly_integrable_around (λ (θ₀ : T (tgt.snd)) (x : T (ref.snd)), ∇ (λ (θ₁ : T (tgt.snd)), T.mvn_pdf 0 1 x ⬝ g x θ₁) θ₀) θ)
 ∧ (∀ y, can_diff_under_ints_pdfs_std nodes (next_inputs y) tgt)
 
 end certigrad

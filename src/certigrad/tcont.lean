@@ -70,8 +70,8 @@ axiom continuous_gemm₂ {m n p : ℕ} (M : T [m, n]) (N : T [n, p]) : is_contin
 lemma continuous_square {shape : S} (θ : T shape) : is_continuous (λ x, T.square x) θ :=
 by { apply continuous_binary (λ θ₁ θ₂, θ₁ * θ₂), apply continuous_mul₁, apply continuous_mul₂ }
 
-axiom continuous_mvn_iso_pdf_μ {shape : S} (μ σ x : T shape) (H_σ : σ > 0) : is_continuous (λ θ, mvn_iso_pdf θ σ x) μ
-axiom continuous_mvn_iso_pdf_σ {shape : S} (μ σ x : T shape) (H_σ : σ > 0) : is_continuous (λ θ, mvn_iso_pdf μ θ x) σ
+axiom continuous_mvn_pdf_μ {shape : S} (μ σ x : T shape) (H_σ : σ > 0) : is_continuous (λ θ, mvn_pdf θ σ x) μ
+axiom continuous_mvn_pdf_σ {shape : S} (μ σ x : T shape) (H_σ : σ > 0) : is_continuous (λ θ, mvn_pdf μ θ x) σ
 
 lemma continuous_scale_fs {ishape oshape : S} {f : T ishape → ℝ} {g : T ishape → T oshape} {θ : T ishape} :
                           is_continuous f θ → is_continuous g θ → is_continuous (λ θ₀, f θ₀ ⬝ g θ₀) θ :=
@@ -125,8 +125,8 @@ first [
      -- TODO(dhs): bug in Lean
      -- This causes a silent "sorry" in prove_continuous_core with
      -- no explanation
---     , applyc `certigrad.T.continuous_mvn_iso_kl₁
---     , applyc `certigrad.T.continuous_mvn_iso_kl₂,
+--     , applyc `certigrad.T.continuous_mvn_kl₁
+--     , applyc `certigrad.T.continuous_mvn_kl₂,
 
      , applyc `certigrad.T.continuous_lift₀
      , applyc `certigrad.T.continuous_scale
@@ -146,8 +146,8 @@ first [
      , applyc `certigrad.T.continuous_gemm₁
      , applyc `certigrad.T.continuous_gemm₂
      , applyc `certigrad.T.continuous_square
-     , applyc `certigrad.T.continuous_mvn_iso_pdf_μ
-     , applyc `certigrad.T.continuous_mvn_iso_pdf_σ
+     , applyc `certigrad.T.continuous_mvn_pdf_μ
+     , applyc `certigrad.T.continuous_mvn_pdf_σ
      , applyc `certigrad.T.continuous_scale_fs
      , applyc `certigrad.T.continuous_scale_f
      , applyc `certigrad.T.continuous_chain
@@ -160,12 +160,12 @@ end tactic
 
 namespace T
 
-lemma continuous_mvn_iso_kl₁ {shape : S} (μ σ : T shape) (H_σ : σ > 0) : is_continuous (λ μ₀, mvn_iso_kl μ₀ σ) μ :=
-by { dunfold mvn_iso_kl, prove_continuous }
+lemma continuous_mvn_kl₁ {shape : S} (μ σ : T shape) (H_σ : σ > 0) : is_continuous (λ μ₀, mvn_kl μ₀ σ) μ :=
+by { dunfold mvn_kl, prove_continuous }
 
-lemma continuous_mvn_iso_kl₂ {shape : S} (μ σ : T shape) (H_σ : σ > 0) : is_continuous (λ σ₀, mvn_iso_kl μ σ₀) σ :=
+lemma continuous_mvn_kl₂ {shape : S} (μ σ : T shape) (H_σ : σ > 0) : is_continuous (λ σ₀, mvn_kl μ σ₀) σ :=
 have H_σ₂ : square σ > 0, from square_pos_of_pos H_σ,
-by { dunfold mvn_iso_kl, prove_continuous }
+by { dunfold mvn_kl, prove_continuous }
 
 lemma continuous_bernoulli_neglogpdf₁ {shape : S} (p x : T shape) (H_p₁ : p > 0) (H_p₂ : 1 - p > 0) :
 is_continuous (λ p₀, bernoulli_neglogpdf p₀ x) p :=

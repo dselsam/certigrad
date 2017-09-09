@@ -983,7 +983,7 @@ exact H_std,
 exact H_cdi^.right H_in
 end
 
-| (⟨(ref, .(shape)), [], operator.rand (rand.op.mvn_iso_std shape)⟩ :: nodes) m tgt H_std H_cdi :=
+| (⟨(ref, .(shape)), [], operator.rand (rand.op.mvn_std shape)⟩ :: nodes) m tgt H_std H_cdi :=
 begin
 dsimp [all_pdfs_std] at H_std,
 dsimp [can_diff_under_ints_pdfs_std] at H_cdi,
@@ -1006,7 +1006,7 @@ exact H_std,
 exact H_cdi^.right y
 end
 
-| (⟨(ref, .(shape)), [(parent₁, .(shape)), (parent₂, .(shape))], operator.rand (rand.op.mvn_iso shape)⟩ :: nodes) m tgt H_std H_cdi :=
+| (⟨(ref, .(shape)), [(parent₁, .(shape)), (parent₂, .(shape))], operator.rand (rand.op.mvn shape)⟩ :: nodes) m tgt H_std H_cdi :=
 begin
 dsimp [all_pdfs_std] at H_std,
 exfalso,

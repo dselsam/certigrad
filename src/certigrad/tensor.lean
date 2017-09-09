@@ -128,7 +128,7 @@ constant gemm {m n p : ℕ} (M : T [m, n]) (N : T [n, p]) : T [m, p]
 
 constant append_col {n p : ℕ} (N : T [n, p]) (x : T [n]) : T [n, p+1]
 
-constant sample_mvn_iso : Π {shape : S} (μ σ : T shape) (rng : RNG), T shape × RNG
+constant sample_mvn : Π {shape : S} (μ σ : T shape) (rng : RNG), T shape × RNG
 constant sample_uniform : Π (shape : S) (low high : ℝ) (rng : RNG), T shape × RNG
 
 constant to_string {shape : S} : T shape → string
@@ -181,25 +181,25 @@ def dot {shape : S} (x y : T shape) : ℝ := sum (x * y)
 
 def square {shape : S} (x : T shape) : T shape := x * x
 
-def mvn_iso_pdf {shape : S} (μ σ x : T shape) : ℝ :=
+def mvn_pdf {shape : S} (μ σ x : T shape) : ℝ :=
   prod ((sqrt ((2 * pi shape) * square σ))⁻¹ * exp ((- 2⁻¹) * (square $ (x - μ) / σ)))
 
-def mvn_iso_logpdf {shape : S} (μ σ x : T shape) : ℝ :=
+def mvn_logpdf {shape : S} (μ σ x : T shape) : ℝ :=
   (- 2⁻¹) * sum (square ((x - μ) / σ) + log (2 * pi shape) + log (square σ))
 
-def mvn_iso_grad_logpdf_μ {shape : S} (μ σ x : T shape) : T shape :=
+def mvn_grad_logpdf_μ {shape : S} (μ σ x : T shape) : T shape :=
   (x - μ) / (square σ)
 
-def mvn_iso_grad_logpdf_σ {shape : S} (μ σ x : T shape) : T shape :=
+def mvn_grad_logpdf_σ {shape : S} (μ σ x : T shape) : T shape :=
   square (x - μ) / (σ * square σ) - σ⁻¹
 
-def mvn_iso_std_logpdf {shape : S} (x : T shape) : ℝ := mvn_iso_logpdf 0 1 x
+def mvn_std_logpdf {shape : S} (x : T shape) : ℝ := mvn_logpdf 0 1 x
 
-def mvn_iso_kl {shape : S} (μ σ : T shape) : ℝ :=
+def mvn_kl {shape : S} (μ σ : T shape) : ℝ :=
   (- 2⁻¹) * sum (1 + log (square σ) - square μ - square σ)
 
-def mvn_iso_empirical_kl {shape : S} (μ σ z : T shape) : ℝ :=
-  mvn_iso_logpdf μ σ z - mvn_iso_std_logpdf z
+def mvn_empirical_kl {shape : S} (μ σ z : T shape) : ℝ :=
+  mvn_logpdf μ σ z - mvn_std_logpdf z
 
 def bernoulli_neglogpdf {shape : S} (p z : T shape) : ℝ :=
   - sum (z * log (eps shape + p) + (1 - z) * log (eps shape + (1 - p)))

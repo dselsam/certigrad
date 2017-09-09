@@ -361,8 +361,8 @@ do es ← monad.mapm to_expr
    s ← try_add_simp s ``(certigrad.T.grad_gemm₂ %%k),
    s ← try_add_simp s ``(certigrad.T.grad_sum %%k),
    -- These haven't been defined yet
-   s ← try_add_simp s ```(certigrad.T.grad_mvn_iso_kl₁ %%k),
-   s ← try_add_simp s ```(certigrad.T.grad_mvn_iso_kl₂ %%k),
+   s ← try_add_simp s ```(certigrad.T.grad_mvn_kl₁ %%k),
+   s ← try_add_simp s ```(certigrad.T.grad_mvn_kl₂ %%k),
    s ← try_add_simp s ```(certigrad.T.grad_bernoulli_neglogpdf₁ %%k),
    s ← try_add_simp s ```(certigrad.T.grad_bernoulli_neglogpdf₂ %%k),
 
@@ -395,8 +395,8 @@ do k ← compute_k grad,
           -- these haven't been defined yet
         , to_expr ```(T.is_cdifferentiable_sigmoid %%k) >>= apply
         , to_expr ```(T.is_cdifferentiable_softplus %%k) >>= apply
-        , to_expr ```(T.is_cdifferentiable_mvn_iso_kl₁ %%k) >>= apply
-        , to_expr ```(T.is_cdifferentiable_mvn_iso_kl₂ %%k) >>= apply
+        , to_expr ```(T.is_cdifferentiable_mvn_kl₁ %%k) >>= apply
+        , to_expr ```(T.is_cdifferentiable_mvn_kl₂ %%k) >>= apply
         , to_expr ```(T.is_cdifferentiable_bernoulli_neglogpdf₁ %%k) >>= apply
         , to_expr ```(T.is_cdifferentiable_bernoulli_neglogpdf₂ %%k) >>= apply
 
@@ -429,23 +429,23 @@ end simplify_grad
 
 -- Compounds with simplify_grad
 
-lemma grad_mvn_iso_kl₁ (k : ℝ → ℝ) (shape : S) (μ σ : T shape) : ∇ (λ μ, k (mvn_iso_kl μ σ)) μ = ∇ k (mvn_iso_kl μ σ) ⬝ μ :=
+lemma grad_mvn_kl₁ (k : ℝ → ℝ) (shape : S) (μ σ : T shape) : ∇ (λ μ, k (mvn_kl μ σ)) μ = ∇ k (mvn_kl μ σ) ⬝ μ :=
 begin
-dunfold T.mvn_iso_kl,
+dunfold T.mvn_kl,
 simplify_grad,
 simp [T.smul.def, T.const_neg, T.const_mul, T.const_zero, T.const_one, T.const_bit0, T.const_bit1, T.const_inv],
 rw [-(mul_assoc (2 : T shape) 2⁻¹), T.mul_inv_cancel two_pos],
 simp
 end
 
-lemma grad_mvn_iso_kl₂ (k : ℝ → ℝ) (shape : S) (μ σ : T shape) (H_σ : σ > 0) (H_k : is_cdifferentiable k (mvn_iso_kl μ σ)) :
-  ∇ (λ σ, k (mvn_iso_kl μ σ)) σ = ∇ k (mvn_iso_kl μ σ) ⬝ (σ - (1 / σ)) :=
+lemma grad_mvn_kl₂ (k : ℝ → ℝ) (shape : S) (μ σ : T shape) (H_σ : σ > 0) (H_k : is_cdifferentiable k (mvn_kl μ σ)) :
+  ∇ (λ σ, k (mvn_kl μ σ)) σ = ∇ k (mvn_kl μ σ) ⬝ (σ - (1 / σ)) :=
 have H_σ₂ : square σ > 0, from square_pos_of_pos H_σ,
 have H_diff₁ : is_cdifferentiable (λ (θ₀ : T shape), k (-2⁻¹ * T.sum (1 + T.log (square θ₀) - square μ - square σ))) σ, by prove_differentiable,
 have H_diff₂ : is_cdifferentiable (λ (θ₀ : T shape), k (-2⁻¹ * T.sum (1 + T.log (square σ) - square μ - square θ₀))) σ, by prove_differentiable,
 
 begin
-dunfold T.mvn_iso_kl,
+dunfold T.mvn_kl,
 rw (T.grad_binary (λ θ₁ θ₂, k ((- 2⁻¹) * T.sum (1 + T.log (square θ₁) - square μ - square θ₂))) _ H_diff₁ H_diff₂),
 dsimp,
 simplify_grad,
@@ -502,14 +502,14 @@ lemma is_cdifferentiable_softplus {shape : S} (k : T shape → ℝ) (θ : T shap
   is_cdifferentiable k (softplus θ) → is_cdifferentiable (λ θ, k (softplus θ)) θ :=
 begin intro H, dunfold softplus, prove_differentiable end
 
-lemma is_cdifferentiable_mvn_iso_kl₁ (k : ℝ → ℝ) (shape : S) (μ σ : T shape) :
-  is_cdifferentiable k (mvn_iso_kl μ σ) → is_cdifferentiable (λ μ, k (mvn_iso_kl μ σ)) μ :=
-begin intro H, dunfold mvn_iso_kl, prove_differentiable end
+lemma is_cdifferentiable_mvn_kl₁ (k : ℝ → ℝ) (shape : S) (μ σ : T shape) :
+  is_cdifferentiable k (mvn_kl μ σ) → is_cdifferentiable (λ μ, k (mvn_kl μ σ)) μ :=
+begin intro H, dunfold mvn_kl, prove_differentiable end
 
-lemma is_cdifferentiable_mvn_iso_kl₂ (k : ℝ → ℝ) (shape : S) (μ σ : T shape) (H_σ : σ > 0) :
-  is_cdifferentiable k (mvn_iso_kl μ σ) → is_cdifferentiable (λ σ, k (mvn_iso_kl μ σ)) σ :=
+lemma is_cdifferentiable_mvn_kl₂ (k : ℝ → ℝ) (shape : S) (μ σ : T shape) (H_σ : σ > 0) :
+  is_cdifferentiable k (mvn_kl μ σ) → is_cdifferentiable (λ σ, k (mvn_kl μ σ)) σ :=
 begin
-intro H, dunfold mvn_iso_kl,
+intro H, dunfold mvn_kl,
 apply is_cdifferentiable_binary (λ θ₁ θ₂, k (-2⁻¹ * T.sum (1 + T.log (square θ₁) + -square μ + -square θ₂))),
 { dsimp, prove_differentiable },
 { dsimp, prove_differentiable }
@@ -535,10 +535,10 @@ end
 
 -- Random
 
-lemma mvn_iso_grad_logpdf_μ_correct {shape : S} (μ σ x : T shape) (H_σ : σ > 0) :
-  ∇ (λ θ, mvn_iso_logpdf θ σ x) μ = mvn_iso_grad_logpdf_μ μ σ x :=
+lemma mvn_grad_logpdf_μ_correct {shape : S} (μ σ x : T shape) (H_σ : σ > 0) :
+  ∇ (λ θ, mvn_logpdf θ σ x) μ = mvn_grad_logpdf_μ μ σ x :=
 begin
-dunfold mvn_iso_logpdf,
+dunfold mvn_logpdf,
 note H := square_pos_of_pos H_σ,
 simplify_grad,
 simp [smul.def, const_bit0, const_one, const_neg, const_inv, T.neg_div],
@@ -547,8 +547,8 @@ simp, rw T.div_div_eq_div_mul,
 reflexivity
 end
 
-lemma mvn_iso_grad_logpdf_σ_correct {shape : S} (μ σ x : T shape) (H_σ : σ > 0) :
-  ∇ (λ θ, mvn_iso_logpdf μ θ x) σ = mvn_iso_grad_logpdf_σ μ σ x :=
+lemma mvn_grad_logpdf_σ_correct {shape : S} (μ σ x : T shape) (H_σ : σ > 0) :
+  ∇ (λ θ, mvn_logpdf μ θ x) σ = mvn_grad_logpdf_σ μ σ x :=
 have H_σ₂ : square σ > 0, from square_pos_of_pos H_σ,
 have H_d₁ : is_cdifferentiable (λ θ₀, -2⁻¹ * sum (square ((x - μ) / θ₀) + log (2 * pi shape) + log (square σ))) σ, by prove_differentiable,
 have H_d₂ : is_cdifferentiable (λ θ₀, -2⁻¹ * sum (square ((x - μ) / σ) + log (2 * pi shape) + log (square θ₀))) σ, by prove_differentiable,
@@ -559,7 +559,7 @@ have H₁ : (2 * (2⁻¹ / square σ)) = σ⁻¹ * σ⁻¹,
 have H₂ : 2 * ((x + -μ) * ((x + -μ) * 2⁻¹)) = (2 * 2⁻¹) * square (x - μ), by simp [square],
 
 begin
-dunfold mvn_iso_logpdf,
+dunfold mvn_logpdf,
 rw grad_binary (λ θ₁ θ₂, -2⁻¹ * sum (square ((x - μ) / θ₁) + log (2 * pi shape) + log (square θ₂))) _ H_d₁ H_d₂, dsimp,
 simplify_grad,
 simp [smul.def, const_bit0, const_one, const_neg, const_inv, T.neg_div, T.div_div_eq_div_mul],
@@ -567,7 +567,7 @@ rw H₁,
 rw -mul_assoc, rw T.mul_inv_cancel H_σ,
 simp [T.mul_div_mul_alt, T.div_div_eq_div_mul],
 rw [H₂, T.mul_inv_cancel two_pos],
-simp [mvn_iso_grad_logpdf_σ]
+simp [mvn_grad_logpdf_σ]
 end
 
 -- With data structures

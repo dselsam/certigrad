@@ -13,34 +13,34 @@ open list
 section algebra
 open T
 
-lemma mvn_iso_transform {shape : S} (μ σ x : T shape) (H_σ : σ > 0) :
-  mvn_iso_pdf μ σ x = (prod σ⁻¹) * mvn_iso_pdf 0 1 ((x - μ) / σ) :=
-calc  mvn_iso_pdf μ σ x
+lemma mvn_transform {shape : S} (μ σ x : T shape) (H_σ : σ > 0) :
+  mvn_pdf μ σ x = (prod σ⁻¹) * mvn_pdf 0 1 ((x - μ) / σ) :=
+calc  mvn_pdf μ σ x
     = prod ((sqrt ((2 * pi shape) * square σ))⁻¹ * exp ((- 2⁻¹) * (square $ (x - μ) / σ))) : rfl
 ... = prod ((sqrt (2 * pi shape) * σ)⁻¹ * exp ((- 2⁻¹) * (square $ (x - μ) / σ))) : by rw [sqrt_mul, sqrt_square]
 ... = prod (((sqrt (2 * pi shape))⁻¹ * σ⁻¹) * exp ((- 2⁻¹) * (square $ (x - μ) / σ))) : by rw [T.mul_inv_pos (sqrt_pos two_pi_pos) H_σ]
 ... = (prod σ⁻¹) * prod ((sqrt (2 * pi shape))⁻¹ * exp ((- 2⁻¹) * (square $ (x - μ) / σ))) : by simp [prod_mul]
 ... = (prod σ⁻¹) * prod ((sqrt ((2 * pi shape) * square 1))⁻¹ * exp ((- 2⁻¹) * (square ((((x - μ) / σ) - 0) / 1)))) : by simp [T.div_one, square]
-... = (prod σ⁻¹) * mvn_iso_pdf 0 1 ((x - μ) / σ) : rfl
+... = (prod σ⁻¹) * mvn_pdf 0 1 ((x - μ) / σ) : rfl
 
 end algebra
 
 open sprog
 
 lemma mvn_reparam_same {shape oshape : S} {μ σ : T shape} (f : dvec T [shape] → T oshape) : σ > 0 →
-E (prim (rand.op.mvn_iso shape) ⟦μ, σ⟧) f
+E (prim (rand.op.mvn shape) ⟦μ, σ⟧) f
 =
-E (bind (prim (rand.op.mvn_iso_std shape) ⟦⟧) (λ (x : dvec T [shape]), ret ⟦(x^.head * σ) + μ⟧)) f :=
+E (bind (prim (rand.op.mvn_std shape) ⟦⟧) (λ (x : dvec T [shape]), ret ⟦(x^.head * σ) + μ⟧)) f :=
 assume (H_σ_pos : σ > 0),
 begin
 simp only [E.E_bind, E.E_ret],
-dunfold E rand.op.mvn_iso rand.op.pdf T.dintegral dvec.head rand.pdf.mvn_iso rand.pdf.mvn_iso_std,
-simp only [λ x, mvn_iso_transform μ σ x H_σ_pos],
+dunfold E rand.op.mvn rand.op.pdf T.dintegral dvec.head rand.pdf.mvn rand.pdf.mvn_std,
+simp only [λ x, mvn_transform μ σ x H_σ_pos],
 
 assert H : ∀ (x : T shape), ((σ * x + μ + -μ) / σ) = x,
   { intro x, simp only [add_assoc, add_neg_self, add_zero], rw mul_comm, rw -T.mul_div_mul_alt, rw T.div_self H_σ_pos, rw mul_one},
-definev g : T shape → T oshape := λ (x : T shape), T.mvn_iso_pdf 0 1 ((x - μ) / σ) ⬝ f ⟦x⟧,
-assert H_rhs : ∀ (x : T shape), T.mvn_iso_pdf 0 1 x ⬝ f ⟦x * σ + μ⟧ = g (σ * x + μ),
+definev g : T shape → T oshape := λ (x : T shape), T.mvn_pdf 0 1 ((x - μ) / σ) ⬝ f ⟦x⟧,
+assert H_rhs : ∀ (x : T shape), T.mvn_pdf 0 1 x ⬝ f ⟦x * σ + μ⟧ = g (σ * x + μ),
 { intro x, dsimp, rw H, simp },
 
 rw funext H_rhs,
@@ -51,7 +51,7 @@ end
 
 def reparameterize_pre (eshape : S) : list node → env → Prop
 | [] inputs := true
-| (⟨⟨ref, shape⟩, [⟨μ, .(shape)⟩, ⟨σ, .(shape)⟩], operator.rand (rand.op.mvn_iso .(shape))⟩::nodes) inputs :=
+| (⟨⟨ref, shape⟩, [⟨μ, .(shape)⟩, ⟨σ, .(shape)⟩], operator.rand (rand.op.mvn .(shape))⟩::nodes) inputs :=
   eshape = shape ∧ σ ≠ μ ∧ 0 < env.get (σ, shape) inputs
 | (⟨ref, parents, operator.det op⟩::nodes) inputs := reparameterize_pre nodes (env.insert ref (op^.f (env.get_ks parents inputs)) inputs)
 | (⟨ref, parents, operator.rand op⟩::nodes) inputs := ∀ x, reparameterize_pre nodes (env.insert ref x inputs)
@@ -59,9 +59,9 @@ def reparameterize_pre (eshape : S) : list node → env → Prop
 def reparameterize (fname : ID) : list node → list node
 | [] := []
 
-| (⟨⟨ident, shape⟩, [⟨μ, .(shape)⟩, ⟨σ, .(shape)⟩], operator.rand (rand.op.mvn_iso .(shape))⟩::nodes) :=
+| (⟨⟨ident, shape⟩, [⟨μ, .(shape)⟩, ⟨σ, .(shape)⟩], operator.rand (rand.op.mvn .(shape))⟩::nodes) :=
 
- (⟨(fname, shape), [],                                       operator.rand (rand.op.mvn_iso_std shape)⟩
+ (⟨(fname, shape), [],                                       operator.rand (rand.op.mvn_std shape)⟩
 ::⟨(ident, shape),   [(fname, shape), (σ, shape), (μ, shape)], operator.det (ops.mul_add shape)⟩
 ::nodes)
 
@@ -80,7 +80,7 @@ E (graph.to_dist (λ env₀, ⟦sum_costs env₀ costs⟧) inputs nodes) dvec.he
 
 | [] _ _ _ _ _ _ _ _ := rfl
 
-| (⟨⟨ident, shape⟩, [⟨μ, .(shape)⟩, ⟨σ, .(shape)⟩], operator.rand (rand.op.mvn_iso .(shape))⟩::nodes) inputs fref H_pre H_uids H_ps_in_env H_fresh₁ H_fresh₂ H_not_cost :=
+| (⟨⟨ident, shape⟩, [⟨μ, .(shape)⟩, ⟨σ, .(shape)⟩], operator.rand (rand.op.mvn .(shape))⟩::nodes) inputs fref H_pre H_uids H_ps_in_env H_fresh₁ H_fresh₂ H_not_cost :=
 begin
 dunfold reparameterize,
 assertv H_eshape : fref.2 = shape := H_pre^.left,

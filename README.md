@@ -27,7 +27,7 @@ Even more informally, `∇ E[loss(graph)] = E[backprop(graph)]`.
 
 #### Certified optimizations
 
-We also implemented two stochastic-computation-graph-transformations, one to "reparameterize" a graph so that a random variable no longer depends directly on a parameter, and one to integrate out the KL-divergence of the multivariate isotropic Gaussian.
+We also implemented two stochastic-computation-graph-transformations, one to "reparameterize" a graph so that a random variable no longer depends directly on a parameter, and one to integrate out the KL-divergence of the multivariate Gaussian.
 
 https://github.com/dselsam/certigrad/blob/master/src/certigrad/kl.lean#L79-L90
 

@@ -35,7 +35,7 @@ let g₀ : graph := graph_naive a x_data, fdict : env := mk_input_dict ws x_data
 E (graph.to_dist (λ m, ⟦sum_costs m (integrate_kl g₀)^.costs⟧) (env.insert tgt θ fdict) (integrate_kl g₀)^.nodes) dvec.head
 =
 E (graph.to_dist (λ m, ⟦sum_costs m g₀^.costs⟧) (env.insert tgt θ fdict) g₀^.nodes) dvec.head :=
-by prove_transformation ```(integrate_mvn_iso_kl_correct (ID.str label.encoding_loss) [ID.str label.decoding_loss] (graph_naive a x_data)^.nodes)
+by prove_transformation ```(integrate_mvn_kl_correct (ID.str label.encoding_loss) [ID.str label.decoding_loss] (graph_naive a x_data)^.nodes)
 
 #print "proving reparam_sound..."
 lemma reparam_sound (a : arch) (ws : weights a) (x_data : T [a^.n_in, a^.n_x]) :

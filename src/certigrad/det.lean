@@ -44,34 +44,34 @@ inductive op : Π (ishapes : list S) (oshape : S),  Type
 
 -- Note: we keep this separate because we use it in a program transformation
 -- (we want to be able to pattern match on it)
-| mvn_iso_empirical_kl : Π (shape : S), op [shape, shape, shape] []
+| mvn_empirical_kl : Π (shape : S), op [shape, shape, shape] []
 
 
 namespace op
 
 def f : Π {ishapes : list S} {oshape : S}, op ishapes oshape → function ishapes oshape
 | ._ ._ (@op.mk ishapes id oshape fn f_pre f_pb is_odiff pb_correct is_continuous)  := fn
-| ._ ._ (@op.mvn_iso_empirical_kl shape) := λ xs, T.mvn_iso_empirical_kl xs^.head xs^.head2 xs^.head3
+| ._ ._ (@op.mvn_empirical_kl shape) := λ xs, T.mvn_empirical_kl xs^.head xs^.head2 xs^.head3
 
 def pre : Π {ishapes : list S} {oshape : S}, op ishapes oshape → precondition ishapes
 | ._ ._ (@op.mk id ishapes oshape fn f_pre f_pb is_odiff pb_correct is_continuous)  := f_pre
-| ._ ._ (@mvn_iso_empirical_kl shape) := λ xs, false
+| ._ ._ (@mvn_empirical_kl shape) := λ xs, false
 
 def pb : Π {ishapes : list S} {oshape : S}, op ishapes oshape → pullback ishapes oshape
 | ._ ._ (@op.mk id ishapes oshape fn f_pre f_pb is_odiff pb_correct is_continuous)  := f_pb
-| ._ ._ (@mvn_iso_empirical_kl shape) := λ xs y gy idx fshape, T.error "mvn_iso_empirical_kl: gradients not implemented"
+| ._ ._ (@mvn_empirical_kl shape) := λ xs y gy idx fshape, T.error "mvn_empirical_kl: gradients not implemented"
 
 def is_odiff : Π {ishapes : list S} {oshape : S} (op : op ishapes oshape), is_odifferentiable op^.f op^.pre
 | ._ ._ (@op.mk id ishapes oshape fn f_pre f_pb f_is_odiff f_pb_correct f_is_continuous) := f_is_odiff
-| ._ ._ (@mvn_iso_empirical_kl shape) := λ xs H_pre idx fshape H_fshape_at_idx k H_k, false.rec _ H_pre
+| ._ ._ (@mvn_empirical_kl shape) := λ xs H_pre idx fshape H_fshape_at_idx k H_k, false.rec _ H_pre
 
 def pb_correct : Π {ishapes : list S} {oshape : S} (op : op ishapes oshape), pullback_correct op^.f op^.pre op^.pb
 | ._ ._ (@op.mk id ishapes oshape fn f_pre f_pb f_is_odiff f_pb_correct f_is_continuous) := f_pb_correct
-| ._ ._ (@mvn_iso_empirical_kl shape) := λ xs y _ g_out _ _ H_at_idx H_pre, false.rec _ H_pre
+| ._ ._ (@mvn_empirical_kl shape) := λ xs y _ g_out _ _ H_at_idx H_pre, false.rec _ H_pre
 
 def is_ocont : Π {ishapes : list S} {oshape : S} (op : op ishapes oshape), is_ocontinuous op^.f op^.pre
 | ._ ._ (@op.mk id ishapes oshape fn f_pre f_pb f_is_odiff f_pb_correct f_is_continuous) := f_is_continuous
-| ._ ._ (@mvn_iso_empirical_kl shape) := λ xs idx ishape H_ishape_at_idx H_pre, false.rec _ H_pre
+| ._ ._ (@mvn_empirical_kl shape) := λ xs idx ishape H_ishape_at_idx H_pre, false.rec _ H_pre
 
 end op
 end det

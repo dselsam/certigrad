@@ -11,7 +11,7 @@ Specifically, Certigrad is a system for optimizing over stochastic computation g
 
 ## Background: stochastic computation graphs
 
-Stochastic computation graphs extend the computation graphs that underly systems like TensorFlow and Theano by allowing nodes to represent random variables and by defining the loss function to be the expected value of the sum of the leaf nodes over all the random choices in the graph. Certigrad allows users to construct arbitrary stochastic computation graphs out of the primitives that we provide. The main purpose of the system is to take a program describing a stochastic computation graph and to run a randomized algorithm (stochastic backpropagation) that, in expectation, samples the gradients of the loss function with respect to the parameters.
+Stochastic computation graphs extend the computation graphs that underlie systems like TensorFlow and Theano by allowing nodes to represent random variables and by defining the loss function to be the expected value of the sum of the leaf nodes over all the random choices in the graph. Certigrad allows users to construct arbitrary stochastic computation graphs out of the primitives that we provide. The main purpose of the system is to take a program describing a stochastic computation graph and to run a randomized algorithm (stochastic backpropagation) that, in expectation, samples the gradients of the loss function with respect to the parameters.
 
 ## Correctness
 
@@ -62,7 +62,7 @@ We have adopted a very high standard for our proofs, but there are a few ways in
 
 ## Performance
 
-Provable correctness need not come at the expense of computational efficiency: proofs need only be checked once and they introduce no ongoing costs or runtime overhead. Although the algorithms we verify in this work lack many optimizations, most of the time training machine learning systems is spent multiplying matrices, and we are able to acheive competitive performance simply by linking with an optimized library for matrix operations (Eigen). We trained an Auto-Encoding Variational Bayes (AEVB) model on MNIST using ADAM and find that our performance is competitive with TensorFlow (on CPUs).
+Provable correctness need not come at the expense of computational efficiency: proofs need only be checked once and they introduce no ongoing costs or runtime overhead. Although the algorithms we verify in this work lack many optimizations, most of the time training machine learning systems is spent multiplying matrices, and we are able to achieve competitive performance simply by linking with an optimized library for matrix operations (Eigen). We trained an Auto-Encoding Variational Bayes (AEVB) model on MNIST using ADAM and find that our performance is competitive with TensorFlow (on CPUs).
 
 We include a script to train an AEVB on MNIST using ADAM:
 
@@ -90,7 +90,7 @@ The possibilities for synthesis go way beyond simply automating algebraic deriva
 
 #### Aggressive optimizations
 
-Third, our methodology may enable safely automating much more aggressive transformations than would otherwise be advisable. For example, one could write a procedure that searches for components of a stochastic computation graph that can be integrated out analytically, that makes use of large libraries of integral identities as well as procedural methods that are impossible for humans to simulate by hand. Such a procedure may be able to acheive super-human variance reduction on many models yet may be extremely difficult to implement reliably; if the procedure is able to generate a machine-checkable certificate for a given transformation, the transformation can be trusted regardless of the complexity of the procedure itself.
+Third, our methodology may enable safely automating much more aggressive transformations than would otherwise be advisable. For example, one could write a procedure that searches for components of a stochastic computation graph that can be integrated out analytically, that makes use of large libraries of integral identities as well as procedural methods that are impossible for humans to simulate by hand. Such a procedure may be able to achieve super-human variance reduction on many models yet may be extremely difficult to implement reliably; if the procedure is able to generate a machine-checkable certificate for a given transformation, the transformation can be trusted regardless of the complexity of the procedure itself.
 
 #### Documentation
 
@@ -98,7 +98,7 @@ Fourth, a formal specification (even without a formal proof) can serve as precis
 
 ## Incrementality
 
-Our methodology may already be economical for high-assurrance systems, and yet there is still a lot of work to be done to make it practical for mainstream developments for which correctness is only "optional". However, a crucial aspect of our methodology is that it can be adopted _incrementally_. One can write only a little bit of the code in Lean and simply wrap and axiomatize the rest (as we did with Eigen). One can also write down shallow correctness properties, and only prove that a few of these properties hold. We hope that over time, as the tools mature, developers will find it worth the cost to pursue our methodology further and will be able to reap more of its benefits.
+Our methodology may already be economical for high-assurance systems, and yet there is still a lot of work to be done to make it practical for mainstream developments for which correctness is only "optional". However, a crucial aspect of our methodology is that it can be adopted _incrementally_. One can write only a little bit of the code in Lean and simply wrap and axiomatize the rest (as we did with Eigen). One can also write down shallow correctness properties, and only prove that a few of these properties hold. We hope that over time, as the tools mature, developers will find it worth the cost to pursue our methodology further and will be able to reap more of its benefits.
 
 ## Building Certigrad
 
